@@ -74,18 +74,51 @@ const flavorFields = [
   'richChocolate',
 ] as const;
 
-const temperatureDefaults: Record<'cold' | 'warm' | 'hot', Partial<FormValues>> = {
+const temperatureDefaults: Record<
+  'cold' | 'warm' | 'hot',
+  Partial<FormValues>
+> = {
   hot: {
-    aroma: 8.5, flavor: 8.25, aftertaste: 8, acidity: 8.5, body: 8, balance: 8.25,
-    floral: 8, fruity: 7, sweetSpice: 6, nutty: 5, toasted: 4, richChocolate: 6,
+    aroma: 8.5,
+    flavor: 8.25,
+    aftertaste: 8,
+    acidity: 8.5,
+    body: 8,
+    balance: 8.25,
+    floral: 8,
+    fruity: 7,
+    sweetSpice: 6,
+    nutty: 5,
+    toasted: 4,
+    richChocolate: 6,
   },
   warm: {
-    aroma: 7, flavor: 7.5, aftertaste: 7.25, acidity: 6.5, body: 7.5, balance: 7,
-    floral: 5, fruity: 8, sweetSpice: 7, nutty: 6, toasted: 5, richChocolate: 7,
+    aroma: 7,
+    flavor: 7.5,
+    aftertaste: 7.25,
+    acidity: 6.5,
+    body: 7.5,
+    balance: 7,
+    floral: 5,
+    fruity: 8,
+    sweetSpice: 7,
+    nutty: 6,
+    toasted: 5,
+    richChocolate: 7,
   },
   cold: {
-    aroma: 6, flavor: 6.5, aftertaste: 6, acidity: 5, body: 6.5, balance: 6,
-    floral: 3, fruity: 6, sweetSpice: 5, nutty: 8, toasted: 7, richChocolate: 8,
+    aroma: 6,
+    flavor: 6.5,
+    aftertaste: 6,
+    acidity: 5,
+    body: 6.5,
+    balance: 6,
+    floral: 3,
+    fruity: 6,
+    sweetSpice: 5,
+    nutty: 8,
+    toasted: 7,
+    richChocolate: 8,
   },
 };
 
@@ -109,10 +142,12 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
   useEffect(() => {
     const newDefaults = temperatureDefaults[watchedTemperature];
     for (const key in newDefaults) {
-      form.setValue(key as keyof FormValues, newDefaults[key as keyof FormValues]);
+      form.setValue(
+        key as keyof FormValues,
+        newDefaults[key as keyof FormValues]
+      );
     }
   }, [watchedTemperature, form]);
-
 
   function handleSubmit(values: FormValues) {
     const scores = scoreFields.map((name) => ({
@@ -155,7 +190,7 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
         <CardTitle>SCA Evaluation Form</CardTitle>
         <CardDescription>
           Enter the coffee cupping details below.
-        </Card-Description>
+        </CardDescription>
       </CardHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)}>
