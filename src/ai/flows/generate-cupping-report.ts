@@ -33,7 +33,9 @@ const prompt = ai.definePrompt({
 
 Cupping Data: {{{cuppingData}}}
 
-Include a summary of the key findings, highlighting the coffee's strengths and weaknesses, and provide an overall score based on the SCA standards.  The report should be suitable for sharing with other coffee professionals and enthusiasts.
+Pay special attention to the 'waterTemperature' field. Analyze and describe how the water temperature (cold, warm, or hot) might have influenced the coffee's flavor profile, acidity, body, and overall perception.
+
+Include a summary of the key findings, highlighting the coffee's strengths and weaknesses, and provide an overall score based on the SCA standards. The report should be suitable for sharing with other coffee professionals and enthusiasts.
 `,
 });
 

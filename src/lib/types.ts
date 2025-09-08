@@ -12,6 +12,7 @@ export interface Evaluation {
   id: string;
   evaluator: string;
   coffeeName: string;
+  waterTemperature: 'cold' | 'warm' | 'hot';
   scores: Score[];
   flavorProfile: FlavorProfile;
   overallScore: number;

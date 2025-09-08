@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -24,12 +25,16 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Slider } from '@/components/ui/slider';
 import type { Evaluation } from '@/lib/types';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 const scoreSchema = z.coerce.number().min(0).max(10);
 
 const formSchema = z.object({
   coffeeName: z.string().min(1, 'Coffee name is required'),
   evaluator: z.string().min(1, 'Evaluator name is required'),
+  waterTemperature: z.enum(['cold', 'warm', 'hot'], {
+    required_error: 'You need to select a water temperature.',
+  }),
   aroma: scoreSchema,
   flavor: scoreSchema,
   aftertaste: scoreSchema,
@@ -74,6 +79,7 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
     defaultValues: {
       coffeeName: '',
       evaluator: '',
+      waterTemperature: 'hot',
       aroma: 7,
       flavor: 7,
       aftertaste: 7,
@@ -105,21 +111,25 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
       'Rich Chocolate': values.richChocolate,
     };
 
-    const overallScore = scores.reduce((acc, score) => acc + score.value, 0) / scores.length * 10;
+    const overallScore =
+      (scores.reduce((acc, score) => acc + score.value, 0) / scores.length) *
+      10;
 
     const evaluationData: Omit<Evaluation, 'id'> = {
       coffeeName: values.coffeeName,
       evaluator: values.evaluator,
+      waterTemperature: values.waterTemperature,
       scores,
       flavorProfile,
       overallScore,
       notes: values.notes || '',
     };
-    
+
     onSubmit({ ...evaluationData, id: 'temp-id' });
   }
 
-  const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1).replace(/([A-Z])/g, ' $1');
+  const capitalize = (s: string) =>
+    s.charAt(0).toUpperCase() + s.slice(1).replace(/([A-Z])/g, ' $1');
 
   return (
     <Card>
@@ -140,7 +150,10 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
                   <FormItem>
                     <FormLabel>Coffee Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Ethiopia Yirgacheffe" {...field} />
+                      <Input
+                        placeholder="e.g., Ethiopia Yirgacheffe"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -160,6 +173,44 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
                 )}
               />
             </div>
+
+            <Separator />
+            <FormField
+              control={form.control}
+              name="waterTemperature"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <FormLabel>Water Temperature</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      className="flex flex-col space-y-1 md:flex-row md:space-y-0 md:space-x-8"
+                    >
+                      <FormItem className="flex items-center space-x-3 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="cold" />
+                        </FormControl>
+                        <FormLabel className="font-normal">Cold</FormLabel>
+                      </FormItem>
+                      <FormItem className="flex items-center space-x-3 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="warm" />
+                        </FormControl>
+                        <FormLabel className="font-normal">Warm</FormLabel>
+                      </FormItem>
+                      <FormItem className="flex items-center space-x-3 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="hot" />
+                        </FormControl>
+                        <FormLabel className="font-normal">Hot</FormLabel>
+                      </FormItem>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <Separator />
             <h3 className="text-lg font-semibold">Scores</h3>
@@ -201,7 +252,7 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="flex justify-between">
-                         <span>{capitalize(name)}</span>
+                        <span>{capitalize(name)}</span>
                         <span>{field.value.toFixed(2)}</span>
                       </FormLabel>
                       <FormControl>
