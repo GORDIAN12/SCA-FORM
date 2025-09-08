@@ -23,4 +23,5 @@ export interface Session {
   name: string;
   date: string;
   evaluations: Evaluation[];
+  newEvaluation?: Partial<Evaluation>;
 }
