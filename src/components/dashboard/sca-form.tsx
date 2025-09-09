@@ -50,6 +50,7 @@ const formSchema = z.object({
   body: scoreSchema,
   bodyIntensity: intensitySchema,
   balance: scoreSchema,
+  cupperScore: scoreSchema,
   uniformity: z.array(z.boolean()).length(5).default(Array(5).fill(true)),
   cleanCup: z.array(z.boolean()).length(5).default(Array(5).fill(true)),
   sweetness: z.array(z.boolean()).length(5).default(Array(5).fill(true)),
@@ -73,6 +74,7 @@ const scoreFields = [
   'acidity',
   'body',
   'balance',
+  'cupperScore',
 ] as const;
 
 const CupSelector = ({
@@ -154,6 +156,7 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
       body: 8,
       bodyIntensity: 'medium',
       balance: 8,
+      cupperScore: 8,
       uniformity: Array(5).fill(true),
       cleanCup: Array(5).fill(true),
       sweetness: Array(5).fill(true),
@@ -192,7 +195,7 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
 
     const scores = [
       ...scoreFields.map((name) => ({
-        name: name.charAt(0).toUpperCase() + name.slice(1),
+        name: name.charAt(0).toUpperCase() + name.slice(1).replace('Score', ' Score'),
         value: values[name],
       })),
       { name: 'Uniformity', value: uniformityScore },
@@ -461,7 +464,7 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
             </div>
 
             <div className="space-y-4">
-              {['flavor', 'aftertaste', 'balance'].map((name) => (
+              {['flavor', 'aftertaste', 'balance', 'cupperScore'].map((name) => (
                 <FormField
                   key={name}
                   control={form.control}
