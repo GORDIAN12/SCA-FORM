@@ -151,7 +151,7 @@ const ScoreSlider = ({
     onChange: (value: number) => void;
   };
 }) => (
-  <>
+  <div className="relative">
     <Slider
       min={6}
       max={10}
@@ -159,14 +159,21 @@ const ScoreSlider = ({
       value={[field.value]}
       onValueChange={(value) => field.onChange(value[0])}
     />
-    <div className="flex justify-between text-xs text-muted-foreground px-1">
-      <span>6</span>
-      <span>7</span>
-      <span>8</span>
-      <span>9</span>
-      <span>10</span>
+    <div className="relative flex justify-between text-xs text-muted-foreground mt-1 px-1">
+      {[...Array(5)].map((_, i) => (
+        <div key={i} className="relative flex-1 text-center first:text-left last:text-right">
+          <span>{6 + i}</span>
+          {i < 4 && (
+            <div className="absolute top-0 left-0 right-0 flex justify-between items-center h-full -z-10">
+              <span className="w-px h-1.5 bg-border"></span>
+              <span className="w-px h-1.5 bg-border"></span>
+              <span className="w-px h-1.5 bg-border"></span>
+            </div>
+          )}
+        </div>
+      ))}
     </div>
-  </>
+  </div>
 );
 
 export function ScaForm({ onSubmit }: ScaFormProps) {
