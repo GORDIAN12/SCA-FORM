@@ -33,7 +33,6 @@ const scoreSchema = z.coerce.number().min(6).max(10);
 
 const formSchema = z.object({
   coffeeName: z.string().min(1, 'Coffee name is required'),
-  evaluator: z.string().min(1, 'Evaluator name is required'),
   roastLevel: z.enum(['light', 'medium', 'medium-dark', 'dark'], {
     required_error: 'You need to select a roast level.',
   }),
@@ -137,7 +136,6 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       coffeeName: '',
-      evaluator: '',
       roastLevel: 'medium',
       waterTemperature: 'hot',
       dryFragrance: 'medium',
@@ -183,7 +181,6 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
 
     const evaluationData: Omit<Evaluation, 'id'> = {
       coffeeName: values.coffeeName,
-      evaluator: values.evaluator,
       roastLevel: values.roastLevel,
       waterTemperature: values.waterTemperature,
       dryFragrance: values.dryFragrance,
@@ -211,37 +208,23 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)}>
           <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="coffeeName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Coffee Name</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="e.g., Ethiopia Yirgacheffe"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="evaluator"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Evaluator</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., Jane Doe" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="coffeeName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Coffee Name</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="e.g., Ethiopia Yirgacheffe"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <Separator />
             <FormField
               control={form.control}

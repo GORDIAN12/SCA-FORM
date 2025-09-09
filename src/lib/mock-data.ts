@@ -8,7 +8,6 @@ export const mockSessions: Session[] = [
     evaluations: [
       {
         id: 'eval-1a',
-        evaluator: 'Alice',
         coffeeName: 'Ethiopia Yirgacheffe Washed',
         scores: [
           { name: 'Aroma', value: 8.75 },
@@ -23,7 +22,7 @@ export const mockSessions: Session[] = [
           Fruity: 8,
           'Sweet Spice': 7,
           Nutty: 4,
-          'Toasted': 3,
+          Toasted: 3,
           'Rich Chocolate': 5,
         },
         overallScore: 88.5,
@@ -32,7 +31,6 @@ export const mockSessions: Session[] = [
       },
       {
         id: 'eval-1b',
-        evaluator: 'Bob',
         coffeeName: 'Ethiopia Yirgacheffe Natural',
         scores: [
           { name: 'Aroma', value: 8.5 },
@@ -47,7 +45,7 @@ export const mockSessions: Session[] = [
           Fruity: 9,
           'Sweet Spice': 6,
           Nutty: 3,
-          'Toasted': 2,
+          Toasted: 2,
           'Rich Chocolate': 6,
         },
         overallScore: 89.25,
@@ -63,7 +61,6 @@ export const mockSessions: Session[] = [
     evaluations: [
       {
         id: 'eval-2a',
-        evaluator: 'Charlie',
         coffeeName: 'Colombia Supremo, Finca La Esmeralda',
         scores: [
           { name: 'Aroma', value: 8.25 },
@@ -78,7 +75,7 @@ export const mockSessions: Session[] = [
           Fruity: 7,
           'Sweet Spice': 7,
           Nutty: 8,
-          'Toasted': 6,
+          Toasted: 6,
           'Rich Chocolate': 9,
         },
         overallScore: 86.75,
@@ -94,7 +91,6 @@ export const mockSessions: Session[] = [
     evaluations: [
       {
         id: 'eval-3a',
-        evaluator: 'Alice',
         coffeeName: 'Sumatra Mandheling Grade 1',
         scores: [
           { name: 'Aroma', value: 8.0 },
@@ -109,7 +105,7 @@ export const mockSessions: Session[] = [
           Fruity: 4,
           'Sweet Spice': 8,
           Nutty: 6,
-          'Toasted': 7,
+          Toasted: 7,
           'Rich Chocolate': 9,
         },
         overallScore: 85.5,

@@ -63,7 +63,7 @@ export function SessionView({ session: initialSession }: SessionViewProps) {
                   <SelectContent>
                     {allEvaluations.map((ev) => (
                       <SelectItem key={ev.id} value={ev.id}>
-                        {ev.coffeeName} (by {ev.evaluator})
+                        {ev.coffeeName}
                       </SelectItem>
                     ))}
                   </SelectContent>
