@@ -11,6 +11,8 @@ export interface Evaluation {
   waterTemperature: 'cold' | 'warm' | 'hot';
   dryFragrance: 'low' | 'medium' | 'high';
   wetAroma: 'low' | 'medium' | 'high';
+  acidityIntensity: 'low' | 'medium' | 'high';
+  bodyIntensity: 'low' | 'medium' | 'high';
   scores: Score[];
   overallScore: number;
   notes: string;
