@@ -40,6 +40,12 @@ const formSchema = z.object({
   waterTemperature: z.enum(['cold', 'warm', 'hot'], {
     required_error: 'You need to select a water temperature.',
   }),
+  dryFragrance: z.enum(['low', 'medium', 'high'], {
+    required_error: 'You need to select a dry fragrance level.',
+  }),
+  wetAroma: z.enum(['low', 'medium', 'high'], {
+    required_error: 'You need to select a wet aroma level.',
+  }),
   aroma: scoreSchema,
   flavor: scoreSchema,
   aftertaste: scoreSchema,
@@ -134,6 +140,8 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
       evaluator: '',
       roastLevel: 'medium',
       waterTemperature: 'hot',
+      dryFragrance: 'medium',
+      wetAroma: 'medium',
       ...temperatureDefaults.hot,
       notes: '',
     },
@@ -178,6 +186,8 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
       evaluator: values.evaluator,
       roastLevel: values.roastLevel,
       waterTemperature: values.waterTemperature,
+      dryFragrance: values.dryFragrance,
+      wetAroma: values.wetAroma,
       scores,
       flavorProfile,
       overallScore,
@@ -360,7 +370,81 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
                 </FormItem>
               )}
             />
-
+            <Separator />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="dryFragrance"
+                render={({ field }) => (
+                  <FormItem className="space-y-3">
+                    <FormLabel>Dry Fragrance</FormLabel>
+                    <FormControl>
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="flex space-x-4"
+                      >
+                        <FormItem className="flex items-center space-x-2 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value="low" />
+                          </FormControl>
+                          <FormLabel className="font-normal">Low</FormLabel>
+                        </FormItem>
+                        <FormItem className="flex items-center space-x-2 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value="medium" />
+                          </FormControl>
+                          <FormLabel className="font-normal">Medium</FormLabel>
+                        </FormItem>
+                        <FormItem className="flex items-center space-x-2 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value="high" />
+                          </FormControl>
+                          <FormLabel className="font-normal">High</FormLabel>
+                        </FormItem>
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="wetAroma"
+                render={({ field }) => (
+                  <FormItem className="space-y-3">
+                    <FormLabel>Wet Aroma (Crust)</FormLabel>
+                    <FormControl>
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="flex space-x-4"
+                      >
+                        <FormItem className="flex items-center space-x-2 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value="low" />
+                          </FormControl>
+                          <FormLabel className="font-normal">Low</FormLabel>
+                        </FormItem>
+                        <FormItem className="flex items-center space-x-2 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value="medium" />
+                          </FormControl>
+                          <FormLabel className="font-normal">Medium</FormLabel>
+                        </FormItem>
+                        <FormItem className="flex items-center space-x-2 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value="high" />
+                          </FormControl>
+                          <FormLabel className="font-normal">High</FormLabel>
+                        </FormItem>
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             <Separator />
             <h3 className="text-lg font-semibold">Scores</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">

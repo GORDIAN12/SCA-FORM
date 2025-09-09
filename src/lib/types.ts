@@ -14,6 +14,8 @@ export interface Evaluation {
   coffeeName: string;
   roastLevel: 'light' | 'medium' | 'medium-dark' | 'dark';
   waterTemperature: 'cold' | 'warm' | 'hot';
+  dryFragrance: 'low' | 'medium' | 'high';
+  wetAroma: 'low' | 'medium' | 'high';
   scores: Score[];
   flavorProfile: FlavorProfile;
   overallScore: number;
