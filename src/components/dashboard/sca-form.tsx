@@ -28,7 +28,7 @@ import type { Evaluation } from '@/lib/types';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useEffect } from 'react';
 
-const scoreSchema = z.coerce.number().min(0).max(10);
+const scoreSchema = z.coerce.number().min(6).max(10);
 
 const formSchema = z.object({
   coffeeName: z.string().min(1, 'Coffee name is required'),
@@ -88,9 +88,9 @@ const temperatureDefaults: Record<
     floral: 8,
     fruity: 7,
     sweetSpice: 6,
-    nutty: 5,
-    toasted: 4,
-    richChocolate: 6,
+    nutty: 6.5,
+    toasted: 6,
+    richChocolate: 7,
   },
   warm: {
     aroma: 7,
@@ -99,23 +99,23 @@ const temperatureDefaults: Record<
     acidity: 6.5,
     body: 7.5,
     balance: 7,
-    floral: 5,
+    floral: 6.5,
     fruity: 8,
     sweetSpice: 7,
     nutty: 6,
-    toasted: 5,
+    toasted: 6.5,
     richChocolate: 7,
   },
   cold: {
     aroma: 6,
     flavor: 6.5,
     aftertaste: 6,
-    acidity: 5,
+    acidity: 6.5,
     body: 6.5,
     balance: 6,
-    floral: 3,
+    floral: 6,
     fruity: 6,
-    sweetSpice: 5,
+    sweetSpice: 6.5,
     nutty: 8,
     toasted: 7,
     richChocolate: 8,
@@ -281,7 +281,7 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
                       </FormLabel>
                       <FormControl>
                         <Slider
-                          min={0}
+                          min={6}
                           max={10}
                           step={0.25}
                           value={[field.value]}
@@ -310,7 +310,7 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
                       </FormLabel>
                       <FormControl>
                         <Slider
-                          min={0}
+                          min={6}
                           max={10}
                           step={0.25}
                           value={[field.value]}
