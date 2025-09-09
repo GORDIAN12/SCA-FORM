@@ -1,6 +1,6 @@
 'use client';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm, useWatch, Controller } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import {
@@ -28,7 +28,7 @@ import type { Evaluation } from '@/lib/types';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Coffee } from 'lucide-react';
 
 const scoreSchema = z.coerce.number().min(6).max(10);
 const intensitySchema = z.enum(['low', 'medium', 'high'], {
@@ -112,20 +112,32 @@ const CupSelector = ({
     onChange: (value: boolean[]) => void;
   };
 }) => {
-  const handleChange = (index: number, checked: boolean) => {
+  const toggleCup = (index: number) => {
     const newValues = [...field.value];
-    newValues[index] = checked;
+    newValues[index] = !newValues[index];
     field.onChange(newValues);
   };
   return (
     <div className="flex items-center space-x-2">
       {[...Array(5)].map((_, index) => (
-        <FormControl key={index}>
-          <Checkbox
-            checked={field.value[index]}
-            onCheckedChange={(checked) => handleChange(index, !!checked)}
+        <button
+          key={index}
+          type="button"
+          onClick={() => toggleCup(index)}
+          className={cn(
+            'p-1 rounded-md transition-colors',
+            'hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+          )}
+        >
+          <Coffee
+            className={cn(
+              'size-5 transition-colors',
+              field.value[index]
+                ? 'text-primary fill-primary/20'
+                : 'text-muted-foreground/50'
+            )}
           />
-        </FormControl>
+        </button>
       ))}
     </div>
   );
@@ -166,8 +178,7 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
   }, [watchedTemperature, form]);
 
   function handleSubmit(values: FormValues) {
-    const uniformityScore =
-      values.uniformity.filter(Boolean).length * 2;
+    const uniformityScore = values.uniformity.filter(Boolean).length * 2;
     const cleanCupScore = values.cleanCup.filter(Boolean).length * 2;
     const sweetnessScore = values.sweetness.filter(Boolean).length * 2;
 
