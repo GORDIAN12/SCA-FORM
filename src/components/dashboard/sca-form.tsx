@@ -311,93 +311,18 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
                 </FormItem>
               )}
             />
+
             <Separator />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="dryFragrance"
-                render={({ field }) => (
-                  <FormItem className="space-y-3">
-                    <FormLabel>Dry Fragrance</FormLabel>
-                    <FormControl>
-                      <RadioGroup
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        className="flex space-x-4"
-                      >
-                        <FormItem className="flex items-center space-x-2 space-y-0">
-                          <FormControl>
-                            <RadioGroupItem value="low" />
-                          </FormControl>
-                          <FormLabel className="font-normal">Low</FormLabel>
-                        </FormItem>
-                        <FormItem className="flex items-center space-x-2 space-y-0">
-                          <FormControl>
-                            <RadioGroupItem value="medium" />
-                          </FormControl>
-                          <FormLabel className="font-normal">Medium</FormLabel>
-                        </FormItem>
-                        <FormItem className="flex items-center space-x-2 space-y-0">
-                          <FormControl>
-                            <RadioGroupItem value="high" />
-                          </FormControl>
-                          <FormLabel className="font-normal">High</FormLabel>
-                        </FormItem>
-                      </RadioGroup>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="wetAroma"
-                render={({ field }) => (
-                  <FormItem className="space-y-3">
-                    <FormLabel>Wet Aroma (Crust)</FormLabel>
-                    <FormControl>
-                      <RadioGroup
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        className="flex space-x-4"
-                      >
-                        <FormItem className="flex items-center space-x-2 space-y-0">
-                          <FormControl>
-                            <RadioGroupItem value="low" />
-                          </FormControl>
-                          <FormLabel className="font-normal">Low</FormLabel>
-                        </FormItem>
-                        <FormItem className="flex items-center space-x-2 space-y-0">
-                          <FormControl>
-                            <RadioGroupItem value="medium" />
-                          </FormControl>
-                          <FormLabel className="font-normal">Medium</FormLabel>
-                        </FormItem>
-                        <FormItem className="flex items-center space-x-2 space-y-0">
-                          <FormControl>
-                            <RadioGroupItem value="high" />
-                          </FormControl>
-                          <FormLabel className="font-normal">High</FormLabel>
-                        </FormItem>
-                      </RadioGroup>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            <Separator />
-            <h3 className="text-lg font-semibold">Scores</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-              {scoreFields.map((name) => (
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Fragrance / Aroma</h3>
+              <div className="space-y-4">
                 <FormField
-                  key={name}
                   control={form.control}
-                  name={name}
+                  name="aroma"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="flex justify-between">
-                        <span>{capitalize(name)}</span>
+                        <span>Aroma Score</span>
                         <span>{field.value.toFixed(2)}</span>
                       </FormLabel>
                       <FormControl>
@@ -412,7 +337,124 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
                     </FormItem>
                   )}
                 />
-              ))}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="dryFragrance"
+                    render={({ field }) => (
+                      <FormItem className="space-y-3">
+                        <FormLabel>Dry Fragrance</FormLabel>
+                        <FormControl>
+                          <RadioGroup
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                            className="flex space-x-4"
+                          >
+                            <FormItem className="flex items-center space-x-2 space-y-0">
+                              <FormControl>
+                                <RadioGroupItem value="low" />
+                              </FormControl>
+                              <FormLabel className="font-normal">
+                                Low
+                              </FormLabel>
+                            </FormItem>
+                            <FormItem className="flex items-center space-x-2 space-y-0">
+                              <FormControl>
+                                <RadioGroupItem value="medium" />
+                              </FormControl>
+                              <FormLabel className="font-normal">
+                                Medium
+                              </FormLabel>
+                            </FormItem>
+                            <FormItem className="flex items-center space-x-2 space-y-0">
+                              <FormControl>
+                                <RadioGroupItem value="high" />
+                              </FormControl>
+                              <FormLabel className="font-normal">
+                                High
+                              </FormLabel>
+                            </FormItem>
+                          </RadioGroup>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="wetAroma"
+                    render={({ field }) => (
+                      <FormItem className="space-y-3">
+                        <FormLabel>Wet Aroma (Crust)</FormLabel>
+                        <FormControl>
+                          <RadioGroup
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                            className="flex space-x-4"
+                          >
+                            <FormItem className="flex items-center space-x-2 space-y-0">
+                              <FormControl>
+                                <RadioGroupItem value="low" />
+                              </FormControl>
+                              <FormLabel className="font-normal">
+                                Low
+                              </FormLabel>
+                            </FormItem>
+                            <FormItem className="flex items-center space-x-2 space-y-0">
+                              <FormControl>
+                                <RadioGroupItem value="medium" />
+                              </FormControl>
+                              <FormLabel className="font-normal">
+                                Medium
+                              </FormLabel>
+                            </FormItem>
+                            <FormItem className="flex items-center space-x-2 space-y-0">
+                              <FormControl>
+                                <RadioGroupItem value="high" />
+                              </FormControl>
+                              <FormLabel className="font-normal">
+                                High
+                              </FormLabel>
+                            </FormItem>
+                          </RadioGroup>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <Separator />
+            <h3 className="text-lg font-semibold">Scores</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+              {scoreFields
+                .filter((name) => name !== 'aroma')
+                .map((name) => (
+                  <FormField
+                    key={name}
+                    control={form.control}
+                    name={name}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex justify-between">
+                          <span>{capitalize(name)}</span>
+                          <span>{field.value.toFixed(2)}</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Slider
+                            min={6}
+                            max={10}
+                            step={0.25}
+                            value={[field.value]}
+                            onValueChange={(value) => field.onChange(value[0])}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                ))}
             </div>
 
             <Separator />
