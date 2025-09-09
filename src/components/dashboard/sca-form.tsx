@@ -27,12 +27,16 @@ import { Slider } from '@/components/ui/slider';
 import type { Evaluation } from '@/lib/types';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useEffect } from 'react';
+import { cn } from '@/lib/utils';
 
 const scoreSchema = z.coerce.number().min(6).max(10);
 
 const formSchema = z.object({
   coffeeName: z.string().min(1, 'Coffee name is required'),
   evaluator: z.string().min(1, 'Evaluator name is required'),
+  roastLevel: z.enum(['light', 'medium', 'dark'], {
+    required_error: 'You need to select a roast level.',
+  }),
   waterTemperature: z.enum(['cold', 'warm', 'hot'], {
     required_error: 'You need to select a water temperature.',
   }),
@@ -128,6 +132,7 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
     defaultValues: {
       coffeeName: '',
       evaluator: '',
+      roastLevel: 'medium',
       waterTemperature: 'hot',
       ...temperatureDefaults.hot,
       notes: '',
@@ -171,6 +176,7 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
     const evaluationData: Omit<Evaluation, 'id'> = {
       coffeeName: values.coffeeName,
       evaluator: values.evaluator,
+      roastLevel: values.roastLevel,
       waterTemperature: values.waterTemperature,
       scores,
       flavorProfile,
@@ -226,6 +232,79 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
                 )}
               />
             </div>
+            <Separator />
+            <FormField
+              control={form.control}
+              name="roastLevel"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <FormLabel>Roast Level</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      className="flex gap-4"
+                    >
+                      <FormItem>
+                        <FormControl>
+                          <RadioGroupItem value="light" className="sr-only" />
+                        </FormControl>
+                        <FormLabel
+                          className={cn(
+                            'flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer',
+                            field.value === 'light' &&
+                              'border-primary'
+                          )}
+                        >
+                          <span
+                            className="mb-2 inline-block size-6 rounded-full"
+                            style={{ backgroundColor: '#e7c6a4' }}
+                          />
+                          Light
+                        </FormLabel>
+                      </FormItem>
+                      <FormItem>
+                        <FormControl>
+                          <RadioGroupItem value="medium" className="sr-only" />
+                        </FormControl>
+                        <FormLabel
+                          className={cn(
+                            'flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer',
+                            field.value === 'medium' &&
+                              'border-primary'
+                          )}
+                        >
+                          <span
+                            className="mb-2 inline-block size-6 rounded-full"
+                            style={{ backgroundColor: '#a47551' }}
+                          />
+                          Medium
+                        </FormLabel>
+                      </FormItem>
+                      <FormItem>
+                        <FormControl>
+                          <RadioGroupItem value="dark" className="sr-only" />
+                        </FormControl>
+                        <FormLabel
+                          className={cn(
+                            'flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer',
+                            field.value === 'dark' &&
+                              'border-primary'
+                          )}
+                        >
+                          <span
+                            className="mb-2 inline-block size-6 rounded-full"
+                            style={{ backgroundColor: '#4a2d1e' }}
+                          />
+                          Dark
+                        </FormLabel>
+                      </FormItem>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <Separator />
             <FormField

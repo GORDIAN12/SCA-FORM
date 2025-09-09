@@ -33,7 +33,9 @@ const prompt = ai.definePrompt({
 
 Cupping Data: {{{cuppingData}}}
 
-Pay special attention to the 'waterTemperature' field. Analyze and describe how the water temperature (cold, warm, or hot) might have influenced the coffee's flavor profile, acidity, body, and overall perception.
+Pay special attention to the 'roastLevel' and 'waterTemperature' fields. 
+- Analyze and describe how the roast level (light, medium, or dark) likely influenced the coffee's flavor profile, acidity, and body.
+- Analyze and describe how the water temperature (cold, warm, or hot) might have influenced the extraction and the coffee's flavor profile, acidity, body, and overall perception.
 
 Include a summary of the key findings, highlighting the coffee's strengths and weaknesses, and provide an overall score based on the SCA standards. The report should be suitable for sharing with other coffee professionals and enthusiasts.
 `,

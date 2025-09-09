@@ -12,6 +12,7 @@ export interface Evaluation {
   id: string;
   evaluator: string;
   coffeeName: string;
+  roastLevel: 'light' | 'medium' | 'dark';
   waterTemperature: 'cold' | 'warm' | 'hot';
   scores: Score[];
   flavorProfile: FlavorProfile;
