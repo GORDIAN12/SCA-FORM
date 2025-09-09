@@ -318,8 +318,9 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
             />
 
             <Separator />
+            <h3 className="text-lg font-semibold">Scores</h3>
             <div>
-              <h3 className="text-lg font-semibold mb-2">Fragrance / Aroma</h3>
+              <h4 className="text-md font-medium mb-2">Fragrance / Aroma</h4>
               <div className="space-y-4">
                 <FormField
                   control={form.control}
@@ -431,9 +432,7 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
               </div>
             </div>
 
-            <Separator />
-            <h3 className="text-lg font-semibold">Scores</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+            <div className="space-y-4">
               {['flavor', 'aftertaste', 'balance'].map((name) => (
                 <FormField
                   key={name}
