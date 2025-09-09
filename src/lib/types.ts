@@ -17,6 +17,7 @@ export interface Evaluation {
   uniformity: number;
   cleanCup: number;
   sweetness: number;
+  defects: number;
   overallScore: number;
   notes: string;
 }

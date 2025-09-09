@@ -26,7 +26,7 @@ import { Separator } from '@/components/ui/separator';
 import { Slider } from '@/components/ui/slider';
 import type { Evaluation } from '@/lib/types';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { Coffee } from 'lucide-react';
 
@@ -56,6 +56,10 @@ const formSchema = z.object({
   uniformity: z.array(z.boolean()).length(5).default(Array(5).fill(true)),
   cleanCup: z.array(z.boolean()).length(5).default(Array(5).fill(true)),
   sweetness: z.array(z.boolean()).length(5).default(Array(5).fill(true)),
+  defects: z.object({
+    cups: z.coerce.number().min(0).max(5).default(0),
+    intensity: z.coerce.number().min(0).max(4).step(2).default(0),
+  }),
   notes: z.string().optional(),
 });
 
@@ -182,6 +186,7 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
       uniformity: Array(5).fill(true),
       cleanCup: Array(5).fill(true),
       sweetness: Array(5).fill(true),
+      defects: { cups: 0, intensity: 0 },
       notes: '',
     },
   });
@@ -190,6 +195,15 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
     control: form.control,
     name: 'waterTemperature',
   });
+
+  const watchedDefects = useWatch({
+    control: form.control,
+    name: 'defects',
+  });
+
+  const defectsScore = useMemo(() => {
+    return (watchedDefects.cups || 0) * (watchedDefects.intensity || 0);
+  }, [watchedDefects]);
 
   useEffect(() => {
     const newDefaults = temperatureDefaults[watchedTemperature];
@@ -205,6 +219,7 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
     const uniformityScore = values.uniformity.filter(Boolean).length * 2;
     const cleanCupScore = values.cleanCup.filter(Boolean).length * 2;
     const sweetnessScore = values.sweetness.filter(Boolean).length * 2;
+    const defectPoints = (values.defects.cups || 0) * (values.defects.intensity || 0);
 
     const scores = [
       ...scoreFields.map((name) => ({
@@ -216,7 +231,8 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
       { name: 'Sweetness', value: sweetnessScore },
     ];
 
-    const overallScore = scores.reduce((acc, score) => acc + score.value, 0);
+    const subtotal = scores.reduce((acc, score) => acc + score.value, 0);
+    const overallScore = subtotal - defectPoints;
 
     const evaluationData: Omit<Evaluation, 'id'> = {
       coffeeName: values.coffeeName,
@@ -230,6 +246,7 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
       uniformity: uniformityScore,
       cleanCup: cleanCupScore,
       sweetness: sweetnessScore,
+      defects: defectPoints,
       overallScore,
       notes: values.notes || '',
     };
@@ -689,6 +706,47 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
                   }}
                 />
               ))}
+            </div>
+            
+            <Separator />
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Defects</h3>
+              <div className="grid grid-cols-3 items-center gap-4">
+                <FormField
+                  control={form.control}
+                  name="defects.cups"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>No. of Cups</FormLabel>
+                      <FormControl>
+                        <Input type="number" min="0" max="5" {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <span>x</span>
+                <FormField
+                  control={form.control}
+                  name="defects.intensity"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Intensity</FormLabel>
+                      <FormControl>
+                        <Input type="number" min="0" max="4" step="2" {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+               <FormDescription>
+                Intensity: Taint = 2, Fault = 4
+              </FormDescription>
+              <div className="flex justify-end items-center gap-4 font-medium">
+                <span>Defect Score:</span>
+                <span className="w-16 text-right text-lg text-destructive">
+                  -{defectsScore}
+                </span>
+              </div>
             </div>
 
             <Separator />
