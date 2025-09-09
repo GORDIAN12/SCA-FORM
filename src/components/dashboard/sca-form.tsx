@@ -143,6 +143,32 @@ const CupSelector = ({
   );
 };
 
+const ScoreSlider = ({
+  field,
+}: {
+  field: {
+    value: number;
+    onChange: (value: number) => void;
+  };
+}) => (
+  <>
+    <Slider
+      min={6}
+      max={10}
+      step={0.25}
+      value={[field.value]}
+      onValueChange={(value) => field.onChange(value[0])}
+    />
+    <div className="flex justify-between text-xs text-muted-foreground px-1">
+      <span>6</span>
+      <span>7</span>
+      <span>8</span>
+      <span>9</span>
+      <span>10</span>
+    </div>
+  </>
+);
+
 export function ScaForm({ onSubmit }: ScaFormProps) {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -390,12 +416,11 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
                         <span>{field.value.toFixed(2)}</span>
                       </FormLabel>
                       <FormControl>
-                        <Slider
-                          min={6}
-                          max={10}
-                          step={0.25}
-                          value={[field.value]}
-                          onValueChange={(value) => field.onChange(value[0])}
+                        <ScoreSlider
+                          field={{
+                            value: field.value,
+                            onChange: field.onChange,
+                          }}
                         />
                       </FormControl>
                     </FormItem>
@@ -503,12 +528,11 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
                         <span>{(field.value as number).toFixed(2)}</span>
                       </FormLabel>
                       <FormControl>
-                        <Slider
-                          min={6}
-                          max={10}
-                          step={0.25}
-                          value={[field.value as number]}
-                          onValueChange={(value) => field.onChange(value[0])}
+                        <ScoreSlider
+                          field={{
+                            value: field.value as number,
+                            onChange: field.onChange,
+                          }}
                         />
                       </FormControl>
                     </FormItem>
@@ -516,141 +540,127 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
                 />
               ))}
             </div>
-            
+
             <div className="space-y-4">
-               <FormField
-                  control={form.control}
-                  name="acidity"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex justify-between">
-                        <span>Acidity Score</span>
-                        <span>{field.value.toFixed(2)}</span>
-                      </FormLabel>
-                      <FormControl>
-                        <Slider
-                          min={6}
-                          max={10}
-                          step={0.25}
-                          value={[field.value]}
-                          onValueChange={(value) => field.onChange(value[0])}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                    control={form.control}
-                    name="acidityIntensity"
-                    render={({ field }) => (
-                      <FormItem className="space-y-3">
-                        <FormLabel>Acidity Intensity</FormLabel>
-                        <FormControl>
-                          <RadioGroup
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                            className="flex space-x-4"
-                          >
-                           <FormItem className="flex items-center space-x-2 space-y-0">
-                              <FormControl>
-                                <RadioGroupItem value="low" />
-                              </FormControl>
-                              <FormLabel className="font-normal">
-                                Low
-                              </FormLabel>
-                            </FormItem>
-                            <FormItem className="flex items-center space-x-2 space-y-0">
-                              <FormControl>
-                                <RadioGroupItem value="medium" />
-                              </FormControl>
-                              <FormLabel className="font-normal">
-                                Medium
-                              </FormLabel>
-                            </FormItem>
-                            <FormItem className="flex items-center space-x-2 space-y-0">
-                              <FormControl>
-                                <RadioGroupItem value="high" />
-                              </FormControl>
-                              <FormLabel className="font-normal">
-                                High
-                              </FormLabel>
-                            </FormItem>
-                          </RadioGroup>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+              <FormField
+                control={form.control}
+                name="acidity"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex justify-between">
+                      <span>Acidity Score</span>
+                      <span>{field.value.toFixed(2)}</span>
+                    </FormLabel>
+                    <FormControl>
+                      <ScoreSlider
+                        field={{
+                          value: field.value,
+                          onChange: field.onChange,
+                        }}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="acidityIntensity"
+                render={({ field }) => (
+                  <FormItem className="space-y-3">
+                    <FormLabel>Acidity Intensity</FormLabel>
+                    <FormControl>
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="flex space-x-4"
+                      >
+                        <FormItem className="flex items-center space-x-2 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value="low" />
+                          </FormControl>
+                          <FormLabel className="font-normal">Low</FormLabel>
+                        </FormItem>
+                        <FormItem className="flex items-center space-x-2 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value="medium" />
+                          </FormControl>
+                          <FormLabel className="font-normal">Medium</FormLabel>
+                        </FormItem>
+                        <FormItem className="flex items-center space-x-2 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value="high" />
+                          </FormControl>
+                          <FormLabel className="font-normal">High</FormLabel>
+                        </FormItem>
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
-             <div className="space-y-4">
-               <FormField
-                  control={form.control}
-                  name="body"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex justify-between">
-                        <span>Body Score</span>
-                        <span>{field.value.toFixed(2)}</span>
-                      </FormLabel>
-                      <FormControl>
-                        <Slider
-                          min={6}
-                          max={10}
-                          step={0.25}
-                          value={[field.value]}
-                          onValueChange={(value) => field.onChange(value[0])}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                    control={form.control}
-                    name="bodyIntensity"
-                    render={({ field }) => (
-                      <FormItem className="space-y-3">
-                        <FormLabel>Body Intensity</FormLabel>
-                        <FormControl>
-                          <RadioGroup
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                            className="flex space-x-4"
-                          >
-                           <FormItem className="flex items-center space-x-2 space-y-0">
-                              <FormControl>
-                                <RadioGroupItem value="low" />
-                              </FormControl>
-                              <FormLabel className="font-normal">
-                                Low
-                              </FormLabel>
-                            </FormItem>
-                            <FormItem className="flex items-center space-x-2 space-y-0">
-                              <FormControl>
-                                <RadioGroupItem value="medium" />
-                              </FormControl>
-                              <FormLabel className="font-normal">
-                                Medium
-                              </FormLabel>
-                            </FormItem>
-                            <FormItem className="flex items-center space-x-2 space-y-0">
-                              <FormControl>
-                                <RadioGroupItem value="high" />
-                              </FormControl>
-                              <FormLabel className="font-normal">
-                                High
-                              </FormLabel>
-                            </FormItem>
-                          </RadioGroup>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+            <div className="space-y-4">
+              <FormField
+                control={form.control}
+                name="body"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex justify-between">
+                      <span>Body Score</span>
+                      <span>{field.value.toFixed(2)}</span>
+                    </FormLabel>
+                    <FormControl>
+                      <ScoreSlider
+                        field={{
+                          value: field.value,
+                          onChange: field.onChange,
+                        }}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="bodyIntensity"
+                render={({ field }) => (
+                  <FormItem className="space-y-3">
+                    <FormLabel>Body Intensity</FormLabel>
+                    <FormControl>
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="flex space-x-4"
+                      >
+                        <FormItem className="flex items-center space-x-2 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value="low" />
+                          </FormControl>
+                          <FormLabel className="font-normal">Low</FormLabel>
+                        </FormItem>
+                        <FormItem className="flex items-center space-x-2 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value="medium" />
+                          </FormControl>
+                          <FormLabel className="font-normal">Medium</FormLabel>
+                        </FormItem>
+                        <FormItem className="flex items-center space-x-2 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value="high" />
+                          </FormControl>
+                          <FormLabel className="font-normal">High</FormLabel>
+                        </FormItem>
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
-            
+
             <Separator />
-             <div className="space-y-4">
+            <div className="space-y-4">
               {cupFields.map((name) => (
                 <FormField
                   key={name}
