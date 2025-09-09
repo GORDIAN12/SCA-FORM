@@ -4,10 +4,6 @@ export interface Score {
   notes?: string;
 }
 
-export interface FlavorProfile {
-  [key: string]: number;
-}
-
 export interface Evaluation {
   id: string;
   coffeeName: string;
@@ -16,7 +12,6 @@ export interface Evaluation {
   dryFragrance: 'low' | 'medium' | 'high';
   wetAroma: 'low' | 'medium' | 'high';
   scores: Score[];
-  flavorProfile: FlavorProfile;
   overallScore: number;
   notes: string;
 }

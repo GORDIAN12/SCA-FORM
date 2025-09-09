@@ -10,7 +10,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { ScoresOverview } from './visualizations/scores-overview';
-import { FlavorProfileChart } from './visualizations/flavor-profile-chart';
 import { ReportGenerator } from './report-generator';
 import { ScaForm } from './sca-form';
 
@@ -73,7 +72,6 @@ export function SessionView({ session: initialSession }: SessionViewProps) {
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               <div className="space-y-6 lg:col-span-2">
                 <ScoresOverview evaluation={selectedEvaluation} />
-                <FlavorProfileChart evaluation={selectedEvaluation} />
               </div>
               <div className="lg:col-span-2">
                 <ReportGenerator evaluation={selectedEvaluation} />

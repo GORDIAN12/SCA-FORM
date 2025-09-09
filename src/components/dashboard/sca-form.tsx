@@ -51,12 +51,6 @@ const formSchema = z.object({
   acidity: scoreSchema,
   body: scoreSchema,
   balance: scoreSchema,
-  floral: scoreSchema,
-  fruity: scoreSchema,
-  sweetSpice: scoreSchema,
-  nutty: scoreSchema,
-  toasted: scoreSchema,
-  richChocolate: scoreSchema,
   notes: z.string().optional(),
 });
 
@@ -74,14 +68,6 @@ const scoreFields = [
   'body',
   'balance',
 ] as const;
-const flavorFields = [
-  'floral',
-  'fruity',
-  'sweetSpice',
-  'nutty',
-  'toasted',
-  'richChocolate',
-] as const;
 
 const temperatureDefaults: Record<
   'cold' | 'warm' | 'hot',
@@ -94,12 +80,6 @@ const temperatureDefaults: Record<
     acidity: 8.5,
     body: 8,
     balance: 8.25,
-    floral: 8,
-    fruity: 7,
-    sweetSpice: 6,
-    nutty: 6.5,
-    toasted: 6,
-    richChocolate: 7,
   },
   warm: {
     aroma: 7,
@@ -108,12 +88,6 @@ const temperatureDefaults: Record<
     acidity: 6.5,
     body: 7.5,
     balance: 7,
-    floral: 6.5,
-    fruity: 8,
-    sweetSpice: 7,
-    nutty: 6,
-    toasted: 6.5,
-    richChocolate: 7,
   },
   cold: {
     aroma: 6,
@@ -122,12 +96,6 @@ const temperatureDefaults: Record<
     acidity: 6.5,
     body: 6.5,
     balance: 6,
-    floral: 6,
-    fruity: 6,
-    sweetSpice: 6.5,
-    nutty: 8,
-    toasted: 7,
-    richChocolate: 8,
   },
 };
 
@@ -166,15 +134,6 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
       value: values[name],
     }));
 
-    const flavorProfile = {
-      Floral: values.floral,
-      Fruity: values.fruity,
-      'Sweet Spice': values.sweetSpice,
-      Nutty: values.nutty,
-      Toasted: values.toasted,
-      'Rich Chocolate': values.richChocolate,
-    };
-
     const overallScore =
       (scores.reduce((acc, score) => acc + score.value, 0) / scores.length) *
       10;
@@ -186,7 +145,6 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
       dryFragrance: values.dryFragrance,
       wetAroma: values.wetAroma,
       scores,
-      flavorProfile,
       overallScore,
       notes: values.notes || '',
     };
@@ -432,35 +390,6 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
             <h3 className="text-lg font-semibold">Scores</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
               {scoreFields.map((name) => (
-                <FormField
-                  key={name}
-                  control={form.control}
-                  name={name}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex justify-between">
-                        <span>{capitalize(name)}</span>
-                        <span>{field.value.toFixed(2)}</span>
-                      </FormLabel>
-                      <FormControl>
-                        <Slider
-                          min={6}
-                          max={10}
-                          step={0.25}
-                          value={[field.value]}
-                          onValueChange={(value) => field.onChange(value[0])}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-              ))}
-            </div>
-
-            <Separator />
-            <h3 className="text-lg font-semibold">Flavor Profile</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-              {flavorFields.map((name) => (
                 <FormField
                   key={name}
                   control={form.control}
