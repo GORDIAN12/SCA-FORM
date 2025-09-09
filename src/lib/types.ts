@@ -14,6 +14,9 @@ export interface Evaluation {
   acidityIntensity: 'low' | 'medium' | 'high';
   bodyIntensity: 'low' | 'medium' | 'high';
   scores: Score[];
+  uniformity: number;
+  cleanCup: number;
+  sweetness: number;
   overallScore: number;
   notes: string;
 }

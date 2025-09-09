@@ -1,6 +1,6 @@
 'use client';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm, useWatch } from 'react-hook-form';
+import { useForm, useWatch, Controller } from 'react-hook-form';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import {
@@ -28,6 +28,7 @@ import type { Evaluation } from '@/lib/types';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useEffect } from 'react';
 import { cn } from '@/lib/utils';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const scoreSchema = z.coerce.number().min(6).max(10);
 const intensitySchema = z.enum(['low', 'medium', 'high'], {
@@ -52,6 +53,9 @@ const formSchema = z.object({
   body: scoreSchema,
   bodyIntensity: intensitySchema,
   balance: scoreSchema,
+  uniformity: z.array(z.boolean()).length(5).default(Array(5).fill(true)),
+  cleanCup: z.array(z.boolean()).length(5).default(Array(5).fill(true)),
+  sweetness: z.array(z.boolean()).length(5).default(Array(5).fill(true)),
   notes: z.string().optional(),
 });
 
@@ -100,6 +104,33 @@ const temperatureDefaults: Record<
   },
 };
 
+const CupSelector = ({
+  field,
+}: {
+  field: {
+    value: boolean[];
+    onChange: (value: boolean[]) => void;
+  };
+}) => {
+  const handleChange = (index: number, checked: boolean) => {
+    const newValues = [...field.value];
+    newValues[index] = checked;
+    field.onChange(newValues);
+  };
+  return (
+    <div className="flex items-center space-x-2">
+      {[...Array(5)].map((_, index) => (
+        <FormControl key={index}>
+          <Checkbox
+            checked={field.value[index]}
+            onCheckedChange={(checked) => handleChange(index, !!checked)}
+          />
+        </FormControl>
+      ))}
+    </div>
+  );
+};
+
 export function ScaForm({ onSubmit }: ScaFormProps) {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -112,6 +143,9 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
       acidityIntensity: 'medium',
       bodyIntensity: 'medium',
       ...temperatureDefaults.hot,
+      uniformity: Array(5).fill(true),
+      cleanCup: Array(5).fill(true),
+      sweetness: Array(5).fill(true),
       notes: '',
     },
   });
@@ -132,14 +166,22 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
   }, [watchedTemperature, form]);
 
   function handleSubmit(values: FormValues) {
-    const scores = scoreFields.map((name) => ({
-      name: name.charAt(0).toUpperCase() + name.slice(1),
-      value: values[name],
-    }));
+    const uniformityScore =
+      values.uniformity.filter(Boolean).length * 2;
+    const cleanCupScore = values.cleanCup.filter(Boolean).length * 2;
+    const sweetnessScore = values.sweetness.filter(Boolean).length * 2;
 
-    const overallScore =
-      (scores.reduce((acc, score) => acc + score.value, 0) / scores.length) *
-      10;
+    const scores = [
+      ...scoreFields.map((name) => ({
+        name: name.charAt(0).toUpperCase() + name.slice(1),
+        value: values[name],
+      })),
+      { name: 'Uniformity', value: uniformityScore },
+      { name: 'Clean Cup', value: cleanCupScore },
+      { name: 'Sweetness', value: sweetnessScore },
+    ];
+
+    const overallScore = scores.reduce((acc, score) => acc + score.value, 0);
 
     const evaluationData: Omit<Evaluation, 'id'> = {
       coffeeName: values.coffeeName,
@@ -150,6 +192,9 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
       acidityIntensity: values.acidityIntensity,
       bodyIntensity: values.bodyIntensity,
       scores,
+      uniformity: uniformityScore,
+      cleanCup: cleanCupScore,
+      sweetness: sweetnessScore,
       overallScore,
       notes: values.notes || '',
     };
@@ -159,6 +204,8 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
 
   const capitalize = (s: string) =>
     s.charAt(0).toUpperCase() + s.slice(1).replace(/([A-Z])/g, ' $1');
+
+  const cupFields = ['uniformity', 'cleanCup', 'sweetness'] as const;
 
   return (
     <Card>
@@ -589,6 +636,40 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
                       </FormItem>
                     )}
                   />
+            </div>
+            
+            <Separator />
+             <div className="space-y-4">
+              {cupFields.map((name) => (
+                <FormField
+                  key={name}
+                  control={form.control}
+                  name={name}
+                  render={({ field }) => {
+                    const checkedCount = field.value.filter(Boolean).length;
+                    const score = checkedCount * 2;
+                    return (
+                      <FormItem>
+                        <div className="flex justify-between items-center">
+                          <FormLabel>{capitalize(name)}</FormLabel>
+                          <div className="flex items-center gap-4">
+                            <CupSelector
+                              field={{
+                                value: field.value,
+                                onChange: field.onChange,
+                              }}
+                            />
+                            <span className="text-sm font-medium w-8 text-right">
+                              {score}
+                            </span>
+                          </div>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
+                />
+              ))}
             </div>
 
             <Separator />

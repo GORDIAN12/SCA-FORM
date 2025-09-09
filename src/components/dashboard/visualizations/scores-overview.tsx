@@ -7,7 +7,15 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Star, TrendingUp, Scale, Droplets } from 'lucide-react';
+import {
+  Star,
+  TrendingUp,
+  Scale,
+  Droplets,
+  CheckCircle2,
+  Heart,
+  Gem,
+} from 'lucide-react';
 
 interface ScoresOverviewProps {
   evaluation: Evaluation;
@@ -15,7 +23,8 @@ interface ScoresOverviewProps {
 
 export function ScoresOverview({ evaluation }: ScoresOverviewProps) {
   const getScore = (name: string) =>
-    evaluation.scores.find((s) => s.name === name)?.value || 0;
+    evaluation.scores.find((s) => s.name.toLowerCase() === name.toLowerCase())
+      ?.value || 0;
 
   const overviewScores = [
     {
@@ -37,6 +46,26 @@ export function ScoresOverview({ evaluation }: ScoresOverviewProps) {
       title: 'Balance',
       value: getScore('Balance').toFixed(2),
       icon: <Scale className="size-6 text-violet-500" />,
+    },
+    {
+      title: 'Uniformity',
+      value: getScore('Uniformity').toFixed(2),
+      icon: <Gem className="size-6 text-teal-500" />,
+    },
+    {
+      title: 'Clean Cup',
+      value: getScore('Clean Cup').toFixed(2),
+      icon: <CheckCircle2 className="size-6 text-green-500" />,
+    },
+    {
+      title: 'Sweetness',
+      value: getScore('Sweetness').toFixed(2),
+      icon: <Heart className="size-6 text-pink-500" />,
+    },
+    {
+      title: 'Flavor',
+      value: getScore('Flavor').toFixed(2),
+      icon: <Scale className="size-6 text-orange-500" />,
     },
   ];
 
