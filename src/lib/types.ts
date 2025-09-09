@@ -8,7 +8,6 @@ export interface Evaluation {
   id: string;
   coffeeName: string;
   roastLevel: 'light' | 'medium' | 'medium-dark' | 'dark';
-  waterTemperature: 'cold' | 'warm' | 'hot';
   dryFragrance: 'low' | 'medium' | 'high';
   wetAroma: 'low' | 'medium' | 'high';
   acidityIntensity: 'low' | 'medium' | 'high';
