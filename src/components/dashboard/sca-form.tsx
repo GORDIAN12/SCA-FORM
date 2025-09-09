@@ -161,16 +161,7 @@ const ScoreSlider = ({
     />
     <div className="relative flex justify-between text-xs text-muted-foreground mt-1 px-1">
       {[...Array(5)].map((_, i) => (
-        <div key={i} className="relative flex-1 text-center first:text-left last:text-right">
-          <span>{6 + i}</span>
-          {i < 4 && (
-            <div className="absolute top-0 left-0 right-0 flex justify-between items-center h-full -z-10">
-              <span className="w-px h-1.5 bg-border"></span>
-              <span className="w-px h-1.5 bg-border"></span>
-              <span className="w-px h-1.5 bg-border"></span>
-            </div>
-          )}
-        </div>
+        <span key={i}>{6 + i}</span>
       ))}
     </div>
   </div>
