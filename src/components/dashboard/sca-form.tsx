@@ -34,7 +34,7 @@ const scoreSchema = z.coerce.number().min(6).max(10);
 const formSchema = z.object({
   coffeeName: z.string().min(1, 'Coffee name is required'),
   evaluator: z.string().min(1, 'Evaluator name is required'),
-  roastLevel: z.enum(['light', 'medium', 'dark'], {
+  roastLevel: z.enum(['light', 'medium', 'medium-dark', 'dark'], {
     required_error: 'You need to select a roast level.',
   }),
   waterTemperature: z.enum(['cold', 'warm', 'hot'], {
@@ -243,7 +243,7 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
                     <RadioGroup
                       onValueChange={field.onChange}
                       defaultValue={field.value}
-                      className="flex gap-4"
+                      className="flex flex-wrap gap-4"
                     >
                       <FormItem>
                         <FormControl>
@@ -252,8 +252,7 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
                         <FormLabel
                           className={cn(
                             'flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer',
-                            field.value === 'light' &&
-                              'border-primary'
+                            field.value === 'light' && 'border-primary'
                           )}
                         >
                           <span
@@ -270,8 +269,7 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
                         <FormLabel
                           className={cn(
                             'flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer',
-                            field.value === 'medium' &&
-                              'border-primary'
+                            field.value === 'medium' && 'border-primary'
                           )}
                         >
                           <span
@@ -283,13 +281,32 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
                       </FormItem>
                       <FormItem>
                         <FormControl>
+                          <RadioGroupItem
+                            value="medium-dark"
+                            className="sr-only"
+                          />
+                        </FormControl>
+                        <FormLabel
+                          className={cn(
+                            'flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer',
+                            field.value === 'medium-dark' && 'border-primary'
+                          )}
+                        >
+                          <span
+                            className="mb-2 inline-block size-6 rounded-full"
+                            style={{ backgroundColor: '#6b4a35' }}
+                          />
+                          Medium-Dark
+                        </FormLabel>
+                      </FormItem>
+                      <FormItem>
+                        <FormControl>
                           <RadioGroupItem value="dark" className="sr-only" />
                         </FormControl>
                         <FormLabel
                           className={cn(
                             'flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer',
-                            field.value === 'dark' &&
-                              'border-primary'
+                            field.value === 'dark' && 'border-primary'
                           )}
                         >
                           <span
