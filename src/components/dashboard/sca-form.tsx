@@ -464,7 +464,7 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
             </div>
 
             <div className="space-y-4">
-              {['flavor', 'aftertaste', 'balance', 'cupperScore'].map((name) => (
+              {['flavor', 'aftertaste'].map((name) => (
                 <FormField
                   key={name}
                   control={form.control}
@@ -606,6 +606,32 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
                 )}
               />
             </div>
+            
+            <div className="space-y-4">
+              {['balance', 'cupperScore'].map((name) => (
+                <FormField
+                  key={name}
+                  control={form.control}
+                  name={name as keyof FormValues}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex justify-between">
+                        <span>{capitalize(name)}</span>
+                        <span>{(field.value as number).toFixed(2)}</span>
+                      </FormLabel>
+                      <FormControl>
+                        <ScoreSlider
+                          field={{
+                            value: field.value as number,
+                            onChange: field.onChange,
+                          }}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              ))}
+            </div>
 
             <Separator />
             <div className="space-y-4">
@@ -724,3 +750,5 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
     </Card>
   );
 }
+
+    
