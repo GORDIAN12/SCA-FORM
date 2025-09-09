@@ -40,9 +40,6 @@ const formSchema = z.object({
   roastLevel: z.enum(['light', 'medium', 'medium-dark', 'dark'], {
     required_error: 'You need to select a roast level.',
   }),
-  waterTemperature: z.enum(['cold', 'warm', 'hot'], {
-    required_error: 'You need to select a water temperature.',
-  }),
   dryFragrance: intensitySchema,
   wetAroma: intensitySchema,
   aroma: scoreSchema,
@@ -77,36 +74,6 @@ const scoreFields = [
   'body',
   'balance',
 ] as const;
-
-const temperatureDefaults: Record<
-  'cold' | 'warm' | 'hot',
-  Partial<FormValues>
-> = {
-  hot: {
-    aroma: 8.5,
-    flavor: 8.25,
-    aftertaste: 8,
-    acidity: 8.5,
-    body: 8,
-    balance: 8.25,
-  },
-  warm: {
-    aroma: 7,
-    flavor: 7.5,
-    aftertaste: 7.25,
-    acidity: 6.5,
-    body: 7.5,
-    balance: 7,
-  },
-  cold: {
-    aroma: 6,
-    flavor: 6.5,
-    aftertaste: 6,
-    acidity: 6.5,
-    body: 6.5,
-    balance: 6,
-  },
-};
 
 const CupSelector = ({
   field,
@@ -177,23 +144,22 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
     defaultValues: {
       coffeeName: '',
       roastLevel: 'medium',
-      waterTemperature: 'hot',
       dryFragrance: 'medium',
       wetAroma: 'medium',
+      aroma: 8,
+      flavor: 8,
+      aftertaste: 8,
+      acidity: 8,
       acidityIntensity: 'medium',
+      body: 8,
       bodyIntensity: 'medium',
-      ...temperatureDefaults.hot,
+      balance: 8,
       uniformity: Array(5).fill(true),
       cleanCup: Array(5).fill(true),
       sweetness: Array(5).fill(true),
       defects: { cups: 0, intensity: 0 },
       notes: '',
     },
-  });
-
-  const watchedTemperature = useWatch({
-    control: form.control,
-    name: 'waterTemperature',
   });
 
   const watchedDefects = useWatch({
@@ -205,21 +171,12 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
     return (watchedDefects.cups || 0) * (watchedDefects.intensity || 0);
   }, [watchedDefects]);
 
-  useEffect(() => {
-    const newDefaults = temperatureDefaults[watchedTemperature];
-    for (const key in newDefaults) {
-      form.setValue(
-        key as keyof FormValues,
-        newDefaults[key as keyof FormValues]
-      );
-    }
-  }, [watchedTemperature, form]);
-
   function handleSubmit(values: FormValues) {
     const uniformityScore = values.uniformity.filter(Boolean).length * 2;
     const cleanCupScore = values.cleanCup.filter(Boolean).length * 2;
     const sweetnessScore = values.sweetness.filter(Boolean).length * 2;
-    const defectPoints = (values.defects.cups || 0) * (values.defects.intensity || 0);
+    const defectPoints =
+      (values.defects.cups || 0) * (values.defects.intensity || 0);
 
     const scores = [
       ...scoreFields.map((name) => ({
@@ -237,7 +194,6 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
     const evaluationData: Omit<Evaluation, 'id'> = {
       coffeeName: values.coffeeName,
       roastLevel: values.roastLevel,
-      waterTemperature: values.waterTemperature,
       dryFragrance: values.dryFragrance,
       wetAroma: values.wetAroma,
       acidityIntensity: values.acidityIntensity,
@@ -370,44 +326,6 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
                           />
                           Dark
                         </FormLabel>
-                      </FormItem>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <Separator />
-            <FormField
-              control={form.control}
-              name="waterTemperature"
-              render={({ field }) => (
-                <FormItem className="space-y-3">
-                  <FormLabel>Water Temperature</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      className="flex flex-col space-y-1 md:flex-row md:space-y-0 md:space-x-8"
-                    >
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="cold" />
-                        </FormControl>
-                        <FormLabel className="font-normal">Cold</FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="warm" />
-                        </FormControl>
-                        <FormLabel className="font-normal">Warm</FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                          <RadioGroupItem value="hot" />
-                        </FormControl>
-                        <FormLabel className="font-normal">Hot</FormLabel>
                       </FormItem>
                     </RadioGroup>
                   </FormControl>
@@ -707,7 +625,7 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
                 />
               ))}
             </div>
-            
+
             <Separator />
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Defects</h3>
@@ -724,7 +642,7 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
                     </FormItem>
                   )}
                 />
-                <span>x</span>
+                <span className="text-center">x</span>
                 <FormField
                   control={form.control}
                   name="defects.intensity"
@@ -732,13 +650,19 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
                     <FormItem>
                       <FormLabel>Intensity</FormLabel>
                       <FormControl>
-                        <Input type="number" min="0" max="4" step="2" {...field} />
+                        <Input
+                          type="number"
+                          min="0"
+                          max="4"
+                          step="2"
+                          {...field}
+                        />
                       </FormControl>
                     </FormItem>
                   )}
                 />
               </div>
-               <FormDescription>
+              <FormDescription>
                 Intensity: Taint = 2, Fault = 4
               </FormDescription>
               <div className="flex justify-end items-center gap-4 font-medium">
