@@ -50,49 +50,38 @@ export function SessionView({ session: initialSession }: SessionViewProps) {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 xl:grid-cols-5">
-        <div className="lg:col-span-1 xl:col-span-2">
-          <ScaForm
-            onSubmit={handleFormSubmit}
-            onValuesChange={handleValuesChange}
-          />
-        </div>
-        <div className="lg:col-span-2 xl:col-span-3">
-          <div className="animate-in fade-in-50 duration-500 space-y-6">
-            <div className="sticky top-20 z-10">
-              {allEvaluations.length > 1 && (
-                <div className="flex-shrink-0 md:ml-auto mb-6">
-                  <Select
-                    value={selectedEvalId}
-                    onValueChange={setSelectedEvalId}
-                  >
-                    <SelectTrigger className="w-full md:w-[280px]">
-                      <SelectValue placeholder="Select an evaluation" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {allEvaluations.map((ev) => (
-                        <SelectItem key={ev.id} value={ev.id}>
-                          {ev.coffeeName}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                <Card>
-                  <CardContent className="p-2 pt-4">
-                    {liveFormData && (
-                      <ScoresRadarChart scores={liveFormData} />
-                    )}
-                  </CardContent>
-                </Card>
-                <ReportGenerator evaluation={selectedEvaluation} />
-              </div>
-            </div>
-          </div>
-        </div>
+      <div className="col-span-full">
+        <ScaForm
+          onSubmit={handleFormSubmit}
+          onValuesChange={handleValuesChange}
+        />
       </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in-50 duration-500">
+        <Card>
+          <CardContent className="p-2 pt-4">
+            {liveFormData && <ScoresRadarChart scores={liveFormData} />}
+          </CardContent>
+        </Card>
+        <ReportGenerator evaluation={selectedEvaluation} />
+      </div>
+
+      {allEvaluations.length > 1 && (
+        <div className="flex justify-center">
+          <Select value={selectedEvalId} onValueChange={setSelectedEvalId}>
+            <SelectTrigger className="w-full md:w-[280px]">
+              <SelectValue placeholder="Select an evaluation" />
+            </SelectTrigger>
+            <SelectContent>
+              {allEvaluations.map((ev) => (
+                <SelectItem key={ev.id} value={ev.id}>
+                  {ev.coffeeName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
     </div>
   );
 }
