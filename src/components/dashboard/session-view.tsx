@@ -50,14 +50,14 @@ export function SessionView({ session: initialSession }: SessionViewProps) {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
-        <div className="lg:col-span-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 xl:grid-cols-5">
+        <div className="lg:col-span-1 xl:col-span-2">
           <ScaForm
             onSubmit={handleFormSubmit}
             onValuesChange={handleValuesChange}
           />
         </div>
-        <div className="lg:col-span-3">
+        <div className="lg:col-span-2 xl:col-span-3">
           <div className="animate-in fade-in-50 duration-500 space-y-6">
             <div className="sticky top-20 z-10">
               {allEvaluations.length > 1 && (
@@ -79,7 +79,7 @@ export function SessionView({ session: initialSession }: SessionViewProps) {
                   </Select>
                 </div>
               )}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                 <Card>
                   <CardContent className="p-2 pt-4">
                     {liveFormData && (
