@@ -61,10 +61,11 @@ const formSchema = z.object({
   notes: z.string().optional(),
 });
 
-type FormValues = z.infer<typeof formSchema>;
+export type ScaFormValues = z.infer<typeof formSchema>;
 
 interface ScaFormProps {
   onSubmit: (data: Evaluation) => void;
+  onValuesChange?: (data: ScaFormValues) => void;
 }
 
 const scoreFields = [
@@ -140,8 +141,8 @@ const ScoreSlider = ({
   </div>
 );
 
-export function ScaForm({ onSubmit }: ScaFormProps) {
-  const form = useForm<FormValues>({
+export function ScaForm({ onSubmit, onValuesChange }: ScaFormProps) {
+  const form = useForm<ScaFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       coffeeName: '',
@@ -167,26 +168,37 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
 
   const watchedValues = useWatch({ control: form.control });
 
+  useEffect(() => {
+    if (onValuesChange) {
+      onValuesChange(watchedValues as ScaFormValues);
+    }
+  }, [watchedValues, onValuesChange]);
+
   const { totalScore, defectsScore } = useMemo(() => {
-    const uniformityScore = (watchedValues.uniformity || []).filter(Boolean).length * 2;
-    const cleanCupScore = (watchedValues.cleanCup || []).filter(Boolean).length * 2;
-    const sweetnessScore = (watchedValues.sweetness || []).filter(Boolean).length * 2;
-    
-    const defectsScore = (watchedValues.defects?.cups || 0) * (watchedValues.defects?.intensity || 0);
+    const uniformityScore =
+      (watchedValues.uniformity || []).filter(Boolean).length * 2;
+    const cleanCupScore =
+      (watchedValues.cleanCup || []).filter(Boolean).length * 2;
+    const sweetnessScore =
+      (watchedValues.sweetness || []).filter(Boolean).length * 2;
+
+    const defectsScore =
+      (watchedValues.defects?.cups || 0) *
+      (watchedValues.defects?.intensity || 0);
 
     const baseScoresTotal = scoreFields.reduce(
       (acc, field) => acc + (watchedValues[field] || 0),
       0
     );
 
-    const subtotal = baseScoresTotal + uniformityScore + cleanCupScore + sweetnessScore;
+    const subtotal =
+      baseScoresTotal + uniformityScore + cleanCupScore + sweetnessScore;
     const totalScore = subtotal - defectsScore;
 
     return { totalScore, defectsScore };
   }, [watchedValues]);
 
-
-  function handleSubmit(values: FormValues) {
+  function handleSubmit(values: ScaFormValues) {
     const uniformityScore = values.uniformity.filter(Boolean).length * 2;
     const cleanCupScore = values.cleanCup.filter(Boolean).length * 2;
     const sweetnessScore = values.sweetness.filter(Boolean).length * 2;
@@ -195,7 +207,9 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
 
     const scores = [
       ...scoreFields.map((name) => ({
-        name: name.charAt(0).toUpperCase() + name.slice(1).replace('Score', ' Score'),
+        name:
+          name.charAt(0).toUpperCase() +
+          name.slice(1).replace('Score', ' Score'),
         value: values[name],
       })),
       { name: 'Uniformity', value: uniformityScore },
@@ -464,11 +478,11 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
             </div>
 
             <div className="space-y-4">
-              {['flavor', 'aftertaste'].map((name) => (
+              {['flavor', 'aftertaste', 'balance'].map((name) => (
                 <FormField
                   key={name}
                   control={form.control}
-                  name={name as keyof FormValues}
+                  name={name as keyof ScaFormValues}
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="flex justify-between">
@@ -606,31 +620,28 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
                 )}
               />
             </div>
-            
+
             <div className="space-y-4">
-              {['balance', 'cupperScore'].map((name) => (
-                <FormField
-                  key={name}
-                  control={form.control}
-                  name={name as keyof FormValues}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex justify-between">
-                        <span>{capitalize(name)}</span>
-                        <span>{(field.value as number).toFixed(2)}</span>
-                      </FormLabel>
-                      <FormControl>
-                        <ScoreSlider
-                          field={{
-                            value: field.value as number,
-                            onChange: field.onChange,
-                          }}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-              ))}
+              <FormField
+                control={form.control}
+                name={'cupperScore'}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex justify-between">
+                      <span>Cupper Score</span>
+                      <span>{(field.value as number).toFixed(2)}</span>
+                    </FormLabel>
+                    <FormControl>
+                      <ScoreSlider
+                        field={{
+                          value: field.value as number,
+                          onChange: field.onChange,
+                        }}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
             </div>
 
             <Separator />
@@ -703,9 +714,7 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
                   )}
                 />
               </div>
-              <FormDescription>
-                Taint = 2, Fault = 4
-              </FormDescription>
+              <FormDescription>Taint = 2, Fault = 4</FormDescription>
               <div className="flex justify-end items-center gap-4 font-medium">
                 <span>Defect Score:</span>
                 <span className="w-16 text-right text-lg text-destructive">
@@ -715,7 +724,7 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
             </div>
 
             <Separator />
-             <div className="space-y-2">
+            <div className="space-y-2">
               <div className="flex justify-between text-lg font-bold">
                 <span>Total Score</span>
                 <span>{totalScore.toFixed(2)}</span>
@@ -750,5 +759,3 @@ export function ScaForm({ onSubmit }: ScaFormProps) {
     </Card>
   );
 }
-
-    
