@@ -151,7 +151,7 @@ const ScoreSlider = ({
           key={i}
           className={cn(
             'w-px h-2',
-            i % 4 === 0 ? 'bg-muted-foreground/50' : 'bg-border'
+            i % 4 === 0 ? 'bg-muted-foreground' : 'bg-border'
           )}
         />
       ))}
