@@ -151,7 +151,7 @@ const ScoreSlider = ({
           key={i}
           className={cn(
             'w-px h-2',
-            i % 4 === 0 ? 'bg-muted-foreground' : 'bg-border'
+            i % 4 === 0 ? 'bg-muted-foreground/50' : 'bg-border'
           )}
         />
       ))}
@@ -319,7 +319,7 @@ export function ScaForm({ onSubmit, onValuesChange }: ScaFormProps) {
                     <RadioGroup
                       onValueChange={field.onChange}
                       defaultValue={field.value}
-                      className="flex flex-wrap gap-4"
+                      className="grid grid-cols-2 gap-4 sm:grid-cols-4"
                     >
                       <FormItem>
                         <FormControl>
@@ -327,7 +327,7 @@ export function ScaForm({ onSubmit, onValuesChange }: ScaFormProps) {
                         </FormControl>
                         <FormLabel
                           className={cn(
-                            'flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer',
+                            'flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer h-full',
                             field.value === 'light' && 'border-primary'
                           )}
                         >
@@ -344,7 +344,7 @@ export function ScaForm({ onSubmit, onValuesChange }: ScaFormProps) {
                         </FormControl>
                         <FormLabel
                           className={cn(
-                            'flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer',
+                            'flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer h-full',
                             field.value === 'medium' && 'border-primary'
                           )}
                         >
@@ -364,7 +364,7 @@ export function ScaForm({ onSubmit, onValuesChange }: ScaFormProps) {
                         </FormControl>
                         <FormLabel
                           className={cn(
-                            'flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer',
+                            'flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer h-full',
                             field.value === 'medium-dark' && 'border-primary'
                           )}
                         >
@@ -381,7 +381,7 @@ export function ScaForm({ onSubmit, onValuesChange }: ScaFormProps) {
                         </FormControl>
                         <FormLabel
                           className={cn(
-                            'flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer',
+                            'flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground cursor-pointer h-full',
                             field.value === 'dark' && 'border-primary'
                           )}
                         >
