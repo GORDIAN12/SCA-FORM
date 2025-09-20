@@ -386,6 +386,45 @@ export function ScaForm({ onSubmit, onValuesChange }: ScaFormProps) {
                 </FormItem>
               )}
             />
+            
+            <FormField
+              control={form.control}
+              name="aromaCategory"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <FormLabel>Aroma Category</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      className="flex flex-wrap gap-2"
+                    >
+                      {aromaCategories.map((category) => (
+                        <FormItem key={category}>
+                          <FormControl>
+                            <RadioGroupItem
+                              value={category}
+                              className="sr-only"
+                            />
+                          </FormControl>
+                          <FormLabel
+                            className={cn(
+                              'px-3 py-1.5 border rounded-full cursor-pointer transition-colors',
+                              field.value === category
+                                ? 'bg-primary text-primary-foreground border-primary'
+                                : 'bg-transparent hover:bg-accent'
+                            )}
+                          >
+                            {category}
+                          </FormLabel>
+                        </FormItem>
+                      ))}
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <Separator />
             <h3 className="text-lg font-semibold">Scores</h3>
@@ -498,44 +537,6 @@ export function ScaForm({ onSubmit, onValuesChange }: ScaFormProps) {
                     )}
                   />
                 </div>
-                 <FormField
-                  control={form.control}
-                  name="aromaCategory"
-                  render={({ field }) => (
-                    <FormItem className="space-y-3">
-                      <FormLabel>Aroma Category</FormLabel>
-                      <FormControl>
-                        <RadioGroup
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                          className="flex flex-wrap gap-2"
-                        >
-                          {aromaCategories.map((category) => (
-                            <FormItem key={category}>
-                              <FormControl>
-                                <RadioGroupItem
-                                  value={category}
-                                  className="sr-only"
-                                />
-                              </FormControl>
-                              <FormLabel
-                                className={cn(
-                                  'px-3 py-1.5 border rounded-full cursor-pointer transition-colors',
-                                  field.value === category
-                                    ? 'bg-primary text-primary-foreground border-primary'
-                                    : 'bg-transparent hover:bg-accent'
-                                )}
-                              >
-                                {category}
-                              </FormLabel>
-                            </FormItem>
-                          ))}
-                        </RadioGroup>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
               </div>
             </div>
 
