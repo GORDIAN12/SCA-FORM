@@ -10,6 +10,15 @@ export interface Evaluation {
   roastLevel: 'light' | 'medium' | 'medium-dark' | 'dark';
   dryFragrance: 'low' | 'medium' | 'high';
   wetAroma: 'low' | 'medium' | 'high';
+  aromaCategory?:
+    | 'Floral'
+    | 'Frutal'
+    | 'Especiado'
+    | 'Nueces/Cacao'
+    | 'Caramelizado'
+    | 'Herbal'
+    | 'Tierra'
+    | 'Otros';
   acidityIntensity: 'low' | 'medium' | 'high';
   bodyIntensity: 'low' | 'medium' | 'high';
   scores: Score[];

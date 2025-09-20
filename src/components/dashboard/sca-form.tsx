@@ -34,6 +34,16 @@ const scoreSchema = z.coerce.number().min(6).max(10);
 const intensitySchema = z.enum(['low', 'medium', 'high'], {
   required_error: 'You need to select an intensity level.',
 });
+const aromaCategorySchema = z.enum([
+  'Floral',
+  'Frutal',
+  'Especiado',
+  'Nueces/Cacao',
+  'Caramelizado',
+  'Herbal',
+  'Tierra',
+  'Otros',
+]);
 
 const formSchema = z.object({
   coffeeName: z.string().min(1, 'Coffee name is required'),
@@ -42,6 +52,7 @@ const formSchema = z.object({
   }),
   dryFragrance: intensitySchema,
   wetAroma: intensitySchema,
+  aromaCategory: aromaCategorySchema.optional(),
   aroma: scoreSchema,
   flavor: scoreSchema,
   aftertaste: scoreSchema,
@@ -141,6 +152,17 @@ const ScoreSlider = ({
   </div>
 );
 
+const aromaCategories = [
+  'Floral',
+  'Frutal',
+  'Especiado',
+  'Nueces/Cacao',
+  'Caramelizado',
+  'Herbal',
+  'Tierra',
+  'Otros',
+];
+
 export function ScaForm({ onSubmit, onValuesChange }: ScaFormProps) {
   const form = useForm<ScaFormValues>({
     resolver: zodResolver(formSchema),
@@ -149,6 +171,7 @@ export function ScaForm({ onSubmit, onValuesChange }: ScaFormProps) {
       roastLevel: 'medium',
       dryFragrance: 'medium',
       wetAroma: 'medium',
+      aromaCategory: 'Frutal',
       aroma: 8,
       flavor: 8,
       aftertaste: 8,
@@ -225,6 +248,7 @@ export function ScaForm({ onSubmit, onValuesChange }: ScaFormProps) {
       roastLevel: values.roastLevel,
       dryFragrance: values.dryFragrance,
       wetAroma: values.wetAroma,
+      aromaCategory: values.aromaCategory,
       acidityIntensity: values.acidityIntensity,
       bodyIntensity: values.bodyIntensity,
       scores,
@@ -474,6 +498,44 @@ export function ScaForm({ onSubmit, onValuesChange }: ScaFormProps) {
                     )}
                   />
                 </div>
+                 <FormField
+                  control={form.control}
+                  name="aromaCategory"
+                  render={({ field }) => (
+                    <FormItem className="space-y-3">
+                      <FormLabel>Aroma Category</FormLabel>
+                      <FormControl>
+                        <RadioGroup
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                          className="flex flex-wrap gap-2"
+                        >
+                          {aromaCategories.map((category) => (
+                            <FormItem key={category}>
+                              <FormControl>
+                                <RadioGroupItem
+                                  value={category}
+                                  className="sr-only"
+                                />
+                              </FormControl>
+                              <FormLabel
+                                className={cn(
+                                  'px-3 py-1.5 border rounded-full cursor-pointer transition-colors',
+                                  field.value === category
+                                    ? 'bg-primary text-primary-foreground border-primary'
+                                    : 'bg-transparent hover:bg-accent'
+                                )}
+                              >
+                                {category}
+                              </FormLabel>
+                            </FormItem>
+                          ))}
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
             </div>
 
