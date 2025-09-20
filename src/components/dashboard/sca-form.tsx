@@ -1,3 +1,4 @@
+
 'use client';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, useWatch } from 'react-hook-form';
@@ -50,9 +51,9 @@ const formSchema = z.object({
   roastLevel: z.enum(['light', 'medium', 'medium-dark', 'dark'], {
     required_error: 'You need to select a roast level.',
   }),
+  aromaCategory: aromaCategorySchema.optional(),
   dryFragrance: intensitySchema,
   wetAroma: intensitySchema,
-  aromaCategory: aromaCategorySchema.optional(),
   aroma: scoreSchema,
   flavor: scoreSchema,
   aftertaste: scoreSchema,
@@ -136,7 +137,7 @@ const ScoreSlider = ({
     onChange: (value: number) => void;
   };
 }) => (
-  <div className="relative">
+  <div className="relative pt-2">
     <Slider
       min={6}
       max={10}
@@ -144,6 +145,17 @@ const ScoreSlider = ({
       value={[field.value]}
       onValueChange={(value) => field.onChange(value[0])}
     />
+    <div className="relative -mt-2.5 h-2 flex justify-between px-px pointer-events-none">
+      {[...Array(17)].map((_, i) => (
+        <div
+          key={i}
+          className={cn(
+            'w-px h-1.5',
+            i % 4 === 0 ? 'bg-muted-foreground' : 'bg-border'
+          )}
+        />
+      ))}
+    </div>
     <div className="relative flex justify-between text-xs text-muted-foreground mt-1 px-1">
       {[...Array(5)].map((_, i) => (
         <span key={i}>{6 + i}</span>
@@ -169,9 +181,9 @@ export function ScaForm({ onSubmit, onValuesChange }: ScaFormProps) {
     defaultValues: {
       coffeeName: '',
       roastLevel: 'medium',
+      aromaCategory: 'Frutal',
       dryFragrance: 'medium',
       wetAroma: 'medium',
-      aromaCategory: 'Frutal',
       aroma: 8,
       flavor: 8,
       aftertaste: 8,
@@ -246,9 +258,9 @@ export function ScaForm({ onSubmit, onValuesChange }: ScaFormProps) {
     const evaluationData: Omit<Evaluation, 'id'> = {
       coffeeName: values.coffeeName,
       roastLevel: values.roastLevel,
+      aromaCategory: values.aromaCategory,
       dryFragrance: values.dryFragrance,
       wetAroma: values.wetAroma,
-      aromaCategory: values.aromaCategory,
       acidityIntensity: values.acidityIntensity,
       bodyIntensity: values.bodyIntensity,
       scores,
@@ -386,7 +398,7 @@ export function ScaForm({ onSubmit, onValuesChange }: ScaFormProps) {
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="aromaCategory"
