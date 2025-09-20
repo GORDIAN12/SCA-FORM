@@ -150,7 +150,7 @@ const ScoreSlider = ({
         <div
           key={i}
           className={cn(
-            'w-px h-1.5',
+            'w-px h-2',
             i % 4 === 0 ? 'bg-muted-foreground' : 'bg-border'
           )}
         />
