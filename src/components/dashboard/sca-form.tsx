@@ -14,7 +14,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import {
   Card,
   CardContent,
@@ -176,11 +175,13 @@ export function ScaForm({ onSubmit, onValuesChange }: ScaFormProps) {
       aromaCategory: 'Frutal',
       dryFragrance: 'medium',
       wetAroma: 'medium',
-      cups: Array(5).fill({
-        uniformity: true,
-        cleanCup: true,
-        sweetness: true,
-      }),
+      cups: Array(5)
+        .fill(null)
+        .map(() => ({
+          uniformity: true,
+          cleanCup: true,
+          sweetness: true,
+        })),
       aroma: 8,
       flavor: 8,
       aftertaste: 8,
@@ -204,11 +205,11 @@ export function ScaForm({ onSubmit, onValuesChange }: ScaFormProps) {
   const { totalScore } = useMemo(() => {
     const cups = watchedValues.cups || [];
     const uniformityScore =
-      cups.filter((cup) => cup.uniformity).length * 2;
+      cups.filter((cup) => cup && cup.uniformity).length * 2;
     const cleanCupScore =
-      cups.filter((cup) => cup.cleanCup).length * 2;
+      cups.filter((cup) => cup && cup.cleanCup).length * 2;
     const sweetnessScore =
-      cups.filter((cup) => cup.sweetness).length * 2;
+      cups.filter((cup) => cup && cup.sweetness).length * 2;
 
 
     const baseScoresTotal = scoreFields.reduce(
