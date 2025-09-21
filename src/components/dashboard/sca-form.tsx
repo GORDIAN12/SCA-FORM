@@ -145,13 +145,15 @@ const ScoreSlider = ({
       value={[field.value]}
       onValueChange={(value) => field.onChange(value[0])}
     />
-    <div className="absolute top-1/2 left-0 right-0 h-0 flex justify-between px-px pointer-events-none -translate-y-px">
+    <div className="absolute top-1/2 left-0 right-0 h-0 flex justify-between px-2 pointer-events-none -translate-y-1/2">
       {[...Array(17)].map((_, i) => (
         <div
           key={i}
           className={cn(
-            'w-0.5',
-            i % 4 === 0 ? 'h-2 bg-muted-foreground' : 'h-1 bg-border'
+            'w-[2px]',
+            i % 4 === 0
+              ? 'h-3 bg-primary'
+              : 'h-1.5 bg-border'
           )}
         />
       ))}
