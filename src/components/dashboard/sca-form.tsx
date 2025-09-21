@@ -149,7 +149,7 @@ const ScoreSlider = ({
         />
       ))}
     </div>
-    <div className="relative flex justify-between text-xs text-muted-foreground mt-9 px-2.5">
+    <div className="relative flex justify-between text-xs text-muted-foreground mt-12 px-1">
       {[...Array(5)].map((_, i) => (
         <span key={i}>{6 + i}</span>
       ))}
@@ -168,7 +168,7 @@ const aromaCategories = [
   'Otros',
 ];
 
-const createDefaultCup = (index: number): CupEvaluation => ({
+const createDefaultCup = (index: number): CupFormValues => ({
   id: `cup-${index + 1}`,
   aromaCategory: 'Frutal',
   dryFragrance: 'medium',
@@ -187,6 +187,13 @@ const createDefaultCup = (index: number): CupEvaluation => ({
   cupperScore: 8,
   totalScore: 0,
 });
+
+const roastLevelColors = {
+  light: 'bg-[#C9A26A]',
+  medium: 'bg-[#A27B48]',
+  'medium-dark': 'bg-[#6B4F2E]',
+  dark: 'bg-[#4A2C2A]',
+};
 
 export function ScaForm({
   onSubmit,
@@ -208,6 +215,10 @@ export function ScaForm({
   });
 
   const watchedValues = useWatch({ control: form.control });
+  const watchedRoastLevel = useWatch({
+    control: form.control,
+    name: 'roastLevel',
+  });
 
   useEffect(() => {
     if (onValuesChange) {
@@ -269,7 +280,15 @@ export function ScaForm({
                 name="roastLevel"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Roast Level</FormLabel>
+                    <div className="flex items-center gap-2 mb-2">
+                      <FormLabel>Roast Level</FormLabel>
+                      <div
+                        className={cn(
+                          'size-4 rounded-full transition-colors',
+                          roastLevelColors[watchedRoastLevel]
+                        )}
+                      />
+                    </div>
                     <FormControl>
                       <RadioGroup
                         onValueChange={field.onChange}
@@ -333,9 +352,9 @@ export function ScaForm({
                   );
                   return (
                     baseScoresTotal +
-                    uniformityScore * 5 +
-                    cleanCupScore * 5 +
-                    sweetnessScore * 5
+                    uniformityScore +
+                    cleanCupScore +
+                    sweetnessScore
                   );
                 }, [cupValues]);
 
@@ -367,7 +386,7 @@ export function ScaForm({
                                     <div className="flex items-center gap-4">
                                       <CupSelector field={qualityField} />
                                       <span className="text-sm font-medium w-8 text-right">
-                                        {qualityField.value ? 2 : 0}
+                                        {qualityField.value ? '2.00' : '0.00'}
                                       </span>
                                     </div>
                                   </div>
