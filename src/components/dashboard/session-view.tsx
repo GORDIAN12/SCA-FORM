@@ -9,7 +9,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ReportGenerator } from './report-generator';
 import { ScaForm, type ScaFormValues } from './sca-form';
 import { ScoresRadarChart } from './visualizations/scores-radar-chart';
 import { Card, CardContent } from '../ui/card';
@@ -57,13 +56,12 @@ export function SessionView({ session: initialSession }: SessionViewProps) {
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in-50 duration-500">
+      <div className="grid grid-cols-1 gap-6 animate-in fade-in-50 duration-500">
         <Card>
           <CardContent className="p-2 pt-4">
             {liveFormData && <ScoresRadarChart scores={liveFormData} />}
           </CardContent>
         </Card>
-        <ReportGenerator evaluation={selectedEvaluation} />
       </div>
 
       {allEvaluations.length > 1 && (
