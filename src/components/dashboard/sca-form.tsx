@@ -63,9 +63,9 @@ const formSchema = z.object({
   bodyIntensity: intensitySchema,
   balance: scoreSchema,
   cupperScore: scoreSchema,
-  uniformity: z.array(z.boolean()).length(5).default(Array(5).fill(true)),
-  cleanCup: z.array(z.boolean()).length(5).default(Array(5).fill(true)),
-  sweetness: z.array(z.boolean()).length(5).default(Array(5).fill(true)),
+  uniformity: z.boolean().default(true),
+  cleanCup: z.boolean().default(true),
+  sweetness: z.boolean().default(true),
   defects: z.object({
     cups: z.coerce.number().min(0).max(5).default(0),
     intensity: z.coerce.number().min(0).max(20).default(0),
@@ -94,37 +94,27 @@ const CupSelector = ({
   field,
 }: {
   field: {
-    value: boolean[];
-    onChange: (value: boolean[]) => void;
+    value: boolean;
+    onChange: (value: boolean) => void;
   };
 }) => {
-  const toggleCup = (index: number) => {
-    const newValues = [...field.value];
-    newValues[index] = !newValues[index];
-    field.onChange(newValues);
-  };
   return (
     <div className="flex items-center space-x-2">
-      {[...Array(5)].map((_, index) => (
-        <button
-          key={index}
-          type="button"
-          onClick={() => toggleCup(index)}
+      <button
+        type="button"
+        onClick={() => field.onChange(!field.value)}
+        className={cn(
+          'p-1 rounded-md transition-colors',
+          'hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+        )}
+      >
+        <Coffee
           className={cn(
-            'p-1 rounded-md transition-colors',
-            'hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+            'size-5 transition-colors',
+            field.value ? 'text-primary fill-primary/20' : 'text-muted-foreground/50'
           )}
-        >
-          <Coffee
-            className={cn(
-              'size-5 transition-colors',
-              field.value[index]
-                ? 'text-primary fill-primary/20'
-                : 'text-muted-foreground/50'
-            )}
-          />
-        </button>
-      ))}
+        />
+      </button>
     </div>
   );
 };
@@ -151,12 +141,12 @@ const ScoreSlider = ({
           key={i}
           className={cn(
             'w-[2px] bg-primary/40',
-            i % 4 === 0 ? 'h-3 bg-primary' : 'h-1.5'
+            i % 4 === 0 ? 'h-3 bg-[#4A2C2A]' : 'h-1.5 bg-[#9B705D]'
           )}
         />
       ))}
     </div>
-    <div className="relative flex justify-between text-xs text-muted-foreground mt-8 px-2">
+    <div className="relative flex justify-between text-xs text-muted-foreground mt-9 px-2.5">
       {[...Array(5)].map((_, i) => (
         <span key={i}>{6 + i}</span>
       ))}
@@ -193,9 +183,9 @@ export function ScaForm({ onSubmit, onValuesChange }: ScaFormProps) {
       bodyIntensity: 'medium',
       balance: 8,
       cupperScore: 8,
-      uniformity: Array(5).fill(true),
-      cleanCup: Array(5).fill(true),
-      sweetness: Array(5).fill(true),
+      uniformity: true,
+      cleanCup: true,
+      sweetness: true,
       defects: { cups: 0, intensity: 0 },
       notes: '',
     },
@@ -210,12 +200,9 @@ export function ScaForm({ onSubmit, onValuesChange }: ScaFormProps) {
   }, [watchedValues, onValuesChange]);
 
   const { totalScore, defectsScore } = useMemo(() => {
-    const uniformityScore =
-      (watchedValues.uniformity || []).filter(Boolean).length * 2;
-    const cleanCupScore =
-      (watchedValues.cleanCup || []).filter(Boolean).length * 2;
-    const sweetnessScore =
-      (watchedValues.sweetness || []).filter(Boolean).length * 2;
+    const uniformityScore = watchedValues.uniformity ? 10 : 0;
+    const cleanCupScore = watchedValues.cleanCup ? 10 : 0;
+    const sweetnessScore = watchedValues.sweetness ? 10 : 0;
 
     const defectsScore =
       (watchedValues.defects?.cups || 0) *
@@ -234,9 +221,9 @@ export function ScaForm({ onSubmit, onValuesChange }: ScaFormProps) {
   }, [watchedValues]);
 
   function handleSubmit(values: ScaFormValues) {
-    const uniformityScore = values.uniformity.filter(Boolean).length * 2;
-    const cleanCupScore = values.cleanCup.filter(Boolean).length * 2;
-    const sweetnessScore = values.sweetness.filter(Boolean).length * 2;
+    const uniformityScore = values.uniformity ? 10 : 0;
+    const cleanCupScore = values.cleanCup ? 10 : 0;
+    const sweetnessScore = values.sweetness ? 10 : 0;
     const defectPoints =
       (values.defects.cups || 0) * (values.defects.intensity || 0);
 
@@ -735,8 +722,7 @@ export function ScaForm({ onSubmit, onValuesChange }: ScaFormProps) {
                   control={form.control}
                   name={name}
                   render={({ field }) => {
-                    const checkedCount = field.value.filter(Boolean).length;
-                    const score = checkedCount * 2;
+                    const score = field.value ? 10 : 0;
                     return (
                       <FormItem>
                         <div className="flex justify-between items-center">
