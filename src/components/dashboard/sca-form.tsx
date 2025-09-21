@@ -145,18 +145,18 @@ const ScoreSlider = ({
       value={[field.value]}
       onValueChange={(value) => field.onChange(value[0])}
     />
-    <div className="relative -mt-2.5 h-2 flex justify-between px-px pointer-events-none">
+    <div className="absolute top-1/2 left-0 right-0 h-0 flex justify-between px-px pointer-events-none -translate-y-px">
       {[...Array(17)].map((_, i) => (
         <div
           key={i}
           className={cn(
-            'w-px',
+            'w-0.5',
             i % 4 === 0 ? 'h-2 bg-muted-foreground' : 'h-1 bg-border'
           )}
         />
       ))}
     </div>
-    <div className="relative flex justify-between text-xs text-muted-foreground mt-1 px-1">
+    <div className="relative flex justify-between text-xs text-muted-foreground mt-2 px-1">
       {[...Array(5)].map((_, i) => (
         <span key={i}>{6 + i}</span>
       ))}
@@ -842,5 +842,3 @@ export function ScaForm({ onSubmit, onValuesChange }: ScaFormProps) {
     </Card>
   );
 }
-
-    
