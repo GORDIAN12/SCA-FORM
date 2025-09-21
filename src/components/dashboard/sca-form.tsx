@@ -30,6 +30,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useEffect, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { Coffee } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const scoreSchema = z.coerce.number().min(6).max(10);
 const intensitySchema = z.enum(['low', 'medium', 'high'], {
@@ -46,6 +47,12 @@ const aromaCategorySchema = z.enum([
   'Otros',
 ]);
 
+const cupSchema = z.object({
+  uniformity: z.boolean().default(true),
+  cleanCup: z.boolean().default(true),
+  sweetness: z.boolean().default(true),
+});
+
 const formSchema = z.object({
   coffeeName: z.string().min(1, 'Coffee name is required'),
   roastLevel: z.enum(['light', 'medium', 'medium-dark', 'dark'], {
@@ -54,6 +61,7 @@ const formSchema = z.object({
   aromaCategory: aromaCategorySchema.optional(),
   dryFragrance: intensitySchema,
   wetAroma: intensitySchema,
+  cups: z.array(cupSchema).length(5),
   aroma: scoreSchema,
   flavor: scoreSchema,
   aftertaste: scoreSchema,
@@ -63,9 +71,6 @@ const formSchema = z.object({
   bodyIntensity: intensitySchema,
   balance: scoreSchema,
   cupperScore: scoreSchema,
-  uniformity: z.boolean().default(true),
-  cleanCup: z.boolean().default(true),
-  sweetness: z.boolean().default(true),
   defects: z.object({
     cups: z.coerce.number().min(0).max(5).default(0),
     intensity: z.coerce.number().min(0).max(20).default(0),
@@ -111,7 +116,9 @@ const CupSelector = ({
         <Coffee
           className={cn(
             'size-5 transition-colors',
-            field.value ? 'text-primary fill-primary/20' : 'text-muted-foreground/50'
+            field.value
+              ? 'text-primary fill-primary/20'
+              : 'text-muted-foreground/50'
           )}
         />
       </button>
@@ -140,7 +147,7 @@ const ScoreSlider = ({
         <div
           key={i}
           className={cn(
-            'w-[2px] bg-primary/40',
+            'w-[2px]',
             i % 4 === 0 ? 'h-3 bg-[#4A2C2A]' : 'h-1.5 bg-[#9B705D]'
           )}
         />
@@ -174,6 +181,11 @@ export function ScaForm({ onSubmit, onValuesChange }: ScaFormProps) {
       aromaCategory: 'Frutal',
       dryFragrance: 'medium',
       wetAroma: 'medium',
+      cups: Array(5).fill({
+        uniformity: true,
+        cleanCup: true,
+        sweetness: true,
+      }),
       aroma: 8,
       flavor: 8,
       aftertaste: 8,
@@ -183,9 +195,6 @@ export function ScaForm({ onSubmit, onValuesChange }: ScaFormProps) {
       bodyIntensity: 'medium',
       balance: 8,
       cupperScore: 8,
-      uniformity: true,
-      cleanCup: true,
-      sweetness: true,
       defects: { cups: 0, intensity: 0 },
       notes: '',
     },
@@ -200,9 +209,14 @@ export function ScaForm({ onSubmit, onValuesChange }: ScaFormProps) {
   }, [watchedValues, onValuesChange]);
 
   const { totalScore, defectsScore } = useMemo(() => {
-    const uniformityScore = watchedValues.uniformity ? 10 : 0;
-    const cleanCupScore = watchedValues.cleanCup ? 10 : 0;
-    const sweetnessScore = watchedValues.sweetness ? 10 : 0;
+    const cups = watchedValues.cups || [];
+    const uniformityScore =
+      cups.filter((cup) => cup.uniformity).length * 2;
+    const cleanCupScore =
+      cups.filter((cup) => cup.cleanCup).length * 2;
+    const sweetnessScore =
+      cups.filter((cup) => cup.sweetness).length * 2;
+
 
     const defectsScore =
       (watchedValues.defects?.cups || 0) *
@@ -221,9 +235,9 @@ export function ScaForm({ onSubmit, onValuesChange }: ScaFormProps) {
   }, [watchedValues]);
 
   function handleSubmit(values: ScaFormValues) {
-    const uniformityScore = values.uniformity ? 10 : 0;
-    const cleanCupScore = values.cleanCup ? 10 : 0;
-    const sweetnessScore = values.sweetness ? 10 : 0;
+    const uniformityScore = values.cups.filter((c) => c.uniformity).length * 2;
+    const cleanCupScore = values.cups.filter((c) => c.cleanCup).length * 2;
+    const sweetnessScore = values.cups.filter((c) => c.sweetness).length * 2;
     const defectPoints =
       (values.defects.cups || 0) * (values.defects.intensity || 0);
 
@@ -264,8 +278,9 @@ export function ScaForm({ onSubmit, onValuesChange }: ScaFormProps) {
 
   const capitalize = (s: string) =>
     s.charAt(0).toUpperCase() + s.slice(1).replace(/([A-Z])/g, ' $1');
+  
+  const cupQualityFields = ['uniformity', 'cleanCup', 'sweetness'] as const;
 
-  const cupFields = ['uniformity', 'cleanCup', 'sweetness'] as const;
 
   return (
     <Card>
@@ -424,6 +439,55 @@ export function ScaForm({ onSubmit, onValuesChange }: ScaFormProps) {
                 </FormItem>
               )}
             />
+
+            <Separator />
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Cup Quality</h3>
+              <Tabs defaultValue="cup-1" className="w-full">
+                <TabsList className="grid w-full grid-cols-5">
+                  {[...Array(5)].map((_, i) => (
+                    <TabsTrigger key={`cup-trigger-${i}`} value={`cup-${i + 1}`}>
+                      Cup {i + 1}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+                {[...Array(5)].map((_, i) => (
+                  <TabsContent key={`cup-content-${i}`} value={`cup-${i + 1}`}>
+                    <Card>
+                      <CardContent className="space-y-4 pt-6">
+                        {cupQualityFields.map((quality) => (
+                          <FormField
+                            key={`cup-${i}-${quality}`}
+                            control={form.control}
+                            name={`cups.${i}.${quality}`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex justify-between items-center">
+                                  <FormLabel>{capitalize(quality)}</FormLabel>
+                                  <div className="flex items-center gap-4">
+                                    <CupSelector
+                                      field={{
+                                        value: field.value,
+                                        onChange: field.onChange,
+                                      }}
+                                    />
+                                    <span className="text-sm font-medium w-8 text-right">
+                                      {field.value ? 2 : 0}
+                                    </span>
+                                  </div>
+                                </div>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        ))}
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                ))}
+              </Tabs>
+            </div>
+
 
             <Separator />
             <h3 className="text-lg font-semibold">Scores</h3>
@@ -712,39 +776,6 @@ export function ScaForm({ onSubmit, onValuesChange }: ScaFormProps) {
                   )}
                 />
               </div>
-            </div>
-
-            <Separator />
-            <div className="space-y-4">
-              {cupFields.map((name) => (
-                <FormField
-                  key={name}
-                  control={form.control}
-                  name={name}
-                  render={({ field }) => {
-                    const score = field.value ? 10 : 0;
-                    return (
-                      <FormItem>
-                        <div className="flex justify-between items-center">
-                          <FormLabel>{capitalize(name)}</FormLabel>
-                          <div className="flex items-center gap-4">
-                            <CupSelector
-                              field={{
-                                value: field.value,
-                                onChange: field.onChange,
-                              }}
-                            />
-                            <span className="text-sm font-medium w-8 text-right">
-                              {score}
-                            </span>
-                          </div>
-                        </div>
-                        <FormMessage />
-                      </FormItem>
-                    );
-                  }}
-                />
-              ))}
             </div>
 
             <Separator />
