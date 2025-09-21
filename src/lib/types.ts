@@ -4,12 +4,8 @@ export interface Score {
   notes?: string;
 }
 
-export interface Evaluation {
+export interface CupEvaluation {
   id: string;
-  coffeeName: string;
-  roastLevel: 'light' | 'medium' | 'medium-dark' | 'dark';
-  dryFragrance: 'low' | 'medium' | 'high';
-  wetAroma: 'low' | 'medium' | 'high';
   aromaCategory?:
     | 'Floral'
     | 'Frutal'
@@ -19,12 +15,28 @@ export interface Evaluation {
     | 'Herbal'
     | 'Tierra'
     | 'Otros';
+  dryFragrance: 'low' | 'medium' | 'high';
+  wetAroma: 'low' | 'medium' | 'high';
+  uniformity: boolean;
+  cleanCup: boolean;
+  sweetness: boolean;
+  aroma: number;
+  flavor: number;
+  aftertaste: number;
+  acidity: number;
   acidityIntensity: 'low' | 'medium' | 'high';
+  body: number;
   bodyIntensity: 'low' | 'medium' | 'high';
-  scores: Score[];
-  uniformity: number;
-  cleanCup: number;
-  sweetness: number;
+  balance: number;
+  cupperScore: number;
+  totalScore: number;
+}
+
+export interface Evaluation {
+  id: string;
+  coffeeName: string;
+  roastLevel: 'light' | 'medium' | 'medium-dark' | 'dark';
+  cups: CupEvaluation[];
   overallScore: number;
 }
 

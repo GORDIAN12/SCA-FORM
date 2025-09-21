@@ -1,15 +1,8 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import type { Session, Evaluation } from '@/lib/types';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { ScaForm, type ScaFormValues } from './sca-form';
+import type { Session, Evaluation, CupEvaluation } from '@/lib/types';
+import { ScaForm, type ScaFormValues, type CupFormValues } from './sca-form';
 import { ScoresRadarChart } from './visualizations/scores-radar-chart';
 import { Card, CardContent } from '../ui/card';
 
@@ -19,33 +12,30 @@ interface SessionViewProps {
 
 export function SessionView({ session: initialSession }: SessionViewProps) {
   const [session, setSession] = useState(initialSession);
-  const [selectedEvalId, setSelectedEvalId] = useState<string>(
-    session.evaluations[0].id
-  );
   const [liveFormData, setLiveFormData] = useState<ScaFormValues | null>(null);
-
-  const selectedEvaluation = useMemo(() => {
-    const allEvaluations = session.newEvaluation
-      ? [...session.evaluations, session.newEvaluation as Evaluation]
-      : session.evaluations;
-    return (
-      allEvaluations.find((e) => e.id === selectedEvalId) || allEvaluations[0]
-    );
-  }, [session, selectedEvalId]);
+  const [activeTab, setActiveTab] = useState('cup-1');
 
   const handleFormSubmit = (data: Evaluation) => {
-    const newEvaluation = { ...data, id: 'new-eval' };
-    setSession((prev) => ({ ...prev, newEvaluation }));
-    setSelectedEvalId('new-eval');
+    const newEvaluation = { ...data, id: `eval-${Date.now()}` };
+    setSession((prev) => ({
+      ...prev,
+      evaluations: [...prev.evaluations, newEvaluation],
+    }));
   };
 
   const handleValuesChange = (values: ScaFormValues) => {
     setLiveFormData(values);
   };
 
-  const allEvaluations = session.newEvaluation
-    ? [...session.evaluations, session.newEvaluation as Evaluation]
-    : session.evaluations;
+  const handleActiveTabChange = (tab: string) => {
+    setActiveTab(tab);
+  };
+
+  const activeCupData = useMemo(() => {
+    if (!liveFormData || !liveFormData.cups) return null;
+    const cupIndex = parseInt(activeTab.split('-')[1], 10) - 1;
+    return liveFormData.cups[cupIndex] as CupFormValues | null;
+  }, [liveFormData, activeTab]);
 
   return (
     <div className="space-y-6">
@@ -53,33 +43,17 @@ export function SessionView({ session: initialSession }: SessionViewProps) {
         <ScaForm
           onSubmit={handleFormSubmit}
           onValuesChange={handleValuesChange}
+          onActiveTabChange={handleActiveTabChange}
         />
       </div>
 
       <div className="grid grid-cols-1 gap-6 animate-in fade-in-50 duration-500">
         <Card>
           <CardContent className="p-2 pt-4">
-            {liveFormData && <ScoresRadarChart scores={liveFormData} />}
+            {activeCupData && <ScoresRadarChart scores={activeCupData} />}
           </CardContent>
         </Card>
       </div>
-
-      {allEvaluations.length > 1 && (
-        <div className="flex justify-center">
-          <Select value={selectedEvalId} onValueChange={setSelectedEvalId}>
-            <SelectTrigger className="w-full md:w-[280px]">
-              <SelectValue placeholder="Select an evaluation" />
-            </SelectTrigger>
-            <SelectContent>
-              {allEvaluations.map((ev) => (
-                <SelectItem key={ev.id} value={ev.id}>
-                  {ev.coffeeName}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      )}
     </div>
   );
 }

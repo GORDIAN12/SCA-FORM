@@ -6,19 +6,16 @@ import {
   RadarChart,
   PolarRadiusAxis,
 } from 'recharts';
-import {
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { CardHeader, CardTitle } from '@/components/ui/card';
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
-import type { ScaFormValues } from '../sca-form';
+import type { CupFormValues } from '../sca-form';
 
 interface ScoresRadarChartProps {
-  scores: ScaFormValues;
+  scores: CupFormValues;
 }
 
 const chartConfig = {
@@ -28,14 +25,21 @@ const chartConfig = {
   },
 };
 
-const scoreKeys = ['aroma', 'flavor', 'aftertaste', 'acidity', 'body', 'balance'];
+const scoreKeys = [
+  'aroma',
+  'flavor',
+  'aftertaste',
+  'acidity',
+  'body',
+  'balance',
+];
 
 const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 export function ScoresRadarChart({ scores }: ScoresRadarChartProps) {
   const chartData = scoreKeys.map((key) => ({
     name: capitalize(key),
-    value: scores[key as keyof ScaFormValues] as number,
+    value: scores[key as keyof CupFormValues] as number,
   }));
 
   return (
@@ -56,7 +60,12 @@ export function ScoresRadarChart({ scores }: ScoresRadarChartProps) {
             content={<ChartTooltipContent indicator="line" />}
           />
           <PolarAngleAxis dataKey="name" tick={{ fontSize: 12 }} />
-          <PolarRadiusAxis angle={30} domain={[6, 10]} tick={false} axisLine={false} />
+          <PolarRadiusAxis
+            angle={30}
+            domain={[6, 10]}
+            tick={false}
+            axisLine={false}
+          />
           <PolarGrid />
           <Radar
             dataKey="value"
