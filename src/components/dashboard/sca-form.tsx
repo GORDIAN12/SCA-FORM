@@ -443,7 +443,7 @@ export function ScaForm({ onSubmit, onValuesChange }: ScaFormProps) {
                       <CardContent className="space-y-4 pt-6">
                         {cupQualityFields.map((quality) => (
                           <FormField
-                            key={`cup-${i}-${quality}`}
+                            key={`cups.${i}.${quality}`}
                             control={form.control}
                             name={`cups.${i}.${quality}`}
                             render={({ field }) => (
