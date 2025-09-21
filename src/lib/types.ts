@@ -26,7 +26,6 @@ export interface Evaluation {
   cleanCup: number;
   sweetness: number;
   overallScore: number;
-  notes: string;
 }
 
 export interface Session {
@@ -36,5 +35,3 @@ export interface Session {
   evaluations: Evaluation[];
   newEvaluation?: Partial<Evaluation>;
 }
-
-    

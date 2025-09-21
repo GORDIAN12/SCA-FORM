@@ -71,7 +71,6 @@ const formSchema = z.object({
   bodyIntensity: intensitySchema,
   balance: scoreSchema,
   cupperScore: scoreSchema,
-  notes: z.string().optional(),
 });
 
 export type ScaFormValues = z.infer<typeof formSchema>;
@@ -191,7 +190,6 @@ export function ScaForm({ onSubmit, onValuesChange }: ScaFormProps) {
       bodyIntensity: 'medium',
       balance: 8,
       cupperScore: 8,
-      notes: '',
     },
   });
 
@@ -258,7 +256,6 @@ export function ScaForm({ onSubmit, onValuesChange }: ScaFormProps) {
       cleanCup: cleanCupScore,
       sweetness: sweetnessScore,
       overallScore: totalScore,
-      notes: values.notes || '',
     };
 
     onSubmit({ ...evaluationData, id: 'temp-id' });
@@ -773,24 +770,6 @@ export function ScaForm({ onSubmit, onValuesChange }: ScaFormProps) {
                 <span>{totalScore.toFixed(2)}</span>
               </div>
             </div>
-            <Separator />
-            <FormField
-              control={form.control}
-              name="notes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Overall Notes</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Describe overall impressions of the coffee..."
-                      className="resize-none"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
           </CardContent>
           <CardFooter>
             <Button type="submit" className="w-full">
@@ -802,5 +781,3 @@ export function ScaForm({ onSubmit, onValuesChange }: ScaFormProps) {
     </Card>
   );
 }
-
-    
