@@ -333,9 +333,9 @@ export function ScaForm({
                   );
                   return (
                     baseScoresTotal +
-                    uniformityScore +
-                    cleanCupScore +
-                    sweetnessScore
+                    uniformityScore * 5 +
+                    cleanCupScore * 5 +
+                    sweetnessScore * 5
                   );
                 }, [cupValues]);
 
