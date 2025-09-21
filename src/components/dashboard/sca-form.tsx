@@ -71,10 +71,6 @@ const formSchema = z.object({
   bodyIntensity: intensitySchema,
   balance: scoreSchema,
   cupperScore: scoreSchema,
-  defects: z.object({
-    cups: z.coerce.number().min(0).max(5).default(0),
-    intensity: z.coerce.number().min(0).max(20).default(0),
-  }),
   notes: z.string().optional(),
 });
 
@@ -195,7 +191,6 @@ export function ScaForm({ onSubmit, onValuesChange }: ScaFormProps) {
       bodyIntensity: 'medium',
       balance: 8,
       cupperScore: 8,
-      defects: { cups: 0, intensity: 0 },
       notes: '',
     },
   });
@@ -208,7 +203,7 @@ export function ScaForm({ onSubmit, onValuesChange }: ScaFormProps) {
     }
   }, [watchedValues, onValuesChange]);
 
-  const { totalScore, defectsScore } = useMemo(() => {
+  const { totalScore } = useMemo(() => {
     const cups = watchedValues.cups || [];
     const uniformityScore =
       cups.filter((cup) => cup.uniformity).length * 2;
@@ -218,10 +213,6 @@ export function ScaForm({ onSubmit, onValuesChange }: ScaFormProps) {
       cups.filter((cup) => cup.sweetness).length * 2;
 
 
-    const defectsScore =
-      (watchedValues.defects?.cups || 0) *
-      (watchedValues.defects?.intensity || 0);
-
     const baseScoresTotal = scoreFields.reduce(
       (acc, field) => acc + (watchedValues[field] || 0),
       0
@@ -229,18 +220,16 @@ export function ScaForm({ onSubmit, onValuesChange }: ScaFormProps) {
 
     const subtotal =
       baseScoresTotal + uniformityScore + cleanCupScore + sweetnessScore;
-    const totalScore = subtotal - defectsScore;
+    const totalScore = subtotal;
 
-    return { totalScore, defectsScore };
+    return { totalScore };
   }, [watchedValues]);
 
   function handleSubmit(values: ScaFormValues) {
     const uniformityScore = values.cups.filter((c) => c.uniformity).length * 2;
     const cleanCupScore = values.cups.filter((c) => c.cleanCup).length * 2;
     const sweetnessScore = values.cups.filter((c) => c.sweetness).length * 2;
-    const defectPoints =
-      (values.defects.cups || 0) * (values.defects.intensity || 0);
-
+    
     const scores = [
       ...scoreFields.map((name) => ({
         name:
@@ -254,7 +243,7 @@ export function ScaForm({ onSubmit, onValuesChange }: ScaFormProps) {
     ];
 
     const subtotal = scores.reduce((acc, score) => acc + score.value, 0);
-    const overallScore = subtotal - defectPoints;
+    const overallScore = subtotal;
 
     const evaluationData: Omit<Evaluation, 'id'> = {
       coffeeName: values.coffeeName,
@@ -268,7 +257,6 @@ export function ScaForm({ onSubmit, onValuesChange }: ScaFormProps) {
       uniformity: uniformityScore,
       cleanCup: cleanCupScore,
       sweetness: sweetnessScore,
-      defects: defectPoints,
       overallScore: totalScore,
       notes: values.notes || '',
     };
@@ -779,51 +767,6 @@ export function ScaForm({ onSubmit, onValuesChange }: ScaFormProps) {
             </div>
 
             <Separator />
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Defects</h3>
-              <div className="grid grid-cols-3 items-center gap-4">
-                <FormField
-                  control={form.control}
-                  name="defects.cups"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>No. of Cups</FormLabel>
-                      <FormControl>
-                        <Input type="number" min="0" max="5" {...field} />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                <span className="text-center self-end pb-2">x</span>
-                <FormField
-                  control={form.control}
-                  name="defects.intensity"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Intensity</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          min="0"
-                          max="20"
-                          step="2"
-                          {...field}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <FormDescription>Taint = 2, Fault = 4</FormDescription>
-              <div className="flex justify-end items-center gap-4 font-medium">
-                <span>Defect Score:</span>
-                <span className="w-16 text-right text-lg text-destructive">
-                  -{defectsScore}
-                </span>
-              </div>
-            </div>
-
-            <Separator />
             <div className="space-y-2">
               <div className="flex justify-between text-lg font-bold">
                 <span>Total Score</span>
@@ -859,3 +802,5 @@ export function ScaForm({ onSubmit, onValuesChange }: ScaFormProps) {
     </Card>
   );
 }
+
+    

@@ -28,7 +28,6 @@ export const mockSessions: Session[] = [
         uniformity: 10,
         cleanCup: 10,
         sweetness: 10,
-        defects: 0,
         overallScore: 88.5,
         notes:
           'Bright, citrusy acidity with strong floral notes of jasmine and bergamot. Delicate body. Clean and sweet finish.',
@@ -55,7 +54,6 @@ export const mockSessions: Session[] = [
         uniformity: 10,
         cleanCup: 10,
         sweetness: 10,
-        defects: 0,
         overallScore: 89.25,
         notes:
           'Intense berry-like fruitiness, especially blueberry. Heavier body than the washed process. Winey acidity and a complex, lingering aftertaste.',
@@ -89,7 +87,6 @@ export const mockSessions: Session[] = [
         uniformity: 10,
         cleanCup: 10,
         sweetness: 10,
-        defects: 0,
         overallScore: 86.75,
         notes:
           'Classic Colombian profile. Notes of caramel, milk chocolate, and a hint of orange. Medium, pleasant acidity and a round body. Very balanced and clean.',
@@ -123,7 +120,6 @@ export const mockSessions: Session[] = [
         uniformity: 10,
         cleanCup: 10,
         sweetness: 10,
-        defects: 0,
         overallScore: 85.5,
         notes:
           'Earthy and herbaceous aroma. Full, syrupy body with low acidity. Flavors of dark chocolate, cedar, and sweet tobacco. Long, persistent aftertaste.',
@@ -131,3 +127,5 @@ export const mockSessions: Session[] = [
     ],
   },
 ];
+
+    
