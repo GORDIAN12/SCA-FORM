@@ -43,38 +43,38 @@ body {
     --sidebar-ring: 18 27% 49%;
   }
   .dark {
-    --background: 4 10% 15%;
-    --foreground: 45 30% 92%;
-    --card: 4 10% 17%;
-    --card-foreground: 45 30% 92%;
-    --popover: 4 10% 15%;
-    --popover-foreground: 45 30% 92%;
-    --primary: 18 27% 49%;
-    --primary-foreground: 4 10% 10%;
-    --secondary: 4 10% 25%;
-    --secondary-foreground: 45 30% 92%;
-    --muted: 4 10% 25%;
-    --muted-foreground: 45 30% 80%;
-    --accent: 4 10% 30%;
-    --accent-foreground: 45 30% 92%;
+    --background: 0 0% 7%;
+    --foreground: 0 0% 88%;
+    --card: 0 0% 12%;
+    --card-foreground: 0 0% 88%;
+    --popover: 0 0% 12%;
+    --popover-foreground: 0 0% 88%;
+    --primary: 279 96% 76%;
+    --primary-foreground: 0 0% 12%;
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 88%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 66%;
+    --accent: 0 0% 20%;
+    --accent-foreground: 0 0% 88%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 4 10% 30%;
-    --input: 4 10% 25%;
-    --ring: 18 27% 49%;
-    --chart-1: 18 27% 49%;
-    --chart-2: 4 28% 35%;
-    --chart-3: 18 27% 60%;
-    --chart-4: 45 30% 80%;
-    --chart-5: 4 10% 40%;
-    --sidebar-background: 4 10% 15%;
-    --sidebar-foreground: 45 30% 92%;
-    --sidebar-primary: 18 27% 49%;
-    --sidebar-primary-foreground: 4 10% 10%;
-    --sidebar-accent: 4 10% 25%;
-    --sidebar-accent-foreground: 45 30% 92%;
-    --sidebar-border: 4 10% 30%;
-    --sidebar-ring: 18 27% 49%;
+    --border: 0 0% 20%;
+    --input: 0 0% 15%;
+    --ring: 279 96% 76%;
+    --chart-1: 279 96% 76%;
+    --chart-2: 279 80% 65%;
+    --chart-3: 279 70% 55%;
+    --chart-4: 0 0% 66%;
+    --chart-5: 0 0% 40%;
+    --sidebar-background: 0 0% 7%;
+    --sidebar-foreground: 0 0% 88%;
+    --sidebar-primary: 279 96% 76%;
+    --sidebar-primary-foreground: 0 0% 12%;
+    --sidebar-accent: 0 0% 15%;
+    --sidebar-accent-foreground: 0 0% 88%;
+    --sidebar-border: 0 0% 20%;
+    --sidebar-ring: 279 96% 76%;
   }
 }
 
