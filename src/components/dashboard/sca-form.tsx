@@ -343,7 +343,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                         <RadioGroup
                           onValueChange={field.onChange}
                           defaultValue={field.value}
-                          className="grid grid-cols-2 md:grid-cols-4 gap-2"
+                          className="grid grid-cols-2 sm:grid-cols-4 gap-2"
                           disabled={isReadOnly}
                         >
                           {(
