@@ -17,7 +17,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import type { Evaluation } from '@/lib/types';
 import { SessionView } from './session-view';
 import { CuppingCompassLogo } from '../cupping-compass-logo';
-import { Coffee, PlusCircle, Settings } from 'lucide-react';
+import { Coffee, PlusCircle, Settings, FileDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
@@ -109,15 +109,19 @@ export function DashboardLayout() {
                     children: evaluation.coffeeName,
                     className: 'w-48 text-center',
                   }}
+                  className="group"
                 >
-                  <Coffee />
-                  <span
-                    className={cn(
-                      'size-3 rounded-full',
-                      roastLevelColors[evaluation.roastLevel]
-                    )}
-                  />
-                  <span>{evaluation.coffeeName}</span>
+                  <div className="flex items-center gap-2 truncate">
+                    <Coffee />
+                    <span
+                      className={cn(
+                        'size-3 rounded-full',
+                        roastLevelColors[evaluation.roastLevel]
+                      )}
+                    />
+                    <span className="truncate">{evaluation.coffeeName}</span>
+                  </div>
+                  <FileDown className="ml-auto size-4 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
                 </SidebarMenuButton>
               </SidebarMenuItem>
             ))}
