@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import jsPDF from 'jspdf';
 import {
   SidebarProvider,
@@ -53,7 +53,14 @@ export function DashboardLayout() {
     Evaluation | 'new'
   >('new');
   const [key, setKey] = useState(Date.now());
+  const [theme, setTheme] = useState('light');
   const { toast } = useToast();
+
+  useEffect(() => {
+    const root = window.document.documentElement;
+    root.classList.remove('light', 'dark');
+    root.classList.add(theme);
+  }, [theme]);
 
   const handleAddEvaluation = (evaluation: Evaluation) => {
     if (
@@ -322,7 +329,8 @@ export function DashboardLayout() {
                     <div className="grid grid-cols-4 items-center gap-4">
                       <Label className="text-right">Interface Theme</Label>
                       <RadioGroup
-                        defaultValue="light"
+                        value={theme}
+                        onValueChange={setTheme}
                         className="col-span-3 flex items-center space-x-4"
                       >
                         <div className="flex items-center space-x-2">
