@@ -21,6 +21,24 @@ import { CuppingCompassLogo } from '../cupping-compass-logo';
 import { Coffee, PlusCircle, Settings, FileDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Button } from '../ui/button';
 
 const roastLevelColors = {
   light: 'bg-[#966F33]',
@@ -196,7 +214,6 @@ export function DashboardLayout() {
     }
   };
 
-
   const currentEvaluationData =
     selectedEvaluation === 'new' ? null : selectedEvaluation;
   const currentTitle =
@@ -269,14 +286,58 @@ export function DashboardLayout() {
         <SidebarFooter>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton
-                tooltip={{
-                  children: 'Settings',
-                }}
-              >
-                <Settings />
-                <span>Settings</span>
-              </SidebarMenuButton>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <SidebarMenuButton
+                    tooltip={{
+                      children: 'Settings',
+                    }}
+                  >
+                    <Settings />
+                    <span>Settings</span>
+                  </SidebarMenuButton>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Settings</DialogTitle>
+                    <DialogDescription>
+                      Customize your experience.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-6 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="language" className="text-right">
+                        Language
+                      </Label>
+                      <Select defaultValue="en">
+                        <SelectTrigger className="col-span-3">
+                          <SelectValue placeholder="Select a language" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="en">English</SelectItem>
+                          <SelectItem value="es">Español</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label className="text-right">Interface Theme</Label>
+                      <RadioGroup
+                        defaultValue="light"
+                        className="col-span-3 flex items-center space-x-4"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="light" id="light" />
+                          <Label htmlFor="light">Light</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="dark" id="dark" />
+                          <Label htmlFor="dark">Dark</Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton
