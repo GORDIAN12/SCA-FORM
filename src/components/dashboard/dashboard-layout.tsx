@@ -19,7 +19,6 @@ import type { Session } from '@/lib/types';
 import { SessionView } from './session-view';
 import { CuppingCompassLogo } from '../cupping-compass-logo';
 import { Coffee, Settings } from 'lucide-react';
-import { BackToTopButton } from '../ui/back-to-top-button';
 
 export function DashboardLayout() {
   const [selectedSession, setSelectedSession] = useState<Session>(
@@ -97,7 +96,6 @@ export function DashboardLayout() {
         </header>
         <main id="main-content" className="flex-1 overflow-auto p-4 sm:p-6">
           <SessionView session={selectedSession} />
-          <BackToTopButton targetId="main-content" />
         </main>
       </SidebarInset>
     </SidebarProvider>
