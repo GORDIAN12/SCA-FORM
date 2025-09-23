@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import type { Session, Evaluation, CupEvaluation } from '@/lib/types';
 import {
   ScaForm,
@@ -10,6 +10,7 @@ import {
 import { ScoresRadarChart } from './visualizations/scores-radar-chart';
 import { Card, CardContent } from '../ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import { Button } from '../ui/button';
 
 interface SessionViewProps {
   session: Session;
@@ -23,6 +24,7 @@ export function SessionView({ session: initialSession }: SessionViewProps) {
     null
   );
   const [activeTempTab, setActiveTempTab] = useState('hot');
+  const formRef = useRef<{ submit: () => void }>(null);
 
   const handleFormSubmit = (data: Evaluation) => {
     const newEvaluation = { ...data, id: `eval-${Date.now()}` };
@@ -44,6 +46,10 @@ export function SessionView({ session: initialSession }: SessionViewProps) {
     setActiveCupData(cupData);
   };
 
+  const handleTriggerSubmit = () => {
+    formRef.current?.submit();
+  };
+
   const activeRadarChartData = useMemo(() => {
     if (!activeCupData) return null;
     const scores =
@@ -59,6 +65,7 @@ export function SessionView({ session: initialSession }: SessionViewProps) {
     <div className="space-y-6">
       <div className="col-span-full">
         <ScaForm
+          ref={formRef}
           onSubmit={handleFormSubmit}
           onValuesChange={handleValuesChange}
           onActiveCupChange={handleActiveCupChange}
@@ -96,6 +103,12 @@ export function SessionView({ session: initialSession }: SessionViewProps) {
             </Tabs>
           </CardContent>
         </Card>
+      </div>
+
+      <div className="flex justify-center">
+        <Button onClick={handleTriggerSubmit} className="w-full md:w-1/2">
+          Submit Evaluation
+        </Button>
       </div>
     </div>
   );
