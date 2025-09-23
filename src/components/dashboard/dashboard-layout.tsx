@@ -22,10 +22,10 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
 const roastLevelColors = {
-  light: 'bg-yellow-300',
-  medium: 'bg-amber-500',
-  'medium-dark': 'bg-orange-700',
-  dark: 'bg-stone-800',
+  light: 'bg-[#966F33]',
+  medium: 'bg-[#6A4C2E]',
+  'medium-dark': 'bg-[#4A3522]',
+  dark: 'bg-[#3A2418]',
 };
 
 export function DashboardLayout() {

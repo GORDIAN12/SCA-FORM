@@ -186,10 +186,10 @@ const aromaCategories = [
 ];
 
 const roastLevels = [
-  { id: 'light', label: 'Light', color: 'bg-yellow-300' },
-  { id: 'medium', label: 'Medium', color: 'bg-amber-500' },
-  { id: 'medium-dark', label: 'Medium-Dark', color: 'bg-orange-700' },
-  { id: 'dark', label: 'Dark', color: 'bg-stone-800' },
+  { id: 'light', label: 'Light', color: 'bg-[#966F33]' },
+  { id: 'medium', label: 'Medium', color: 'bg-[#6A4C2E]' },
+  { id: 'medium-dark', label: 'Medium-Dark', color: 'bg-[#4A3522]' },
+  { id: 'dark', label: 'Dark', color: 'bg-[#3A2418]' },
 ];
 
 const createDefaultScoreSet = (): ScoreSetFormValues => ({
