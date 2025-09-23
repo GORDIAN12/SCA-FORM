@@ -71,7 +71,7 @@ export function SessionView({ session: initialSession }: SessionViewProps) {
             <Tabs
               defaultValue="hot"
               className="w-full"
-              onValuecha nge={setActiveTempTab}
+              onValueChange={setActiveTempTab}
             >
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="hot">Hot</TabsTrigger>
