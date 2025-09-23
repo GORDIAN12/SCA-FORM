@@ -15,7 +15,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -234,10 +233,6 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
     });
 
     const watchedValues = useWatch({ control: form.control });
-    const watchedRoastLevel = useWatch({
-      control: form.control,
-      name: 'roastLevel',
-    });
 
     useEffect(() => {
       if (onValuesChange) {
@@ -256,7 +251,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
     const overallScore = useMemo(() => {
       if (!watchedValues.cups || watchedValues.cups.length === 0) return 0;
       const validCups = watchedValues.cups.filter(
-        (cup) => cup && cup.totalScore > 0
+        (cup) => cup && typeof cup.totalScore === 'number'
       );
       if (validCups.length === 0) return 0;
       const total = validCups.reduce((acc, cup) => acc + cup.totalScore, 0);
@@ -375,48 +370,54 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                   const cupTotalScore = useMemo(() => {
                     if (!cupValues) return 0;
 
-                    const avgScores = Object.values(
-                      cupValues.scores.hot
-                    ).reduce((acc, score, i) => {
-                      if (typeof score === 'number') {
-                        const warmScore =
-                          cupValues.scores.warm[
-                            Object.keys(
-                              cupValues.scores.hot
-                            )[i] as keyof ScoreSetFormValues
-                          ];
-                        const coldScore =
-                          cupValues.scores.cold[
-                            Object.keys(
-                              cupValues.scores.hot
-                            )[i] as keyof ScoreSetFormValues
-                          ];
-                        acc += (score + warmScore + coldScore) / 3;
-                      }
-                      return acc;
-                    }, 0);
+                    const avgScores = Object.keys(cupValues.scores.hot).reduce(
+                      (acc, key) => {
+                        const scoreKey = key as keyof ScoreSetFormValues;
+                        if (typeof cupValues.scores.hot[scoreKey] === 'number') {
+                          const hotScore =
+                            (cupValues.scores.hot[
+                              scoreKey
+                            ] as number) ?? 0;
+                          const warmScore =
+                            (cupValues.scores.warm[
+                              scoreKey
+                            ] as number) ?? 0;
+                          const coldScore =
+                            (cupValues.scores.cold[
+                              scoreKey
+                            ] as number) ?? 0;
+                          acc += (hotScore + warmScore + coldScore) / 3;
+                        }
+                        return acc;
+                      },
+                      0
+                    );
 
+                    const baseScore = 36;
                     const qualityScore =
-                      (cupValues.uniformity ? 2 : 0) +
-                      (cupValues.cleanCup ? 2 : 0) +
-                      (cupValues.sweetness ? 2 : 0);
-
+                      (cupValues.uniformity ? 10 : 0) +
+                      (cupValues.cleanCup ? 10 : 0) +
+                      (cupValues.sweetness ? 10 : 0);
                     const finalScore =
-                      cupValues.aroma +
-                      avgScores +
-                      cupValues.cupperScore +
-                      qualityScore * 5;
+                      cupValues.aroma + avgScores + cupValues.cupperScore;
 
-                    return isNaN(finalScore) ? 0 : finalScore;
+                    const totalScore = finalScore - qualityScore;
+                    return isNaN(totalScore) ? 0 : totalScore;
                   }, [cupValues]);
 
                   useEffect(() => {
-                    form.setValue(`cups.${index}.totalScore`, cupTotalScore);
+                    form.setValue(
+                      `cups.${index}.totalScore`,
+                      parseFloat(cupTotalScore.toFixed(2))
+                    );
                   }, [cupTotalScore, index, form]);
 
                   return (
                     <TabsContent key={field.id} value={`cup-${index + 1}`}>
                       <Card>
+                        <CardHeader>
+                          <CardTitle>Cup {index + 1} Evaluation</CardTitle>
+                        </CardHeader>
                         <CardContent className="space-y-6 pt-6">
                           <div className="space-y-4">
                             <h3 className="text-lg font-semibold">
@@ -438,7 +439,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                       <div className="flex items-center gap-4">
                                         <CupSelector field={qualityField} />
                                         <span className="text-sm font-medium w-8 text-right">
-                                          {qualityField.value ? '2.00' : '0.00'}
+                                          {qualityField.value ? '10.00' : '0.00'}
                                         </span>
                                       </div>
                                     </div>
@@ -851,23 +852,18 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                             </div>
                           </div>
                         </CardContent>
-                        <CardFooter>
-                          <div className="flex justify-between text-lg font-bold w-full">
-                            <span>Cup {index + 1} Total Score</span>
-                            <span>{cupTotalScore.toFixed(2)}</span>
-                          </div>
-                        </CardFooter>
                       </Card>
                     </TabsContent>
                   );
                 })}
               </Tabs>
-
-              <Separator />
-              <div className="space-y-2">
-                <div className="flex justify-between text-xl font-bold">
-                  <span>Overall Average Score</span>
-                  <span>{overallScore.toFixed(2)}</span>
+              <div className="p-6">
+                <Separator />
+                <div className="space-y-2 mt-6">
+                  <div className="flex justify-between text-xl font-bold">
+                    <span>Overall Average Score</span>
+                    <span>{overallScore.toFixed(2)}</span>
+                  </div>
                 </div>
               </div>
             </CardContent>
