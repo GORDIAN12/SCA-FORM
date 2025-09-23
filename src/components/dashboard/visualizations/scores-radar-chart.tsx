@@ -12,10 +12,10 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
-import type { CupFormValues } from '../sca-form';
+import type { ScoreSet } from '@/lib/types';
 
 interface ScoresRadarChartProps {
-  scores: CupFormValues;
+  scores: ScoreSet & { aroma: number; cupperScore: number };
 }
 
 const chartConfig = {
@@ -25,21 +25,14 @@ const chartConfig = {
   },
 };
 
-const scoreKeys = [
-  'aroma',
-  'flavor',
-  'aftertaste',
-  'acidity',
-  'body',
-  'balance',
-];
+const scoreKeys = ['aroma', 'flavor', 'aftertaste', 'acidity', 'body', 'balance'];
 
 const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 export function ScoresRadarChart({ scores }: ScoresRadarChartProps) {
   const chartData = scoreKeys.map((key) => ({
     name: capitalize(key),
-    value: scores[key as keyof CupFormValues] as number,
+    value: scores[key as keyof typeof scores] as number,
   }));
 
   return (

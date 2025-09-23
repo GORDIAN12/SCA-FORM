@@ -1,7 +1,11 @@
-export interface Score {
-  name: string;
-  value: number;
-  notes?: string;
+export interface ScoreSet {
+  flavor: number;
+  aftertaste: number;
+  acidity: number;
+  acidityIntensity: 'low' | 'medium' | 'high';
+  body: number;
+  bodyIntensity: 'low' | 'medium' | 'high';
+  balance: number;
 }
 
 export interface CupEvaluation {
@@ -21,13 +25,11 @@ export interface CupEvaluation {
   cleanCup: boolean;
   sweetness: boolean;
   aroma: number;
-  flavor: number;
-  aftertaste: number;
-  acidity: number;
-  acidityIntensity: 'low' | 'medium' | 'high';
-  body: number;
-  bodyIntensity: 'low' | 'medium' | 'high';
-  balance: number;
+  scores: {
+    hot: ScoreSet;
+    warm: ScoreSet;
+    cold: ScoreSet;
+  };
   cupperScore: number;
   totalScore: number;
 }
