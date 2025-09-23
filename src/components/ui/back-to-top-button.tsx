@@ -46,16 +46,16 @@ export function BackToTopButton({ targetId }: BackToTopButtonProps) {
   return (
     <Button
       variant="outline"
-      size="icon"
+      size="lg"
       onClick={scrollToTop}
       className={cn(
-        'fixed bottom-8 right-8 z-50 rounded-full h-12 w-12 shadow-lg transition-opacity duration-300 ease-in-out',
+        'transition-opacity duration-300 ease-in-out',
         'bg-background/80 backdrop-blur-sm hover:bg-accent',
         isVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'
       )}
     >
-      <ArrowUp className="h-6 w-6" />
-      <span className="sr-only">Go to top</span>
+      <ArrowUp className="h-5 w-5 mr-2" />
+      <span>Back to Top</span>
     </Button>
   );
 }

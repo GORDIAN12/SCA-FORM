@@ -1,16 +1,16 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import type { Session, Evaluation, CupEvaluation, ScoreSet } from '@/lib/types';
+import type { Session, Evaluation, CupEvaluation } from '@/lib/types';
 import {
   ScaForm,
   type ScaFormValues,
   type CupFormValues,
-  type ScoreSetFormValues,
 } from './sca-form';
 import { ScoresRadarChart } from './visualizations/scores-radar-chart';
 import { Card, CardContent } from '../ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import { BackToTopButton } from '../ui/back-to-top-button';
 
 interface SessionViewProps {
   session: Session;
@@ -97,6 +97,9 @@ export function SessionView({ session: initialSession }: SessionViewProps) {
             </Tabs>
           </CardContent>
         </Card>
+      </div>
+      <div className="flex justify-center py-4">
+        <BackToTopButton targetId="main-content" />
       </div>
     </div>
   );
