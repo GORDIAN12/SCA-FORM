@@ -141,7 +141,7 @@ export function DashboardLayout() {
               </SidebarMenuButton>
             </SidebarMenuItem>
             {evaluations.map((evaluation) => (
-              <SidebarMenuItem key={evaluation.id}>
+              <SidebarMenuItem key={evaluation.id} className="relative group">
                 <SidebarMenuButton
                   onClick={() => handleSelectEvaluation(evaluation)}
                   isActive={
@@ -152,7 +152,7 @@ export function DashboardLayout() {
                     children: evaluation.coffeeName,
                     className: 'w-48 text-center',
                   }}
-                  className="group"
+                  className="w-full pr-8"
                 >
                   <div className="flex items-center gap-2 truncate">
                     <Coffee />
@@ -164,17 +164,17 @@ export function DashboardLayout() {
                     />
                     <span className="truncate">{evaluation.coffeeName}</span>
                   </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleExportToPdf(evaluation);
-                    }}
-                    className="ml-auto p-1 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:text-foreground"
-                    aria-label={`Export ${evaluation.coffeeName} to PDF`}
-                  >
-                    <FileDown className="size-4 shrink-0" />
-                  </button>
                 </SidebarMenuButton>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleExportToPdf(evaluation);
+                  }}
+                  className="absolute right-1 top-1.5 p-1 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:text-foreground"
+                  aria-label={`Export ${evaluation.coffeeName} to PDF`}
+                >
+                  <FileDown className="size-4 shrink-0" />
+                </button>
               </SidebarMenuItem>
             ))}
           </SidebarMenu>
