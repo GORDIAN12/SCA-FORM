@@ -19,6 +19,14 @@ import { SessionView } from './session-view';
 import { CuppingCompassLogo } from '../cupping-compass-logo';
 import { Coffee, PlusCircle, Settings } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
+
+const roastLevelColors = {
+  light: 'bg-yellow-300',
+  medium: 'bg-amber-500',
+  'medium-dark': 'bg-orange-700',
+  dark: 'bg-stone-800',
+};
 
 export function DashboardLayout() {
   const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
@@ -94,6 +102,12 @@ export function DashboardLayout() {
                   }}
                 >
                   <Coffee />
+                  <span
+                    className={cn(
+                      'size-3 rounded-full',
+                      roastLevelColors[evaluation.roastLevel]
+                    )}
+                  />
                   <span>{evaluation.coffeeName}</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
