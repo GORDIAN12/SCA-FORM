@@ -55,7 +55,9 @@ export function SessionView({
   };
 
   const activeRadarChartData = useMemo(() => {
-    const data = evaluation ? evaluation.cups.find(c => c.id === activeCupId) : activeCupData;
+    const data = evaluation
+      ? evaluation.cups.find((c) => c.id === activeCupId)
+      : activeCupData;
     if (!data) return null;
     const scores =
       data.scores[activeTempTab as keyof CupEvaluation['scores']];
@@ -65,6 +67,8 @@ export function SessionView({
       cupperScore: data.cupperScore,
     };
   }, [evaluation, activeCupData, activeTempTab, activeCupId]);
+
+  const isReadOnly = !!evaluation;
 
   return (
     <div className="space-y-6">
@@ -107,11 +111,13 @@ export function SessionView({
         </Card>
       </div>
 
-      <div className="flex justify-center">
-        <Button onClick={handleTriggerSubmit} className="w-full md:w-1/2">
-          Submit Evaluation
-        </Button>
-      </div>
+      {!isReadOnly && (
+        <div className="flex justify-center">
+          <Button onClick={handleTriggerSubmit} className="w-full md:w-1/2">
+            Submit Evaluation
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

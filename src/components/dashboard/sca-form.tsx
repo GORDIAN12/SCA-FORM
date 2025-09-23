@@ -102,11 +102,13 @@ export interface ScaFormRef {
 
 const CupSelector = ({
   field,
+  disabled,
 }: {
   field: {
     value: boolean;
     onChange: (value: boolean) => void;
   };
+  disabled?: boolean;
 }) => {
   return (
     <div className="flex items-center space-x-2">
@@ -115,8 +117,10 @@ const CupSelector = ({
         onClick={() => field.onChange(!field.value)}
         className={cn(
           'p-1 rounded-md transition-colors',
-          'hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+          'hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+          disabled && 'cursor-not-allowed opacity-70'
         )}
+        disabled={disabled}
       >
         <Coffee
           className={cn(
@@ -133,11 +137,13 @@ const CupSelector = ({
 
 const ScoreSlider = ({
   field,
+  disabled,
 }: {
   field: {
     value: number;
     onChange: (value: number) => void;
   };
+  disabled?: boolean;
 }) => (
   <div className="relative pt-2">
     <Slider
@@ -146,6 +152,7 @@ const ScoreSlider = ({
       step={0.25}
       value={[field.value]}
       onValueChange={(value) => field.onChange(value[0])}
+      disabled={disabled}
     />
     <div className="absolute top-1/2 left-0 right-0 h-0 flex justify-between px-2 pointer-events-none -translate-y-1/2">
       {[...Array(17)].map((_, i) => (
@@ -295,6 +302,8 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
     const capitalize = (s: string) =>
       s.charAt(0).toUpperCase() + s.slice(1).replace(/([A-Z])/g, ' $1');
 
+    const isReadOnly = !!initialData;
+
     return (
       <Card>
         <CardHeader>
@@ -317,7 +326,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                         <Input
                           placeholder="e.g., Ethiopia Yirgacheffe"
                           {...field}
-                          disabled={!!initialData}
+                          disabled={isReadOnly}
                         />
                       </FormControl>
                       <FormMessage />
@@ -335,7 +344,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                           onValueChange={field.onChange}
                           defaultValue={field.value}
                           className="grid grid-cols-2 md:grid-cols-4 gap-2"
-                          disabled={!!initialData}
+                          disabled={isReadOnly}
                         >
                           {(
                             ['light', 'medium', 'medium-dark', 'dark'] as const
@@ -354,7 +363,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                   field.value === level
                                     ? 'border-primary border-2 text-primary font-semibold'
                                     : 'border-input text-muted-foreground',
-                                  !!initialData && 'cursor-not-allowed opacity-70'
+                                  isReadOnly && 'cursor-not-allowed opacity-70'
                                 )}
                               >
                                 <span
@@ -465,7 +474,10 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                         {capitalize(quality)}
                                       </FormLabel>
                                       <div className="flex items-center gap-4">
-                                        <CupSelector field={qualityField} />
+                                        <CupSelector
+                                          field={qualityField}
+                                          disabled={isReadOnly}
+                                        />
                                         <span className="text-sm font-medium w-8 text-right">
                                           {qualityField.value ? '10.00' : '0.00'}
                                         </span>
@@ -491,6 +503,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                       onValueChange={aromaField.onChange}
                                       value={aromaField.value}
                                       className="flex flex-wrap gap-2"
+                                      disabled={isReadOnly}
                                     >
                                       {aromaCategories.map((category) => (
                                         <FormItem key={category}>
@@ -505,7 +518,9 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                               'px-3 py-1.5 border rounded-full cursor-pointer transition-colors',
                                               aromaField.value === category
                                                 ? 'bg-primary text-primary-foreground border-primary'
-                                                : 'bg-transparent hover:bg-accent'
+                                                : 'bg-transparent hover:bg-accent',
+                                              isReadOnly &&
+                                                'cursor-not-allowed opacity-70'
                                             )}
                                           >
                                             {category}
@@ -536,7 +551,10 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                         </span>
                                       </FormLabel>
                                       <FormControl>
-                                        <ScoreSlider field={scoreField} />
+                                        <ScoreSlider
+                                          field={scoreField}
+                                          disabled={isReadOnly}
+                                        />
                                       </FormControl>
                                     </FormItem>
                                   )}
@@ -555,6 +573,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                             }
                                             value={intensityField.value}
                                             className="flex space-x-4"
+                                            disabled={isReadOnly}
                                           >
                                             <FormItem className="flex items-center space-x-2 space-y-0">
                                               <FormControl>
@@ -599,6 +618,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                             }
                                             value={intensityField.value}
                                             className="flex space-x-4"
+                                            disabled={isReadOnly}
                                           >
                                             <FormItem className="flex items-center space-x-2 space-y-0">
                                               <FormControl>
@@ -659,6 +679,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                               <FormControl>
                                                 <ScoreSlider
                                                   field={scoreField}
+                                                  disabled={isReadOnly}
                                                 />
                                               </FormControl>
                                             </FormItem>
@@ -680,6 +701,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                               <FormControl>
                                                 <ScoreSlider
                                                   field={scoreField}
+                                                  disabled={isReadOnly}
                                                 />
                                               </FormControl>
                                             </FormItem>
@@ -704,6 +726,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                                 <FormControl>
                                                   <ScoreSlider
                                                     field={scoreField}
+                                                    disabled={isReadOnly}
                                                   />
                                                 </FormControl>
                                               </FormItem>
@@ -726,6 +749,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                                     }
                                                     value={intensityField.value}
                                                     className="flex space-x-4"
+                                                    disabled={isReadOnly}
                                                   >
                                                     <FormItem className="flex items-center space-x-2 space-y-0">
                                                       <FormControl>
@@ -777,6 +801,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                                 <FormControl>
                                                   <ScoreSlider
                                                     field={scoreField}
+                                                    disabled={isReadOnly}
                                                   />
                                                 </FormControl>
                                               </FormItem>
@@ -799,6 +824,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                                     }
                                                     value={intensityField.value}
                                                     className="flex space-x-4"
+                                                    disabled={isReadOnly}
                                                   >
                                                     <FormItem className="flex items-center space-x-2 space-y-0">
                                                       <FormControl>
@@ -847,6 +873,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                               <FormControl>
                                                 <ScoreSlider
                                                   field={scoreField}
+                                                  disabled={isReadOnly}
                                                 />
                                               </FormControl>
                                             </FormItem>
@@ -872,7 +899,10 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                       </span>
                                     </FormLabel>
                                     <FormControl>
-                                      <ScoreSlider field={scoreField} />
+                                      <ScoreSlider
+                                        field={scoreField}
+                                        disabled={isReadOnly}
+                                      />
                                     </FormControl>
                                   </FormItem>
                                 )}
