@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import {
   SidebarProvider,
   Sidebar,
@@ -16,7 +15,7 @@ import {
   SidebarFooter,
 } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import type { Evaluation } from '@/lib/types';
+import type { Evaluation, ScoreSet } from '@/lib/types';
 import { SessionView } from './session-view';
 import { CuppingCompassLogo } from '../cupping-compass-logo';
 import { Coffee, PlusCircle, Settings, FileDown } from 'lucide-react';
@@ -69,45 +68,106 @@ export function DashboardLayout() {
     setKey(Date.now());
   };
 
-  const handleExportToPdf = async (evaluation: Evaluation) => {
-    await handleSelectEvaluation(evaluation);
+  const handleExportToPdf = (evaluation: Evaluation) => {
+    try {
+      const doc = new jsPDF();
+      const pageHeight = doc.internal.pageSize.height;
+      let y = 20;
 
-    // Allow the UI to update before capturing
-    setTimeout(async () => {
-      const input = document.getElementById('main-content');
-      if (!input) {
-        toast({
-          title: 'Error exporting PDF',
-          description: 'Could not find the content to export.',
-          variant: 'destructive',
-        });
-        return;
-      }
+      // Helper function to check for page breaks
+      const checkPageBreak = (neededHeight: number) => {
+        if (y + neededHeight > pageHeight - 20) {
+          doc.addPage();
+          y = 20;
+        }
+      };
 
-      try {
-        const canvas = await html2canvas(input, {
-          scale: 2, // Higher scale for better quality
-          useCORS: true,
-        });
+      // Title
+      doc.setFontSize(22);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Cupping Compass - Evaluation Report', 105, y, {
+        align: 'center',
+      });
+      y += 10;
 
-        const imgData = canvas.toDataURL('image/png');
-        const pdf = new jsPDF({
-          orientation: 'portrait',
-          unit: 'px',
-          format: [canvas.width, canvas.height],
-        });
+      // Coffee Name and Score
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Coffee: ${evaluation.coffeeName}`, 20, y);
+      doc.text(
+        `Overall Score: ${evaluation.overallScore.toFixed(2)}`,
+        190,
+        y,
+        { align: 'right' }
+      );
+      y += 10;
 
-        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-        pdf.save(`${evaluation.coffeeName.replace(/\s+/g, '-')}-evaluation.pdf`);
-      } catch (error) {
-        console.error('Error generating PDF:', error);
-        toast({
-          title: 'Error exporting PDF',
-          description: 'An unexpected error occurred during PDF generation.',
-          variant: 'destructive',
+      doc.setDrawColor(200);
+      doc.line(20, y, 190, y); // Horizontal line
+      y += 10;
+
+      const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+      evaluation.cups.forEach((cup, cupIndex) => {
+        checkPageBreak(70); // Estimate height for a cup section
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`Taza ${cupIndex + 1}`, 20, y);
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'normal');
+        doc.text(
+          `Puntaje Total Taza: ${cup.totalScore.toFixed(2)}`,
+          190,
+          y,
+          { align: 'right' }
+        );
+        y += 8;
+
+        (['hot', 'warm', 'cold'] as const).forEach((temp) => {
+          checkPageBreak(40); // Estimate height for a temp section
+          doc.setFontSize(12);
+          doc.setFont('helvetica', 'bold');
+          doc.text(capitalize(temp), 25, y);
+          y += 6;
+
+          const scores = cup.scores[temp];
+          doc.setFontSize(10);
+          doc.setFont('helvetica', 'normal');
+
+          Object.entries(scores).forEach(([key, value]) => {
+            if (typeof value === 'number') {
+              doc.text(
+                `${capitalize(key)}: ${value.toFixed(2)}`,
+                30,
+                y
+              );
+              y += 5;
+            } else {
+              doc.text(
+                `${capitalize(key)} Intensity: ${value}`,
+                30,
+                y
+              );
+              y += 5;
+            }
+          });
+          y += 2; // Extra space between temp sections
         });
-      }
-    }, 100); // 100ms delay
+        doc.setLineDashPattern([1, 1], 0);
+        doc.line(20, y, 190, y);
+        doc.setLineDashPattern([], 0);
+        y += 8;
+      });
+
+      doc.save(`${evaluation.coffeeName.replace(/\s+/g, '-')}-evaluation.pdf`);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast({
+        title: 'Error exporting PDF',
+        description: 'An unexpected error occurred during PDF generation.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const currentEvaluationData =
