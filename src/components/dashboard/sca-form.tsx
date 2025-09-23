@@ -205,26 +205,10 @@ const createDefaultCup = (index: number): CupFormValues => ({
 });
 
 const roastLevelColors = {
-  light: {
-    bg: 'bg-[#C9A26A]',
-    text: 'text-stone-800',
-    border: 'border-[#A27B48]',
-  },
-  medium: {
-    bg: 'bg-[#A27B48]',
-    text: 'text-white',
-    border: 'border-[#6B4F2E]',
-  },
-  'medium-dark': {
-    bg: 'bg-[#6B4F2E]',
-    text: 'text-white',
-    border: 'border-[#4A2C2A]',
-  },
-  dark: {
-    bg: 'bg-[#4A2C2A]',
-    text: 'text-white',
-    border: 'border-stone-900',
-  },
+  light: 'bg-[#C9A26A]',
+  medium: 'bg-[#A27B48]',
+  'medium-dark': 'bg-[#6B4F2E]',
+  dark: 'bg-[#4A2C2A]',
 };
 
 export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
@@ -271,7 +255,9 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
 
     const overallScore = useMemo(() => {
       if (!watchedValues.cups || watchedValues.cups.length === 0) return 0;
-      const validCups = watchedValues.cups.filter((cup) => cup && cup.totalScore > 0);
+      const validCups = watchedValues.cups.filter(
+        (cup) => cup && cup.totalScore > 0
+      );
       if (validCups.length === 0) return 0;
       const total = validCups.reduce((acc, cup) => acc + cup.totalScore, 0);
       return total / validCups.length;
@@ -324,19 +310,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                   name="roastLevel"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="mb-2 flex items-center gap-2">
-                        <span>Roast Level</span>
-                        <span
-                          className="w-4 h-4 rounded-full transition-colors"
-                          style={{
-                            backgroundColor:
-                              roastLevelColors[watchedRoastLevel].bg.replace(
-                                /bg-\[|\]/g,
-                                ''
-                              ),
-                          }}
-                        />
-                      </FormLabel>
+                      <FormLabel className="mb-2 block">Roast Level</FormLabel>
                       <FormControl>
                         <RadioGroup
                           onValueChange={field.onChange}
@@ -345,36 +319,35 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                         >
                           {(
                             ['light', 'medium', 'medium-dark', 'dark'] as const
-                          ).map((level) => {
-                            const levelStyle = roastLevelColors[level];
-                            return (
-                              <FormItem key={level}>
-                                <FormControl>
-                                  <RadioGroupItem
-                                    value={level}
-                                    className="sr-only"
-                                  />
-                                </FormControl>
-                                <FormLabel
+                          ).map((level) => (
+                            <FormItem key={level} className="w-full">
+                              <FormControl>
+                                <RadioGroupItem
+                                  value={level}
+                                  className="sr-only"
+                                />
+                              </FormControl>
+                              <FormLabel
+                                className={cn(
+                                  'flex items-center justify-center w-full p-3 border rounded-md cursor-pointer transition-all duration-200 ease-in-out',
+                                  'bg-background hover:bg-accent/50',
+                                  field.value === level
+                                    ? 'border-primary border-2 text-primary font-semibold'
+                                    : 'border-input text-muted-foreground'
+                                )}
+                              >
+                                <span
                                   className={cn(
-                                    'flex flex-col items-center justify-center p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ease-in-out transform hover:scale-105',
-                                    levelStyle.bg,
-                                    levelStyle.text,
-                                    field.value === level
-                                      ? cn(
-                                          'border-primary ring-2 ring-primary ring-offset-2 ring-offset-background',
-                                          levelStyle.border
-                                        )
-                                      : 'border-transparent'
+                                    'w-3 h-3 rounded-full mr-2',
+                                    roastLevelColors[level]
                                   )}
-                                >
-                                  <span className="font-semibold text-sm">
-                                    {capitalize(level)}
-                                  </span>
-                                </FormLabel>
-                              </FormItem>
-                            );
-                          })}
+                                />
+                                <span className="text-sm">
+                                  {capitalize(level)}
+                                </span>
+                              </FormLabel>
+                            </FormItem>
+                          ))}
                         </RadioGroup>
                       </FormControl>
                       <FormMessage />
@@ -402,49 +375,39 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                   const cupTotalScore = useMemo(() => {
                     if (!cupValues) return 0;
 
-                    const baseScore =
-                      cupValues.aroma +
-                      ((cupValues.scores.hot.flavor +
-                        cupValues.scores.warm.flavor +
-                        cupValues.scores.cold.flavor) /
-                        3 +
-                        (cupValues.scores.hot.aftertaste +
-                          cupValues.scores.warm.aftertaste +
-                          cupValues.scores.cold.aftertaste) /
-                          3 +
-                        (cupValues.scores.hot.acidity +
-                          cupValues.scores.warm.acidity +
-                          cupValues.scores.cold.acidity) /
-                          3 +
-                        (cupValues.scores.hot.body +
-                          cupValues.scores.warm.body +
-                          cupValues.scores.cold.body) /
-                          3 +
-                        (cupValues.scores.hot.balance +
-                          cupValues.scores.warm.balance +
-                          cupValues.scores.cold.balance) /
-                          3) +
-                      cupValues.cupperScore;
+                    const avgScores = Object.values(
+                      cupValues.scores.hot
+                    ).reduce((acc, score, i) => {
+                      if (typeof score === 'number') {
+                        const warmScore =
+                          cupValues.scores.warm[
+                            Object.keys(
+                              cupValues.scores.hot
+                            )[i] as keyof ScoreSetFormValues
+                          ];
+                        const coldScore =
+                          cupValues.scores.cold[
+                            Object.keys(
+                              cupValues.scores.hot
+                            )[i] as keyof ScoreSetFormValues
+                          ];
+                        acc += (score + warmScore + coldScore) / 3;
+                      }
+                      return acc;
+                    }, 0);
 
                     const qualityScore =
                       (cupValues.uniformity ? 2 : 0) +
                       (cupValues.cleanCup ? 2 : 0) +
                       (cupValues.sweetness ? 2 : 0);
-                    
-                    const finalScore = baseScore + (qualityScore * 5)
 
-                    return (
+                    const finalScore =
                       cupValues.aroma +
-                      cupValues.scores.hot.flavor +
-                      cupValues.scores.hot.aftertaste +
-                      cupValues.scores.hot.acidity +
-                      cupValues.scores.hot.body +
-                      cupValues.scores.hot.balance +
+                      avgScores +
                       cupValues.cupperScore +
-                      (cupValues.uniformity ? 2 : 0) * 5 +
-                      (cupValues.cleanCup ? 2 : 0) * 5 +
-                      (cupValues.sweetness ? 2 : 0) * 5
-                    );
+                      qualityScore * 5;
+
+                    return isNaN(finalScore) ? 0 : finalScore;
                   }, [cupValues]);
 
                   useEffect(() => {
