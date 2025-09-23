@@ -37,7 +37,6 @@ export interface CupEvaluation {
 export interface Evaluation {
   id: string;
   coffeeName: string;
-  roastLevel: 'light' | 'medium' | 'medium-dark' | 'dark';
   cups: CupEvaluation[];
   overallScore: number;
 }

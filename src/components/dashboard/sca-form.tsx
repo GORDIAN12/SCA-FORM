@@ -78,9 +78,6 @@ const cupEvaluationSchema = z.object({
 
 const formSchema = z.object({
   coffeeName: z.string().min(1, 'Coffee name is required'),
-  roastLevel: z.enum(['light', 'medium', 'medium-dark', 'dark'], {
-    required_error: 'You need to select a roast level.',
-  }),
   cups: z.array(cupEvaluationSchema).length(5),
 });
 
@@ -214,16 +211,8 @@ const createDefaultCup = (index: number): CupFormValues => ({
 
 const createDefaultFormValues = (): ScaFormValues => ({
   coffeeName: '',
-  roastLevel: 'medium',
   cups: Array.from({ length: 5 }, (_, i) => createDefaultCup(i)),
 });
-
-const roastLevelColors = {
-  light: 'bg-[#C9A26A]',
-  medium: 'bg-[#A27B48]',
-  'medium-dark': 'bg-[#6B4F2E]',
-  dark: 'bg-[#4A2C2A]',
-};
 
 export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
   ({ initialData, onSubmit, onValuesChange, onActiveCupChange }, ref) => {
@@ -234,7 +223,6 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
       defaultValues: initialData
         ? {
             coffeeName: initialData.coffeeName,
-            roastLevel: initialData.roastLevel,
             cups: initialData.cups,
           }
         : createDefaultFormValues(),
@@ -244,7 +232,6 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
       if (initialData) {
         form.reset({
           coffeeName: initialData.coffeeName,
-          roastLevel: initialData.roastLevel,
           cups: initialData.cups,
         });
       } else {
@@ -291,7 +278,6 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
     function handleSubmit(values: ScaFormValues) {
       const evaluationData: Omit<Evaluation, 'id'> = {
         coffeeName: values.coffeeName,
-        roastLevel: values.roastLevel,
         cups: values.cups,
         overallScore: parseFloat(overallScore.toFixed(2)),
       };
@@ -315,7 +301,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)}>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <FormField
                   control={form.control}
                   name="coffeeName"
@@ -328,57 +314,6 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                           {...field}
                           disabled={isReadOnly}
                         />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="roastLevel"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="mb-2 block">Roast Level</FormLabel>
-                      <FormControl>
-                        <RadioGroup
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                          className="grid grid-cols-2 sm:grid-cols-4 gap-2"
-                          disabled={isReadOnly}
-                        >
-                          {(
-                            ['light', 'medium', 'medium-dark', 'dark'] as const
-                          ).map((level) => (
-                            <FormItem key={level} className="w-full">
-                              <FormControl>
-                                <RadioGroupItem
-                                  value={level}
-                                  className="sr-only"
-                                />
-                              </FormControl>
-                              <FormLabel
-                                className={cn(
-                                  'flex items-center justify-center w-full p-3 border rounded-md cursor-pointer transition-all duration-200 ease-in-out',
-                                  'bg-background hover:bg-accent/50',
-                                  field.value === level
-                                    ? 'border-primary border-2 text-primary font-semibold'
-                                    : 'border-input text-muted-foreground',
-                                  isReadOnly && 'cursor-not-allowed opacity-70'
-                                )}
-                              >
-                                <span
-                                  className={cn(
-                                    'w-3 h-3 rounded-full mr-2',
-                                    roastLevelColors[level]
-                                  )}
-                                />
-                                <span className="text-sm">
-                                  {capitalize(level)}
-                                </span>
-                              </FormLabel>
-                            </FormItem>
-                          ))}
-                        </RadioGroup>
                       </FormControl>
                       <FormMessage />
                     </FormItem>

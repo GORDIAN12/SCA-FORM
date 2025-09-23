@@ -141,11 +141,6 @@ export function DashboardLayout() {
           <SidebarTrigger className="md:hidden" />
           <div className="flex-1">
             <h2 className="text-lg font-semibold sm:text-xl">{currentTitle}</h2>
-            {currentEvaluationData && (
-              <p className="text-sm text-muted-foreground">
-                Roast: {currentEvaluationData.roastLevel}
-              </p>
-            )}
           </div>
         </header>
         <main id="main-content" className="flex-1 overflow-auto p-4 sm:p-6">
