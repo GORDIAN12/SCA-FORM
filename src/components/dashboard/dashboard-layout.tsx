@@ -88,6 +88,15 @@ export function DashboardLayout() {
         <SidebarContent>
           <div className="p-2 font-semibold">Bitácora</div>
           <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                onClick={handleNewEvaluation}
+                isActive={selectedEvaluation === 'new'}
+              >
+                <PlusCircle />
+                <span>Nueva Evaluación</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
             {evaluations.map((evaluation) => (
               <SidebarMenuItem key={evaluation.id}>
                 <SidebarMenuButton
@@ -112,15 +121,6 @@ export function DashboardLayout() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
             ))}
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                onClick={handleNewEvaluation}
-                isActive={selectedEvaluation === 'new'}
-              >
-                <PlusCircle />
-                <span>Nueva Evaluación</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
           </SidebarMenu>
         </SidebarContent>
         <SidebarFooter>
