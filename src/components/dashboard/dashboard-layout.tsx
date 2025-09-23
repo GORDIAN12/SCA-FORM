@@ -108,32 +108,19 @@ export function DashboardLayout() {
       doc.line(margin, y, pageWidth - margin, y);
       y += 10;
 
-      // --- Draw Score Bar ---
-      const drawScoreBar = (
+      // --- Draw Score ---
+      const drawScore = (
         label: string,
         score: number,
         x: number,
-        barY: number
+        lineY: number
       ) => {
-        const barMaxWidth = contentWidth * 0.4;
-        const barHeight = 5;
-        const scoreRange = 10 - 6; // Scores are from 6 to 10
-        const scorePercentage = (score - 6) / scoreRange;
-        const barWidth = scorePercentage * barMaxWidth;
-
         doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
-        doc.text(label, x, barY + barHeight / 2, {
+        doc.text(label, x, lineY, {
           baseline: 'middle',
         });
-
-        const barX = x + 30;
-        doc.setDrawColor('#cccccc');
-        doc.setFillColor('#e0e0e0');
-        doc.rect(barX, barY, barMaxWidth, barHeight, 'FD'); // Background bar
-        doc.setFillColor('#4A3522');
-        doc.rect(barX, barY, barWidth, barHeight, 'F'); // Score bar
-        doc.text(score.toFixed(2), barX + barMaxWidth + 5, barY + barHeight / 2, {
+        doc.text(score.toFixed(2), x + 40, lineY, {
           baseline: 'middle',
         });
       };
@@ -156,7 +143,7 @@ export function DashboardLayout() {
         y += 8;
 
         // Draw Aroma score for the cup
-        drawScoreBar('Aroma:', cup.aroma, margin + 5, y);
+        drawScore('Aroma:', cup.aroma, margin + 5, y);
         y += 10;
 
         for (const temp of ['hot', 'warm', 'cold'] as const) {
@@ -177,7 +164,7 @@ export function DashboardLayout() {
 
           scoreKeys.forEach((key) => {
             if (typeof scores[key] === 'number') {
-              drawScoreBar(
+              drawScore(
                 `${capitalize(key)}:`,
                 scores[key] as number,
                 margin + 10,
