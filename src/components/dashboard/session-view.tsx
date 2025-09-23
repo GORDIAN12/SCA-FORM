@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useMemo, useRef } from 'react';
-import type { Session, Evaluation, CupEvaluation } from '@/lib/types';
+import { useState, useMemo, useRef, useEffect } from 'react';
+import type { Evaluation, CupEvaluation } from '@/lib/types';
 import {
   ScaForm,
   type ScaFormValues,
@@ -13,25 +13,29 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Button } from '../ui/button';
 
 interface SessionViewProps {
-  session: Session;
+  evaluation: Evaluation | null;
+  onAddEvaluation: (evaluation: Evaluation) => void;
 }
 
-export function SessionView({ session: initialSession }: SessionViewProps) {
-  const [session, setSession] = useState(initialSession);
+export function SessionView({
+  evaluation,
+  onAddEvaluation,
+}: SessionViewProps) {
   const [liveFormData, setLiveFormData] = useState<ScaFormValues | null>(null);
   const [activeCupId, setActiveCupId] = useState('cup-1');
   const [activeCupData, setActiveCupData] = useState<CupFormValues | null>(
     null
   );
   const [activeTempTab, setActiveTempTab] = useState('hot');
-  const formRef = useRef<{ submit: () => void }>(null);
+  const formRef = useRef<{ submit: () => void; reset: () => void }>(null);
+
+  useEffect(() => {
+    // If an existing evaluation is passed, update the form
+    // The form component itself will handle this via its props
+  }, [evaluation]);
 
   const handleFormSubmit = (data: Evaluation) => {
-    const newEvaluation = { ...data, id: `eval-${Date.now()}` };
-    setSession((prev) => ({
-      ...prev,
-      evaluations: [...prev.evaluations, newEvaluation],
-    }));
+    onAddEvaluation(data);
   };
 
   const handleValuesChange = (values: ScaFormValues) => {
@@ -51,21 +55,23 @@ export function SessionView({ session: initialSession }: SessionViewProps) {
   };
 
   const activeRadarChartData = useMemo(() => {
-    if (!activeCupData) return null;
+    const data = evaluation ? evaluation.cups.find(c => c.id === activeCupId) : activeCupData;
+    if (!data) return null;
     const scores =
-      activeCupData.scores[activeTempTab as keyof CupEvaluation['scores']];
+      data.scores[activeTempTab as keyof CupEvaluation['scores']];
     return {
       ...scores,
-      aroma: activeCupData.aroma,
-      cupperScore: activeCupData.cupperScore,
+      aroma: data.aroma,
+      cupperScore: data.cupperScore,
     };
-  }, [activeCupData, activeTempTab]);
+  }, [evaluation, activeCupData, activeTempTab, activeCupId]);
 
   return (
     <div className="space-y-6">
       <div className="col-span-full">
         <ScaForm
           ref={formRef}
+          initialData={evaluation}
           onSubmit={handleFormSubmit}
           onValuesChange={handleValuesChange}
           onActiveCupChange={handleActiveCupChange}
@@ -85,21 +91,17 @@ export function SessionView({ session: initialSession }: SessionViewProps) {
                 <TabsTrigger value="warm">Warm</TabsTrigger>
                 <TabsTrigger value="cold">Cold</TabsTrigger>
               </TabsList>
-              <TabsContent value="hot">
-                {activeRadarChartData && (
-                  <ScoresRadarChart scores={activeRadarChartData} />
-                )}
-              </TabsContent>
-              <TabsContent value="warm">
-                {activeRadarChartData && (
-                  <ScoresRadarChart scores={activeRadarChartData} />
-                )}
-              </TabsContent>
-              <TabsContent value="cold">
-                {activeRadarChartData && (
-                  <ScoresRadarChart scores={activeRadarChartData} />
-                )}
-              </TabsContent>
+              {(['hot', 'warm', 'cold'] as const).map((temp) => (
+                <TabsContent key={temp} value={temp}>
+                  {activeRadarChartData ? (
+                    <ScoresRadarChart scores={activeRadarChartData} />
+                  ) : (
+                    <div className="flex justify-center items-center h-72 text-muted-foreground">
+                      Complete el formulario para ver la visualización
+                    </div>
+                  )}
+                </TabsContent>
+              ))}
             </Tabs>
           </CardContent>
         </Card>

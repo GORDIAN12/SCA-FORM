@@ -89,6 +89,7 @@ export type CupFormValues = z.infer<typeof cupEvaluationSchema>;
 export type ScoreSetFormValues = z.infer<typeof scoreSetSchema>;
 
 interface ScaFormProps {
+  initialData?: Evaluation | null;
   onSubmit: (data: Evaluation) => void;
   onValuesChange?: (data: ScaFormValues) => void;
   onActiveCupChange?: (cupId: string, cupData: CupFormValues | null) => void;
@@ -96,6 +97,7 @@ interface ScaFormProps {
 
 export interface ScaFormRef {
   submit: () => void;
+  reset: () => void;
 }
 
 const CupSelector = ({
@@ -203,6 +205,12 @@ const createDefaultCup = (index: number): CupFormValues => ({
   totalScore: 0,
 });
 
+const createDefaultFormValues = (): ScaFormValues => ({
+  coffeeName: '',
+  roastLevel: 'medium',
+  cups: Array.from({ length: 5 }, (_, i) => createDefaultCup(i)),
+});
+
 const roastLevelColors = {
   light: 'bg-[#C9A26A]',
   medium: 'bg-[#A27B48]',
@@ -211,20 +219,35 @@ const roastLevelColors = {
 };
 
 export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
-  ({ onSubmit, onValuesChange, onActiveCupChange }, ref) => {
+  ({ initialData, onSubmit, onValuesChange, onActiveCupChange }, ref) => {
     const [activeCupTab, setActiveCupTab] = useState('cup-1');
 
     const form = useForm<ScaFormValues>({
       resolver: zodResolver(formSchema),
-      defaultValues: {
-        coffeeName: '',
-        roastLevel: 'medium',
-        cups: Array.from({ length: 5 }, (_, i) => createDefaultCup(i)),
-      },
+      defaultValues: initialData
+        ? {
+            coffeeName: initialData.coffeeName,
+            roastLevel: initialData.roastLevel,
+            cups: initialData.cups,
+          }
+        : createDefaultFormValues(),
     });
 
+    useEffect(() => {
+      if (initialData) {
+        form.reset({
+          coffeeName: initialData.coffeeName,
+          roastLevel: initialData.roastLevel,
+          cups: initialData.cups,
+        });
+      } else {
+        form.reset(createDefaultFormValues());
+      }
+    }, [initialData, form]);
+
     useImperativeHandle(ref, () => ({
-      submit: () => form.handleSubmit(handleSubmit)(),
+      submit: form.handleSubmit(handleSubmit),
+      reset: () => form.reset(createDefaultFormValues()),
     }));
 
     const { fields } = useFieldArray({
@@ -263,7 +286,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
         coffeeName: values.coffeeName,
         roastLevel: values.roastLevel,
         cups: values.cups,
-        overallScore: overallScore,
+        overallScore: parseFloat(overallScore.toFixed(2)),
       };
 
       onSubmit({ ...evaluationData, id: `eval-${Date.now()}` });
@@ -294,6 +317,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                         <Input
                           placeholder="e.g., Ethiopia Yirgacheffe"
                           {...field}
+                          disabled={!!initialData}
                         />
                       </FormControl>
                       <FormMessage />
@@ -311,6 +335,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                           onValueChange={field.onChange}
                           defaultValue={field.value}
                           className="grid grid-cols-2 md:grid-cols-4 gap-2"
+                          disabled={!!initialData}
                         >
                           {(
                             ['light', 'medium', 'medium-dark', 'dark'] as const
@@ -328,7 +353,8 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                   'bg-background hover:bg-accent/50',
                                   field.value === level
                                     ? 'border-primary border-2 text-primary font-semibold'
-                                    : 'border-input text-muted-foreground'
+                                    : 'border-input text-muted-foreground',
+                                  !!initialData && 'cursor-not-allowed opacity-70'
                                 )}
                               >
                                 <span
@@ -373,7 +399,9 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                     const avgScores = Object.keys(cupValues.scores.hot).reduce(
                       (acc, key) => {
                         const scoreKey = key as keyof ScoreSetFormValues;
-                        if (typeof cupValues.scores.hot[scoreKey] === 'number') {
+                        if (
+                          typeof cupValues.scores.hot[scoreKey] === 'number'
+                        ) {
                           const hotScore =
                             (cupValues.scores.hot[
                               scoreKey
