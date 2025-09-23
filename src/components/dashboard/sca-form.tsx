@@ -324,12 +324,18 @@ export function ScaForm({
                             </FormControl>
                             <FormLabel
                               className={cn(
-                                'px-3 py-1.5 border rounded-full cursor-pointer transition-colors text-center',
+                                'flex items-center gap-2 px-3 py-1.5 border rounded-full cursor-pointer transition-colors text-center',
                                 field.value === level
                                   ? 'bg-primary text-primary-foreground border-primary'
                                   : 'bg-transparent hover:bg-accent'
                               )}
                             >
+                              <div
+                                className={cn(
+                                  'size-3 rounded-full',
+                                  roastLevelColors[level]
+                                )}
+                              />
                               {capitalize(level)}
                             </FormLabel>
                           </FormItem>
@@ -360,26 +366,42 @@ export function ScaForm({
 
                 const cupTotalScore = useMemo(() => {
                   if (!cupValues) return 0;
-                  
+
                   const uniformityScore = cupValues.uniformity ? 2 : 0;
                   const cleanCupScore = cupValues.cleanCup ? 2 : 0;
                   const sweetnessScore = cupValues.sweetness ? 2 : 0;
-                  
+
                   const baseScoresTotal =
                     cupValues.aroma +
-                    (cupValues.scores.hot.flavor + cupValues.scores.warm.flavor + cupValues.scores.cold.flavor) / 3 +
-                    (cupValues.scores.hot.aftertaste + cupValues.scores.warm.aftertaste + cupValues.scores.cold.aftertaste) / 3 +
-                    (cupValues.scores.hot.acidity + cupValues.scores.warm.acidity + cupValues.scores.cold.acidity) / 3 +
-                    (cupValues.scores.hot.body + cupValues.scores.warm.body + cupValues.scores.cold.body) / 3 +
-                    (cupValues.scores.hot.balance + cupValues.scores.warm.balance + cupValues.scores.cold.balance) / 3 +
+                    (cupValues.scores.hot.flavor +
+                      cupValues.scores.warm.flavor +
+                      cupValues.scores.cold.flavor) /
+                      3 +
+                    (cupValues.scores.hot.aftertaste +
+                      cupValues.scores.warm.aftertaste +
+                      cupValues.scores.cold.aftertaste) /
+                      3 +
+                    (cupValues.scores.hot.acidity +
+                      cupValues.scores.warm.acidity +
+                      cupValues.scores.cold.acidity) /
+                      3 +
+                    (cupValues.scores.hot.body +
+                      cupValues.scores.warm.body +
+                      cupValues.scores.cold.body) /
+                      3 +
+                    (cupValues.scores.hot.balance +
+                      cupValues.scores.warm.balance +
+                      cupValues.scores.cold.balance) /
+                      3 +
                     cupValues.cupperScore;
 
-                  return (
+                  const totalScore =
                     baseScoresTotal +
-                    uniformityScore +
-                    cleanCupScore +
-                    sweetnessScore
-                  );
+                    uniformityScore * 5 +
+                    cleanCupScore * 5 +
+                    sweetnessScore * 5;
+
+                  return totalScore;
                 }, [cupValues]);
 
                 useEffect(() => {
@@ -474,7 +496,9 @@ export function ScaForm({
                                   <FormItem>
                                     <FormLabel className="flex justify-between">
                                       <span>Aroma Score</span>
-                                      <span>{scoreField.value.toFixed(2)}</span>
+                                      <span>
+                                        {scoreField.value.toFixed(2)}
+                                      </span>
                                     </FormLabel>
                                     <FormControl>
                                       <ScoreSlider field={scoreField} />
@@ -574,14 +598,14 @@ export function ScaForm({
                               </div>
                             </div>
                           </div>
-                          
+
                           <Tabs defaultValue="hot" className="w-full">
                             <TabsList className="grid w-full grid-cols-3">
-                              <TabsTrigger value="hot">Caliente</TabsTrigger>
-                              <TabsTrigger value="warm">Tibio</TabsTrigger>
-                              <TabsTrigger value="cold">Frio</TabsTrigger>
+                              <TabsTrigger value="hot">Hot</TabsTrigger>
+                              <TabsTrigger value="warm">Warm</TabsTrigger>
+                              <TabsTrigger value="cold">Cold</TabsTrigger>
                             </TabsList>
-                            {(['hot', 'warm', 'cold'] as const).map(temp => (
+                            {(['hot', 'warm', 'cold'] as const).map((temp) => (
                               <TabsContent key={temp} value={temp}>
                                 <div className="space-y-4 pt-4">
                                   <div className="p-4 border rounded-md">
@@ -592,7 +616,9 @@ export function ScaForm({
                                         <FormItem>
                                           <FormLabel className="flex justify-between">
                                             <span>Flavor</span>
-                                            <span>{scoreField.value.toFixed(2)}</span>
+                                            <span>
+                                              {scoreField.value.toFixed(2)}
+                                            </span>
                                           </FormLabel>
                                           <FormControl>
                                             <ScoreSlider field={scoreField} />
@@ -609,7 +635,9 @@ export function ScaForm({
                                         <FormItem>
                                           <FormLabel className="flex justify-between">
                                             <span>Aftertaste</span>
-                                            <span>{scoreField.value.toFixed(2)}</span>
+                                            <span>
+                                              {scoreField.value.toFixed(2)}
+                                            </span>
                                           </FormLabel>
                                           <FormControl>
                                             <ScoreSlider field={scoreField} />
@@ -627,7 +655,9 @@ export function ScaForm({
                                           <FormItem>
                                             <FormLabel className="flex justify-between">
                                               <span>Acidity Score</span>
-                                              <span>{scoreField.value.toFixed(2)}</span>
+                                              <span>
+                                                {scoreField.value.toFixed(2)}
+                                              </span>
                                             </FormLabel>
                                             <FormControl>
                                               <ScoreSlider field={scoreField} />
@@ -640,24 +670,40 @@ export function ScaForm({
                                         name={`cups.${index}.scores.${temp}.acidityIntensity`}
                                         render={({ field: intensityField }) => (
                                           <FormItem className="space-y-3">
-                                            <FormLabel>Acidity Intensity</FormLabel>
+                                            <FormLabel>
+                                              Acidity Intensity
+                                            </FormLabel>
                                             <FormControl>
                                               <RadioGroup
-                                                onValueChange={intensityField.onChange}
+                                                onValueChange={
+                                                  intensityField.onChange
+                                                }
                                                 value={intensityField.value}
                                                 className="flex space-x-4"
                                               >
                                                 <FormItem className="flex items-center space-x-2 space-y-0">
-                                                  <FormControl><RadioGroupItem value="low" /></FormControl>
-                                                  <FormLabel className="font-normal">Low</FormLabel>
+                                                  <FormControl>
+                                                    <RadioGroupItem value="low" />
+                                                  </FormControl>
+                                                  <FormLabel className="font-normal">
+                                                    Low
+                                                  </FormLabel>
                                                 </FormItem>
                                                 <FormItem className="flex items-center space-x-2 space-y-0">
-                                                  <FormControl><RadioGroupItem value="medium" /></FormControl>
-                                                  <FormLabel className="font-normal">Medium</FormLabel>
+                                                  <FormControl>
+                                                    <RadioGroupItem value="medium" />
+                                                  </FormControl>
+                                                  <FormLabel className="font-normal">
+                                                    Medium
+                                                  </FormLabel>
                                                 </FormItem>
                                                 <FormItem className="flex items-center space-x-2 space-y-0">
-                                                  <FormControl><RadioGroupItem value="high" /></FormControl>
-                                                  <FormLabel className="font-normal">High</FormLabel>
+                                                  <FormControl>
+                                                    <RadioGroupItem value="high" />
+                                                  </FormControl>
+                                                  <FormLabel className="font-normal">
+                                                    High
+                                                  </FormLabel>
                                                 </FormItem>
                                               </RadioGroup>
                                             </FormControl>
@@ -676,7 +722,9 @@ export function ScaForm({
                                           <FormItem>
                                             <FormLabel className="flex justify-between">
                                               <span>Body Score</span>
-                                              <span>{scoreField.value.toFixed(2)}</span>
+                                              <span>
+                                                {scoreField.value.toFixed(2)}
+                                              </span>
                                             </FormLabel>
                                             <FormControl>
                                               <ScoreSlider field={scoreField} />
@@ -692,21 +740,35 @@ export function ScaForm({
                                             <FormLabel>Body Intensity</FormLabel>
                                             <FormControl>
                                               <RadioGroup
-                                                onValueChange={intensityField.onChange}
+                                                onValueChange={
+                                                  intensityField.onChange
+                                                }
                                                 value={intensityField.value}
                                                 className="flex space-x-4"
                                               >
                                                 <FormItem className="flex items-center space-x-2 space-y-0">
-                                                  <FormControl><RadioGroupItem value="low" /></FormControl>
-                                                  <FormLabel className="font-normal">Low</FormLabel>
+                                                  <FormControl>
+                                                    <RadioGroupItem value="low" />
+                                                  </FormControl>
+                                                  <FormLabel className="font-normal">
+                                                    Low
+                                                  </FormLabel>
                                                 </FormItem>
                                                 <FormItem className="flex items-center space-x-2 space-y-0">
-                                                  <FormControl><RadioGroupItem value="medium" /></FormControl>
-                                                  <FormLabel className="font-normal">Medium</FormLabel>
+                                                  <FormControl>
+                                                    <RadioGroupItem value="medium" />
+                                                  </FormControl>
+                                                  <FormLabel className="font-normal">
+                                                    Medium
+                                                  </FormLabel>
                                                 </FormItem>
                                                 <FormItem className="flex items-center space-x-2 space-y-0">
-                                                  <FormControl><RadioGroupItem value="high" /></FormControl>
-                                                  <FormLabel className="font-normal">High</FormLabel>
+                                                  <FormControl>
+                                                    <RadioGroupItem value="high" />
+                                                  </FormControl>
+                                                  <FormLabel className="font-normal">
+                                                    High
+                                                  </FormLabel>
                                                 </FormItem>
                                               </RadioGroup>
                                             </FormControl>
@@ -716,7 +778,7 @@ export function ScaForm({
                                       />
                                     </div>
                                   </div>
-                                   <div className="p-4 border rounded-md">
+                                  <div className="p-4 border rounded-md">
                                     <FormField
                                       control={form.control}
                                       name={`cups.${index}.scores.${temp}.balance`}
@@ -724,7 +786,9 @@ export function ScaForm({
                                         <FormItem>
                                           <FormLabel className="flex justify-between">
                                             <span>Balance</span>
-                                            <span>{scoreField.value.toFixed(2)}</span>
+                                            <span>
+                                              {scoreField.value.toFixed(2)}
+                                            </span>
                                           </FormLabel>
                                           <FormControl>
                                             <ScoreSlider field={scoreField} />
@@ -738,23 +802,25 @@ export function ScaForm({
                             ))}
                           </Tabs>
 
-                           <div className="p-4 border rounded-md">
-                              <FormField
-                                control={form.control}
-                                name={`cups.${index}.cupperScore`}
-                                render={({ field: scoreField }) => (
-                                  <FormItem>
-                                    <FormLabel className="flex justify-between">
-                                      <span>Cupper Score</span>
-                                      <span>{scoreField.value.toFixed(2)}</span>
-                                    </FormLabel>
-                                    <FormControl>
-                                      <ScoreSlider field={scoreField} />
-                                    </FormControl>
-                                  </FormItem>
-                                )}
-                              />
-                            </div>
+                          <div className="p-4 border rounded-md">
+                            <FormField
+                              control={form.control}
+                              name={`cups.${index}.cupperScore`}
+                              render={({ field: scoreField }) => (
+                                <FormItem>
+                                  <FormLabel className="flex justify-between">
+                                    <span>Cupper Score</span>
+                                    <span>
+                                      {scoreField.value.toFixed(2)}
+                                    </span>
+                                  </FormLabel>
+                                  <FormControl>
+                                    <ScoreSlider field={scoreField} />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                          </div>
                         </div>
                       </CardContent>
                       <CardFooter>
