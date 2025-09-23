@@ -14,10 +14,11 @@ import {
   SidebarFooter,
 } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import type { Evaluation, Session } from '@/lib/types';
+import type { Evaluation } from '@/lib/types';
 import { SessionView } from './session-view';
 import { CuppingCompassLogo } from '../cupping-compass-logo';
 import { Coffee, PlusCircle, Settings } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 export function DashboardLayout() {
   const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
@@ -25,8 +26,23 @@ export function DashboardLayout() {
     Evaluation | 'new'
   >('new');
   const [key, setKey] = useState(Date.now());
+  const { toast } = useToast();
 
   const handleAddEvaluation = (evaluation: Evaluation) => {
+    if (
+      evaluations.some(
+        (e) => e.coffeeName.toLowerCase() === evaluation.coffeeName.toLowerCase()
+      )
+    ) {
+      toast({
+        title: 'Duplicate Coffee Name',
+        description:
+          'An evaluation with this coffee name already exists. Please use a different name.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     const newEvaluations = [...evaluations, evaluation];
     setEvaluations(newEvaluations);
     setSelectedEvaluation(evaluation);
