@@ -196,10 +196,26 @@ const createDefaultCup = (index: number): CupFormValues => ({
 });
 
 const roastLevelColors = {
-  light: 'bg-[#C9A26A]',
-  medium: 'bg-[#A27B48]',
-  'medium-dark': 'bg-[#6B4F2E]',
-  dark: 'bg-[#4A2C2A]',
+  light: {
+    bg: 'bg-[#C9A26A]',
+    text: 'text-stone-800',
+    border: 'border-[#A27B48]',
+  },
+  medium: {
+    bg: 'bg-[#A27B48]',
+    text: 'text-white',
+    border: 'border-[#6B4F2E]',
+  },
+  'medium-dark': {
+    bg: 'bg-[#6B4F2E]',
+    text: 'text-white',
+    border: 'border-[#4A2C2A]',
+  },
+  dark: {
+    bg: 'bg-[#4A2C2A]',
+    text: 'text-white',
+    border: 'border-stone-900',
+  },
 };
 
 export function ScaForm({
@@ -297,49 +313,45 @@ export function ScaForm({
                 name="roastLevel"
                 render={({ field }) => (
                   <FormItem>
-                    <div className="flex items-center gap-2 mb-2">
-                      <FormLabel>Roast Level</FormLabel>
-                      <div
-                        className={cn(
-                          'size-4 rounded-full transition-colors',
-                          roastLevelColors[watchedRoastLevel]
-                        )}
-                      />
-                    </div>
+                    <FormLabel className="mb-2">Roast Level</FormLabel>
                     <FormControl>
                       <RadioGroup
                         onValueChange={field.onChange}
                         defaultValue={field.value}
-                        className="flex flex-wrap gap-2"
+                        className="grid grid-cols-2 md:grid-cols-4 gap-2"
                       >
                         {(
                           ['light', 'medium', 'medium-dark', 'dark'] as const
-                        ).map((level) => (
-                          <FormItem key={level}>
-                            <FormControl>
-                              <RadioGroupItem
-                                value={level}
-                                className="sr-only"
-                              />
-                            </FormControl>
-                            <FormLabel
-                              className={cn(
-                                'flex items-center gap-2 px-3 py-1.5 border rounded-full cursor-pointer transition-colors text-center',
-                                field.value === level
-                                  ? 'bg-primary text-primary-foreground border-primary'
-                                  : 'bg-transparent hover:bg-accent'
-                              )}
-                            >
-                              <div
+                        ).map((level) => {
+                          const levelStyle = roastLevelColors[level];
+                          return (
+                            <FormItem key={level}>
+                              <FormControl>
+                                <RadioGroupItem
+                                  value={level}
+                                  className="sr-only"
+                                />
+                              </FormControl>
+                              <FormLabel
                                 className={cn(
-                                  'size-3 rounded-full',
-                                  roastLevelColors[level]
+                                  'flex flex-col items-center justify-center p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ease-in-out transform hover:scale-105',
+                                  levelStyle.bg,
+                                  levelStyle.text,
+                                  field.value === level
+                                    ? cn(
+                                        'border-primary ring-2 ring-primary ring-offset-2 ring-offset-background',
+                                        levelStyle.border
+                                      )
+                                    : 'border-transparent'
                                 )}
-                              />
-                              {capitalize(level)}
-                            </FormLabel>
-                          </FormItem>
-                        ))}
+                              >
+                                <span className="font-semibold text-sm">
+                                  {capitalize(level)}
+                                </span>
+                              </FormLabel>
+                            </FormItem>
+                          );
+                        })}
                       </RadioGroup>
                     </FormControl>
                     <FormMessage />
