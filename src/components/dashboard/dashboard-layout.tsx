@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import {
   SidebarProvider,
   Sidebar,
@@ -67,6 +69,47 @@ export function DashboardLayout() {
     setKey(Date.now());
   };
 
+  const handleExportToPdf = async (evaluation: Evaluation) => {
+    await handleSelectEvaluation(evaluation);
+
+    // Allow the UI to update before capturing
+    setTimeout(async () => {
+      const input = document.getElementById('main-content');
+      if (!input) {
+        toast({
+          title: 'Error exporting PDF',
+          description: 'Could not find the content to export.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      try {
+        const canvas = await html2canvas(input, {
+          scale: 2, // Higher scale for better quality
+          useCORS: true,
+        });
+
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF({
+          orientation: 'portrait',
+          unit: 'px',
+          format: [canvas.width, canvas.height],
+        });
+
+        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+        pdf.save(`${evaluation.coffeeName.replace(/\s+/g, '-')}-evaluation.pdf`);
+      } catch (error) {
+        console.error('Error generating PDF:', error);
+        toast({
+          title: 'Error exporting PDF',
+          description: 'An unexpected error occurred during PDF generation.',
+          variant: 'destructive',
+        });
+      }
+    }, 100); // 100ms delay
+  };
+
   const currentEvaluationData =
     selectedEvaluation === 'new' ? null : selectedEvaluation;
   const currentTitle =
@@ -121,7 +164,16 @@ export function DashboardLayout() {
                     />
                     <span className="truncate">{evaluation.coffeeName}</span>
                   </div>
-                  <FileDown className="ml-auto size-4 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleExportToPdf(evaluation);
+                    }}
+                    className="ml-auto p-1 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:text-foreground"
+                    aria-label={`Export ${evaluation.coffeeName} to PDF`}
+                  >
+                    <FileDown className="size-4 shrink-0" />
+                  </button>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             ))}
