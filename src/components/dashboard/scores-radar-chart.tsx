@@ -19,7 +19,8 @@ interface ScoresRadarChartProps {
         hot: Partial<ScoreSet>;
         warm: Partial<ScoreSet>;
         cold: Partial<ScoreSet>;
-      } | null;
+      }
+    | null;
 }
 
 const chartConfig = {

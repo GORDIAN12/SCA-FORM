@@ -13,6 +13,7 @@ interface CupScoresChartProps {
 
 export function CupScoresChart({ scores }: CupScoresChartProps) {
   // The robust check is now inside ScoresRadarChart, so we can simplify this.
+  // We still check for scores to avoid rendering an empty div.
   if (!scores) {
     return null;
   }
