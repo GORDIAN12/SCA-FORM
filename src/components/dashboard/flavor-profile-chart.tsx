@@ -6,7 +6,13 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
-import { PolarAngleAxis, PolarGrid, Radar, RadarChart } from 'recharts';
+import {
+  PolarAngleAxis,
+  PolarGrid,
+  Radar,
+  RadarChart,
+  PolarRadiusAxis,
+} from 'recharts';
 
 interface FlavorProfileChartProps {
   scores: {
@@ -27,7 +33,7 @@ const chartConfig = {
   accent: {
     label: 'Score',
     color: 'hsl(var(--accent))',
-  }
+  },
 };
 
 export function FlavorProfileChart({ scores }: FlavorProfileChartProps) {
@@ -44,7 +50,7 @@ export function FlavorProfileChart({ scores }: FlavorProfileChartProps) {
   if (!scores) {
     return null;
   }
-  
+
   return (
     <ChartContainer
       config={chartConfig}
@@ -57,6 +63,13 @@ export function FlavorProfileChart({ scores }: FlavorProfileChartProps) {
         />
         <PolarAngleAxis dataKey="attribute" />
         <PolarGrid />
+        <PolarRadiusAxis
+          angle={90}
+          domain={[6, 10]}
+          tickCount={5}
+          tick={false}
+          axisLine={false}
+        />
         <Radar
           dataKey="score"
           fill="var(--color-accent)"
