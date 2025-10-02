@@ -12,9 +12,9 @@ interface CupScoresChartProps {
 }
 
 export function CupScoresChart({ scores }: CupScoresChartProps) {
-  // Robust check to ensure scores and its properties are valid
-  if (!scores || !scores.hot || !scores.warm || !scores.cold) {
-    return null; // Don't render anything if data is incomplete
+  // The robust check is now inside ScoresRadarChart, so we can simplify this.
+  if (!scores) {
+    return null;
   }
 
   return (
