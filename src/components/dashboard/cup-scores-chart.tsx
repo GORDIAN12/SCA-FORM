@@ -12,14 +12,9 @@ interface CupScoresChartProps {
 }
 
 export function CupScoresChart({ scores }: CupScoresChartProps) {
-  // If scores are not available, don't render the chart.
-  if (!scores) {
-    return null;
-  }
-
   // Robust check to ensure scores and its properties are valid
-  if (!scores.hot || !scores.warm || !scores.cold) {
-    return null; // Also don't render anything if data is incomplete
+  if (!scores || !scores.hot || !scores.warm || !scores.cold) {
+    return null; // Don't render anything if data is incomplete
   }
 
   return (
