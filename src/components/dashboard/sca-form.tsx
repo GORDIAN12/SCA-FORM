@@ -338,7 +338,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
         <CardHeader>
           <CardTitle>SCA Evaluation Form</CardTitle>
           <CardDescription>
-            {isReadOnly ? 'Viewing a saved coffee evaluation.' : 'Enter the coffee cupping details below, cup by cup.'}
+            {isReadOnly ? 'Viendo una evaluación guardada.' : 'Enter the coffee cupping details below, cup by cup.'}
           </CardDescription>
         </CardHeader>
         <Form {...form}>
@@ -417,7 +417,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
               >
                 <TabsList className="grid w-full grid-cols-5">
                   {fields.map((field, index) => (
-                    <TabsTrigger key={field.id} value={`cup-${index + 1}`} disabled={isReadOnly}>
+                    <TabsTrigger key={field.id} value={`cup-${index + 1}`}>
                       Cup {index + 1}
                     </TabsTrigger>
                   ))}
@@ -948,9 +948,9 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                            onValueChange={(value) => setActiveTempTab(value as 'hot' | 'warm' | 'cold')}
                        >
                            <TabsList className="grid w-full grid-cols-3">
-                               <TabsTrigger value="hot" disabled={isReadOnly}>Hot</TabsTrigger>
-                               <TabsTrigger value="warm" disabled={isReadOnly}>Warm</TabsTrigger>
-                               <TabsTrigger value="cold" disabled={isReadOnly}>Cold</TabsTrigger>
+                               <TabsTrigger value="hot">Hot</TabsTrigger>
+                               <TabsTrigger value="warm">Warm</TabsTrigger>
+                               <TabsTrigger value="cold">Cold</TabsTrigger>
                            </TabsList>
                        </Tabs>
                        <h3 className="text-center text-xl font-semibold my-4">Flavor Profile</h3>
@@ -977,3 +977,5 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
 );
 
 ScaForm.displayName = 'ScaForm';
+
+    
