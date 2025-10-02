@@ -103,7 +103,7 @@ export default function Home() {
           <SidebarHeader className="p-4">
             <div className="flex items-center gap-2">
               <CuppingCompassLogo className="size-8 text-primary" />
-              <h2 className="text-lg font-semibold">Bitácora</h2>
+              <h2 className="text-lg font-semibold">Cupping Compass</h2>
             </div>
           </SidebarHeader>
           <SidebarMenu className="flex-1 px-4">
@@ -136,7 +136,7 @@ export default function Home() {
                 <Menu />
               </SidebarTrigger>
               <CuppingCompassLogo className="size-8 text-primary hidden sm:block" />
-              <h1 className="text-xl font-semibold">Cupping Compass</h1>
+              <h1 className="text-xl font-semibold">New Evaluation</h1>
             </div>
           </header>
           <main className="p-4 sm:p-6 lg:p-8">
