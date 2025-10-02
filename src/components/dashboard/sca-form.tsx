@@ -923,7 +923,9 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                      <span>{overallScore.toFixed(2)}</span>
                    </div>
                  </div>
-                 <CupScoresChart scores={activeCupScores} />
+                 {!initialData && activeCupScores && activeCupScores.hot && activeCupScores.warm && activeCupScores.cold && (
+                   <CupScoresChart scores={activeCupScores} />
+                 )}
                </div>
             </CardContent>
           </form>
