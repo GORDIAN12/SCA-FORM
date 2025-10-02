@@ -915,17 +915,17 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                   );
                 })}
               </Tabs>
-              {!initialData && (
-                 <div className="p-6 space-y-6">
-                 <Separator />
-                 <div className="space-y-2">
-                   <div className="flex justify-between text-xl font-bold">
-                     <span>Overall Average Score</span>
-                     <span>{overallScore.toFixed(2)}</span>
-                   </div>
-                 </div>
-                 <CupScoresChart scores={activeCupScores} />
-               </div>
+               {!initialData && (
+                <div className="p-6 space-y-6">
+                  <Separator />
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-xl font-bold">
+                      <span>Overall Average Score</span>
+                      <span>{overallScore.toFixed(2)}</span>
+                    </div>
+                  </div>
+                  <CupScoresChart scores={activeCupScores} />
+                </div>
               )}
             </CardContent>
           </form>
