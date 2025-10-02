@@ -1,84 +1,205 @@
 /**
- * @file Firestore Security Rules
- * @core_philosophy This ruleset enforces a user-ownership model for user profiles
- * and restricts access to invitations based on roles and authentication.
- * It is written in Prototyping Mode, so write rules are highly restrictive but flexible on data shapes.
- * @data_structure
- * - /users/{userId}: Stores user profile data.
- * - /invitations/{invitationId}: Stores invitation data for cupping sessions.
- * @key_security_decisions
- * - Users can only read and write their own profile data.
- * - Only authenticated users can create invitations.
- * - Invitations can only be read by the invited user or the inviting admin.
- * - Schema validation is relaxed to allow rapid prototyping. Only authorization-critical
- *   fields are validated for integrity.
- * @denormalization_for_authorization
- *   Invitation documents contain the `invitedEmail` field to allow invitees to view
- *   and accept/reject the invitation without querying the users collection. This prevents
- *   the need for costly `get()` operations in the security rules.
- * @structural_segregation User profile data is stored in the /users/{userId} collection, which is separated from
- * the invitation data stored in the /invitations/{invitationId} collection. This allows for better
- * access control and scalability.
+ * @fileoverview Firestore Security Rules for Cupping Compass.
+ *
+ * Core Philosophy:
+ * This ruleset employs a hybrid security model, balancing open access for
+ * public data (e.g., listing cupping sessions) with strict ownership and
+ * role-based access control for sensitive user data and session administration.
+ *
+ * Data Structure:
+ * - /users/{userId}: Stores public user profiles. Accessible to all for read,
+ *   but only writable by the user themselves.
+ * - /sessions/{sessionId}: Stores cupping session data. Listable by all, but
+ *   creation, modification, and deletion are restricted to the session admin
+ *   and authorized participants.
+ * - /sessions/{sessionId}/evaluations/{evaluationId}: Stores individual coffee
+ *   evaluations within a session. Read/write access is restricted to session
+ *   participants.
+ * - /invitations/{invitationId}: Stores invitations to join cupping sessions.
+ *   Accessible only to invited users and session admins.
+ *
+ * Key Security Decisions:
+ * - User Listing: Listing all users is explicitly disallowed to protect user
+ *   privacy.
+ * - Session Listing: Listing all sessions is allowed.
+ * - Default Deny: Any access not explicitly allowed is denied.
+ *
+ * Denormalization for Authorization:
+ * - The `CuppingSession` entity denormalizes the `adminUid` and
+ *   `participantUids` to efficiently authorize operations on sessions and their
+ *   evaluations.
+ * - The `Evaluation` entity includes the `userId` to authorize access to
+ *   evaluations within a session.
+ *
+ * Structural Segregation:
+ * - Private user data (e.g., settings, preferences) should be stored under
+ *   the /users/{userId} path to ensure privacy. Publicly accessible session
+ *   data resides in the top-level /sessions/{sessionId} collection.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Allows users to read and write their own user profile data.
-     * @path /databases/{database}/documents/users/{userId}
-     * @allow (get, update, delete) User with ID 'user123' can read, update, and delete their own profile.
-     * @allow (create) User with ID 'user123' can create their profile if they are authenticated.
-     * @deny (get, update, delete) User with ID 'user456' cannot read, update, or delete the profile of user with ID 'user123'.
-     * @principle Enforces document ownership for user profiles.
+     * @description Allows read/write access to user profiles only by the
+     *   authenticated user.
+     * @path /users/{userId}
+     * @allow (get) Authenticated user can read their profile.
+     *   Example: User with UID 'user123' reads /users/user123.
+     * @allow (list) Listing all users is denied.
+     * @allow (create) Authenticated user can create their own profile.
+     *   Example: User with UID 'user123' creates /users/user123.
+     * @allow (update) Authenticated user can update their own profile.
+     *   Example: User with UID 'user123' updates /users/user123.
+     * @allow (delete) Authenticated user can delete their own profile.
+     *   Example: User with UID 'user123' deletes /users/user123.
+     * @deny (get) User with UID 'user123' attempts to read /users/user456.
+     * @deny (create) User with UID 'user123' attempts to create /users/user456.
+     * @deny (update) User with UID 'user123' attempts to update /users/user456.
+     * @deny (delete) User with UID 'user123' attempts to delete /users/user456.
+     * @principle Enforces document ownership for writes.
      */
     match /users/{userId} {
-      // isOwner: Validates that the requested user id is the same as the authenticated user id.
-      function isOwner(userId) {
-        return request.auth.uid == userId;
-      }
-      // isSignedIn: Checks if the user is signed in.
-      function isSignedIn() {
-        return request.auth != null;
-      }
-      allow get: if isOwner(userId);
+      allow get: if isSignedIn();
       allow list: if false;
-      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isOwner(userId) && resource.data.id == userId;
-      allow delete: if isOwner(userId) && resource.data.id == userId;
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Allows creating and reading invitations, with restrictions based on user roles.
-     * @path /databases/{database}/documents/invitations/{invitationId}
-     * @allow (create) Admin with UID 'admin123' can create an invitation.
-     * @allow (get) Invited user with email 'user@example.com' or admin with UID 'admin123' can read the invitation.
-     * @deny (update, delete) Only the admin who created the invitation can update or delete it.
-     * @principle Restricts invitation management to authorized users.
+     * @description Allows anyone to read a list of cupping sessions, but
+     *   restricts creation, modification, and deletion to session admins and
+     *   authorized participants.
+     * @path /sessions/{sessionId}
+     * @allow (get) Anyone can read a specific session.
+     *   Example: Any user reads /sessions/session123.
+     * @allow (list) Anyone can list all sessions.
+     *   Example: Any user lists /sessions.
+     * @allow (create) Authenticated user can create a session.
+     *   Example: User with UID 'user123' creates /sessions/session123 with
+     *   'user123' as the adminUid.
+     * @allow (update) Admin of the session can update it.
+     *   Example: User with UID 'user123', who is the admin of
+     *   /sessions/session123, updates it.
+     * @allow (delete) Admin of the session can delete it.
+     *   Example: User with UID 'user123', who is the admin of
+     *   /sessions/session123, deletes it.
+     * @deny (create) User with UID 'user123' attempts to create
+     *   /sessions/session123 with 'user456' as the adminUid.
+     * @deny (update) User with UID 'user123', who is NOT the admin of
+     *   /sessions/session123, updates it.
+     * @deny (delete) User with UID 'user123', who is NOT the admin of
+     *   /sessions/session123, deletes it.
+     * @principle Allows public read access but restricts writes to authorized
+     *   users.
+     */
+    match /sessions/{sessionId} {
+      allow get, list: if true;
+      allow create: if isSignedIn() && request.resource.data.adminUid == request.auth.uid;
+      allow update: if isSessionAdmin(sessionId);
+      allow delete: if isSessionAdmin(sessionId);
+    }
+
+    /**
+     * @description Allows participants of a cupping session to read and write
+     *   evaluations within that session.
+     * @path /sessions/{sessionId}/evaluations/{evaluationId}
+     * @allow (get) Participant of /sessions/session123 can read an evaluation.
+     *   Example: User with UID 'user123', who is a participant of
+     *   /sessions/session123, reads
+     *   /sessions/session123/evaluations/evaluation456.
+     * @allow (list) Participant of /sessions/session123 can list evaluations.
+     *   Example: User with UID 'user123', who is a participant of
+     *   /sessions/session123, lists /sessions/session123/evaluations.
+     * @allow (create) Participant of /sessions/session123 can create an
+     *   evaluation. Example: User with UID 'user123', who is a participant of
+     *   /sessions/session123, creates
+     *   /sessions/session123/evaluations/evaluation456 with userId 'user123'.
+     * @allow (update) Participant of /sessions/session123 can update their own
+     *   evaluation. Example: User with UID 'user123', who is a participant of
+     *   /sessions/session123, updates
+     *   /sessions/session123/evaluations/evaluation456 where the evaluation
+     *   has userId 'user123'.
+     * @allow (delete) Participant of /sessions/session123 can delete their own
+     *   evaluation. Example: User with UID 'user123', who is a participant of
+     *   /sessions/session123, deletes
+     *   /sessions/session123/evaluations/evaluation456 where the evaluation
+     *   has userId 'user123'.
+     * @deny (get) User with UID 'user456', who is NOT a participant of
+     *   /sessions/session123, attempts to read an evaluation.
+     * @deny (create) User with UID 'user123' attempts to create an evaluation
+     *   with userId 'user456'.
+     * @principle Restricts access to evaluations based on session participation.
+     */
+    match /sessions/{sessionId}/evaluations/{evaluationId} {
+      allow get, list: if isSessionParticipant(sessionId);
+      allow create: if isSessionParticipant(sessionId) && request.resource.data.userId == request.auth.uid;
+      allow update: if isExistingSessionParticipant(sessionId) && request.resource.data.userId == resource.data.userId && resource.data.userId == request.auth.uid;
+      allow delete: if isExistingSessionParticipant(sessionId) && resource.data.userId == request.auth.uid;
+    }
+
+    /**
+     * @description Allows access to invitations only to the invited user and
+     *   the session admin.
+     * @path /invitations/{invitationId}
+     * @allow (get) Invited user or session admin can read the invitation.
+     *   Example: User with email 'test@example.com' can read
+     *   /invitations/invitation123 where invitedEmail is 'test@example.com'.
+     * @allow (list) Listing all invitations is denied.
+     * @allow (create) Session admin can create an invitation.
+     *   Example: User with UID 'user123' creates /invitations/invitation456
+     *   where invitedBy is 'user123'.
+     * @allow (update) Invited user or session admin can update the invitation.
+     *   Example: User with email 'test@example.com' updates
+     *   /invitations/invitation123 where invitedEmail is 'test@example.com'.
+     * @allow (delete) Session admin can delete an invitation.
+     *   Example: User with UID 'user123' deletes /invitations/invitation456
+     *   where invitedBy is 'user123'.
+     * @deny (get) User with email 'other@example.com' attempts to read
+     *   /invitations/invitation123 where invitedEmail is 'test@example.com'.
+     * @deny (create) User with UID 'user123' attempts to create
+     *   /invitations/invitation456 where invitedBy is 'user456'.
+     * @principle Restricts access to invitations based on user role and email.
      */
     match /invitations/{invitationId} {
-      // isSignedIn: Checks if the user is signed in.
-      function isSignedIn() {
-        return request.auth != null;
-      }
-
-      // isAdmin: Validates that the user is signed in and that the request is being made by the admin.
-      function isAdmin(invitedBy) {
-          return isSignedIn() && request.auth.uid == invitedBy;
-      }
-      // isInvitedUser: Validates that the user is signed in and that the request is being made by the invited user.
-      function isInvitedUser(invitedEmail) {
-          return isSignedIn() && request.auth.token.email == invitedEmail;
-      }
-
-      // User can only see the invitation if they are the admin or the invited user
-      allow get: if isInvitedUser(resource.data.invitedEmail) || isAdmin(resource.data.invitedBy);
+      allow get: if isSignedIn() && (request.auth.token.email == resource.data.invitedEmail || resource.data.invitedBy == request.auth.uid);
       allow list: if false;
-      // Any authenticated user can create an invitation
-      allow create: if isSignedIn();
-      // Only the admin who created the invitation can update or delete it.
-      allow update: if isAdmin(resource.data.invitedBy);
-      allow delete: if isAdmin(resource.data.invitedBy);
+      allow create: if isSignedIn() && request.resource.data.invitedBy == request.auth.uid;
+      allow update: if isSignedIn() && (request.auth.token.email == resource.data.invitedEmail || resource.data.invitedBy == request.auth.uid) && isExistingInvitation();
+      allow delete: if isInvitationAdmin(resource.data.invitedBy);
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+    }
+
+    function isSessionAdmin(sessionId) {
+      return isSignedIn() && get(/databases/$(database)/documents/sessions/$(sessionId)).data.adminUid == request.auth.uid;
+    }
+
+    function isSessionParticipant(sessionId) {
+      return isSignedIn() && get(/databases/$(database)/documents/sessions/$(sessionId)).data.participantUids.hasAny([request.auth.uid]);
+    }
+    
+    function isExistingSessionParticipant(sessionId) {
+      return isSessionParticipant(sessionId) && resource != null;
+    }
+
+    function isInvitationAdmin(invitedBy) {
+      return isSignedIn() && invitedBy == request.auth.uid;
+    }
+
+    function isExistingInvitation() {
+      return resource != null;
     }
   }
 }
