@@ -20,7 +20,8 @@ interface ScoresRadarChartProps {
         warm: Partial<ScoreSet>;
         cold: Partial<ScoreSet>;
       }
-    | null;
+    | null
+    | undefined;
 }
 
 const chartConfig = {
@@ -45,7 +46,8 @@ const chartConfig = {
 const ATTRIBUTES_TO_SHOW = ['flavor', 'aftertaste', 'acidity', 'body', 'balance'];
 
 export function ScoresRadarChart({ scores }: ScoresRadarChartProps) {
-  const isMultiSeries = scores && 'hot' in scores && 'warm' in scores && 'cold' in scores;
+  
+  const isMultiSeries = useMemo(() => scores && 'hot' in scores && 'warm' in scores && 'cold' in scores && scores.hot && scores.warm && scores.cold, [scores]);
 
   const chartData = useMemo(() => {
     if (!scores) {
@@ -59,6 +61,7 @@ export function ScoresRadarChart({ scores }: ScoresRadarChartProps) {
         cold: Partial<ScoreSet>;
       };
       
+      // This check is now more robust thanks to the isMultiSeries memo
       if (!multiScores.hot || !multiScores.warm || !multiScores.cold) {
         return [];
       }
