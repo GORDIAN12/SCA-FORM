@@ -260,7 +260,7 @@ export function DashboardLayout() {
                 </div>
               </>
             )}
-            {sessions.map((session) => (
+            {sessions && sessions.map((session) => (
               <SidebarMenuItem key={session.id} className="relative group">
                 <SidebarMenuButton
                   onClick={() => handleSelectSession(session.id)}
