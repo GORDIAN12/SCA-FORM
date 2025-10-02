@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import jsPDF from 'jspdf';
 import {
   SidebarProvider,
@@ -18,7 +18,14 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import type { Evaluation, ScoreSet } from '@/lib/types';
 import { SessionView } from './session-view';
 import { CuppingCompassLogo } from '../cupping-compass-logo';
-import { Coffee, PlusCircle, Settings, FileDown, LogOut } from 'lucide-react';
+import {
+  Coffee,
+  PlusCircle,
+  Settings,
+  FileDown,
+  LogOut,
+  Trash2,
+} from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import {
@@ -39,8 +46,23 @@ import {
 } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Button } from '../ui/button';
-import { useAuth, useUser } from '@/firebase';
+import {
+  useAuth,
+  useUser,
+  useFirestore,
+  useCollection,
+  useMemoFirebase,
+  addDocumentNonBlocking,
+  deleteDocumentNonBlocking,
+} from '@/firebase';
 import { signOut } from 'firebase/auth';
+import {
+  collection,
+  query,
+  orderBy,
+  doc,
+  serverTimestamp,
+} from 'firebase/firestore';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -49,6 +71,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 const roastLevelColors = {
   light: 'bg-[#966F33]',
@@ -60,7 +93,24 @@ const roastLevelColors = {
 export function DashboardLayout() {
   const auth = useAuth();
   const { user } = useUser();
-  const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
+  const firestore = useFirestore();
+
+  const evaluationsCollectionRef = useMemoFirebase(
+    () =>
+      user ? collection(firestore, 'users', user.uid, 'evaluations') : null,
+    [firestore, user]
+  );
+  const evaluationsQuery = useMemoFirebase(
+    () =>
+      evaluationsCollectionRef
+        ? query(evaluationsCollectionRef, orderBy('createdAt', 'desc'))
+        : null,
+    [evaluationsCollectionRef]
+  );
+
+  const { data: evaluations = [], isLoading: isLoadingEvaluations } =
+    useCollection<Evaluation>(evaluationsQuery);
+
   const [selectedEvaluation, setSelectedEvaluation] = useState<
     Evaluation | 'new'
   >('new');
@@ -74,10 +124,13 @@ export function DashboardLayout() {
     root.classList.add(theme);
   }, [theme]);
 
-  const handleAddEvaluation = (evaluation: Evaluation) => {
+  const handleAddEvaluation = (evaluationData: Omit<Evaluation, 'id'>) => {
+    if (!evaluationsCollectionRef) return;
     if (
       evaluations.some(
-        (e) => e.coffeeName.toLowerCase() === evaluation.coffeeName.toLowerCase()
+        (e) =>
+          e.coffeeName.toLowerCase() ===
+          evaluationData.coffeeName.toLowerCase()
       )
     ) {
       toast({
@@ -89,10 +142,53 @@ export function DashboardLayout() {
       return;
     }
 
-    const newEvaluations = [...evaluations, evaluation];
-    setEvaluations(newEvaluations);
-    setSelectedEvaluation(evaluation);
-    setKey(Date.now());
+    const newEvaluation = {
+      ...evaluationData,
+      createdAt: serverTimestamp(),
+    };
+
+    addDocumentNonBlocking(evaluationsCollectionRef, newEvaluation)
+      .then((docRef) => {
+        toast({
+          title: 'Evaluation Saved',
+          description: 'Your coffee evaluation has been saved to the cloud.',
+        });
+        // We don't need to manually select it, the collection listener will update the UI
+        // and the user can select it from the list.
+        handleNewEvaluation();
+      })
+      .catch((error) => {
+        console.error('Error adding document: ', error);
+        toast({
+          title: 'Error Saving',
+          description:
+            'There was an issue saving your evaluation. Please try again.',
+          variant: 'destructive',
+        });
+      });
+  };
+
+  const handleDeleteEvaluation = (evaluationId: string) => {
+    if (!user) return;
+    const docRef = doc(
+      firestore,
+      'users',
+      user.uid,
+      'evaluations',
+      evaluationId
+    );
+    deleteDocumentNonBlocking(docRef);
+    toast({
+      title: 'Evaluation Deleted',
+      description: 'The evaluation has been removed.',
+    });
+    // If the deleted one was selected, go back to new evaluation screen
+    if (
+      selectedEvaluation !== 'new' &&
+      selectedEvaluation.id === evaluationId
+    ) {
+      handleNewEvaluation();
+    }
   };
 
   const handleSelectEvaluation = (evaluation: Evaluation) => {
@@ -103,6 +199,23 @@ export function DashboardLayout() {
   const handleNewEvaluation = () => {
     setSelectedEvaluation('new');
     setKey(Date.now());
+  };
+
+  const drawScore = (
+    doc: jsPDF,
+    label: string,
+    score: number,
+    x: number,
+    lineY: number
+  ) => {
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(label, x, lineY, {
+      baseline: 'middle',
+    });
+    doc.text(score.toFixed(2), x + 40, lineY, {
+      baseline: 'middle',
+    });
   };
 
   const handleExportToPdf = async (evaluation: Evaluation) => {
@@ -144,22 +257,6 @@ export function DashboardLayout() {
       doc.line(margin, y, pageWidth - margin, y);
       y += 10;
 
-      const drawScore = (
-        label: string,
-        score: number,
-        x: number,
-        lineY: number
-      ) => {
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'normal');
-        doc.text(label, x, lineY, {
-          baseline: 'middle',
-        });
-        doc.text(score.toFixed(2), x + 40, lineY, {
-          baseline: 'middle',
-        });
-      };
-
       // --- Loop through cups and temperatures ---
       for (let cupIndex = 0; cupIndex < evaluation.cups.length; cupIndex++) {
         const cup = evaluation.cups[cupIndex];
@@ -178,7 +275,7 @@ export function DashboardLayout() {
         y += 8;
 
         // Draw Aroma score for the cup
-        drawScore('Aroma:', cup.aroma, margin + 5, y);
+        drawScore(doc, 'Aroma:', cup.aroma, margin + 5, y);
         y += 10;
 
         for (const temp of ['hot', 'warm', 'cold'] as const) {
@@ -200,6 +297,7 @@ export function DashboardLayout() {
           scoreKeys.forEach((key) => {
             if (typeof scores[key] === 'number') {
               drawScore(
+                doc,
                 `${capitalize(key)}:`,
                 scores[key] as number,
                 margin + 10,
@@ -287,7 +385,7 @@ export function DashboardLayout() {
                     children: evaluation.coffeeName,
                     className: 'w-48 text-center',
                   }}
-                  className="w-full pr-8"
+                  className="w-full pr-14"
                 >
                   <div className="flex items-center gap-2 truncate">
                     <Coffee />
@@ -300,16 +398,58 @@ export function DashboardLayout() {
                     <span className="truncate">{evaluation.coffeeName}</span>
                   </div>
                 </SidebarMenuButton>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleExportToPdf(evaluation);
-                  }}
-                  className="absolute right-1 top-1.5 p-1 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:text-foreground"
-                  aria-label={`Export ${evaluation.coffeeName} to PDF`}
-                >
-                  <FileDown className="size-4 shrink-0" />
-                </button>
+
+                <div className="absolute right-1 top-1.5 flex items-center">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleExportToPdf(evaluation);
+                    }}
+                    className="p-1 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:text-foreground"
+                    aria-label={`Export ${evaluation.coffeeName} to PDF`}
+                  >
+                    <FileDown className="size-4 shrink-0" />
+                  </button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <button
+                        onClick={(e) => e.stopPropagation()}
+                        className="p-1 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:text-destructive"
+                        aria-label={`Delete ${evaluation.coffeeName}`}
+                      >
+                        <Trash2 className="size-4 shrink-0" />
+                      </button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This action cannot be undone. This will permanently
+                          delete the evaluation for &quot;
+                          {evaluation.coffeeName}&quot;.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteEvaluation(evaluation.id);
+                          }}
+                          className={cn(
+                            'bg-destructive text-destructive-foreground hover:bg-destructive/90'
+                          )}
+                        >
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
               </SidebarMenuItem>
             ))}
           </SidebarMenu>

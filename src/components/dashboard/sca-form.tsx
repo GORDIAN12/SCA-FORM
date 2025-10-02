@@ -91,7 +91,7 @@ export type ScoreSetFormValues = z.infer<typeof scoreSetSchema>;
 
 interface ScaFormProps {
   initialData?: Evaluation | null;
-  onSubmit: (data: Evaluation) => void;
+  onSubmit: (data: Omit<Evaluation, 'id' | 'createdAt'>) => void;
   onValuesChange?: (data: ScaFormValues) => void;
   onActiveCupChange?: (cupId: string, cupData: CupFormValues | null) => void;
 }
@@ -290,14 +290,14 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
     }, [watchedValues.cups]);
 
     function handleSubmit(values: ScaFormValues) {
-      const evaluationData: Omit<Evaluation, 'id'> = {
+      const evaluationData: Omit<Evaluation, 'id' | 'createdAt'> = {
         coffeeName: values.coffeeName,
         roastLevel: values.roastLevel,
         cups: values.cups,
         overallScore: parseFloat(overallScore.toFixed(2)),
       };
 
-      onSubmit({ ...evaluationData, id: `eval-${Date.now()}` });
+      onSubmit(evaluationData);
     }
 
     const capitalize = (s: string) =>

@@ -31,6 +31,48 @@
         "name",
         "createdAt"
       ]
+    },
+    "Evaluation": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Evaluation",
+      "type": "object",
+      "description": "Represents a single SCA coffee cupping evaluation session for a specific coffee.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the evaluation."
+        },
+        "coffeeName": {
+          "type": "string",
+          "description": "The name of the coffee being evaluated."
+        },
+        "roastLevel": {
+          "type": "string",
+          "enum": [
+            "light",
+            "medium",
+            "medium-dark",
+            "dark"
+          ],
+          "description": "The roast level of the coffee."
+        },
+        "overallScore": {
+          "type": "number",
+          "description": "The final, averaged score for the coffee evaluation."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp indicating when the evaluation was created."
+        }
+      },
+      "required": [
+        "id",
+        "coffeeName",
+        "roastLevel",
+        "overallScore",
+        "createdAt"
+      ]
     }
   },
   "auth": {
@@ -56,8 +98,27 @@
             }
           ]
         }
+      },
+      {
+        "path": "/users/{userId}/evaluations/{evaluationId}",
+        "definition": {
+          "entityName": "Evaluation",
+          "schema": {
+            "$ref": "#/backend/entities/Evaluation"
+          },
+          "description": "Stores the coffee cupping evaluations for a specific user. Path-based ownership ensures a user can only access their own evaluations.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The UID of the user who owns this evaluation."
+            },
+            {
+              "name": "evaluationId",
+              "description": "The unique ID for the coffee evaluation."
+            }
+          ]
+        }
       }
-    ],
-    "reasoning": "This Firestore data structure focuses on storing user data. Since the authentication providers are password and anonymous, the primary concern is managing user profiles. We leverage path-based ownership for user data, which provides a simple and secure way to manage access control. This approach directly corresponds to the application's need to associate uploaded SCA data, reports, and sessions with specific users.\n\n**Authorization Independence:** The structure inherently provides Authorization Independence, as user-specific data is located under the `/users/{userId}` path, which uses `request.auth.uid` to establish access control. There is no reliance on `get()` calls to parent documents for authorization.\n\n**QAPs:**  This structure directly supports secure `list` operations for user data. Rules can easily filter based on `request.auth.uid == userId` to allow a user to list only their own data. Because the application does not contain roles or shared objects, there are no additional security contexts required."
+    ]
   }
 }

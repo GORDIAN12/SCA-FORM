@@ -14,7 +14,7 @@ import { Button } from '../ui/button';
 
 interface SessionViewProps {
   evaluation: Evaluation | null;
-  onAddEvaluation: (evaluation: Evaluation) => void;
+  onAddEvaluation: (evaluation: Omit<Evaluation, 'id' | 'createdAt'>) => void;
 }
 
 export function SessionView({
@@ -34,7 +34,7 @@ export function SessionView({
     // The form component itself will handle this via its props
   }, [evaluation]);
 
-  const handleFormSubmit = (data: Evaluation) => {
+  const handleFormSubmit = (data: Omit<Evaluation, 'id' | 'createdAt'>) => {
     onAddEvaluation(data);
   };
 

@@ -1,3 +1,5 @@
+import { Timestamp } from 'firebase/firestore';
+
 export interface ScoreSet {
   flavor: number;
   aftertaste: number;
@@ -40,4 +42,5 @@ export interface Evaluation {
   roastLevel: 'light' | 'medium' | 'medium-dark' | 'dark';
   cups: CupEvaluation[];
   overallScore: number;
+  createdAt: Timestamp;
 }
