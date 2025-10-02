@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
 import { CuppingCompassLogo } from '@/components/cupping-compass-logo';
-import { ScoresOverview } from '@/components/dashboard/scores-overview';
 import { useMemo } from 'react';
 
 export default function EvaluationPage() {
@@ -88,7 +87,6 @@ export default function EvaluationPage() {
       </header>
       <main className="p-4 sm:p-6 lg:p-8">
         <div className="mx-auto max-w-4xl space-y-6">
-          <ScoresOverview evaluation={evaluation} />
           <ScaForm initialData={evaluation} onSubmit={() => {}} />
         </div>
       </main>
