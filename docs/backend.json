@@ -31,94 +31,12 @@
         "name",
         "createdAt"
       ]
-    },
-    "Evaluation": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Evaluation",
-      "type": "object",
-      "description": "Represents a single SCA coffee cupping evaluation session for a specific coffee.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the evaluation."
-        },
-        "coffeeName": {
-          "type": "string",
-          "description": "The name of the coffee being evaluated."
-        },
-        "roastLevel": {
-          "type": "string",
-          "enum": [
-            "light",
-            "medium",
-            "medium-dark",
-            "dark"
-          ],
-          "description": "The roast level of the coffee."
-        },
-        "overallScore": {
-          "type": "number",
-          "description": "The final, averaged score for the coffee evaluation."
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "date-time",
-          "description": "Timestamp indicating when the evaluation was created."
-        }
-      },
-      "required": [
-        "id",
-        "coffeeName",
-        "roastLevel",
-        "overallScore",
-        "createdAt"
-      ]
     }
   },
   "auth": {
     "providers": [
       "password",
       "anonymous"
-    ]
-  },
-  "firestore": {
-    "structure": [
-      {
-        "path": "/users/{userId}",
-        "definition": {
-          "entityName": "User",
-          "schema": {
-            "$ref": "#/backend/entities/User"
-          },
-          "description": "Stores user profile information. Uses path-based ownership for security: only the user with the matching `userId` can access this document.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user, matching the Firebase Auth UID."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/users/{userId}/evaluations/{evaluationId}",
-        "definition": {
-          "entityName": "Evaluation",
-          "schema": {
-            "$ref": "#/backend/entities/Evaluation"
-          },
-          "description": "Stores the coffee cupping evaluations for a specific user. Path-based ownership ensures a user can only access their own evaluations.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The UID of the user who owns this evaluation."
-            },
-            {
-              "name": "evaluationId",
-              "description": "The unique ID for the coffee evaluation."
-            }
-          ]
-        }
-      }
     ]
   }
 }

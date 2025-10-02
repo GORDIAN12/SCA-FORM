@@ -3,15 +3,7 @@
 import { firebaseConfig } from '@/firebase/config';
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import {
-  getFirestore,
-  addDoc,
-  setDoc,
-  deleteDoc,
-  updateDoc,
-} from 'firebase/firestore';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
+import { getFirestore } from 'firebase/firestore';
 
 // IMPORTANT: DO NOT MODIFY THIS FUNCTION
 export function initializeFirebase() {
@@ -50,57 +42,6 @@ export function getSdks(firebaseApp: FirebaseApp) {
     auth: getAuth(firebaseApp),
     firestore: firestore,
   };
-}
-
-export function setDocumentNonBlocking(docRef: any, data: any, options: any) {
-  setDoc(docRef, data, options).catch((error) => {
-    errorEmitter.emit(
-      'permission-error',
-      new FirestorePermissionError({
-        path: docRef.path,
-        operation: 'write',
-        requestResourceData: data,
-      })
-    );
-  });
-}
-
-export function addDocumentNonBlocking(colRef: any, data: any) {
-  return addDoc(colRef, data).catch((error) => {
-    errorEmitter.emit(
-      'permission-error',
-      new FirestorePermissionError({
-        path: colRef.path,
-        operation: 'create',
-        requestResourceData: data,
-      })
-    );
-  });
-}
-
-export function updateDocumentNonBlocking(docRef: any, data: any) {
-  updateDoc(docRef, data).catch((error) => {
-    errorEmitter.emit(
-      'permission-error',
-      new FirestorePermissionError({
-        path: docRef.path,
-        operation: 'update',
-        requestResourceData: data,
-      })
-    );
-  });
-}
-
-export function deleteDocumentNonBlocking(docRef: any) {
-  deleteDoc(docRef).catch((error) => {
-    errorEmitter.emit(
-      'permission-error',
-      new FirestorePermissionError({
-        path: docRef.path,
-        operation: 'delete',
-      })
-    );
-  });
 }
 
 export * from './provider';

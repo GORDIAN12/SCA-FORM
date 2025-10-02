@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import jsPDF from 'jspdf';
 import {
   SidebarProvider,
@@ -46,23 +46,8 @@ import {
 } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Button } from '../ui/button';
-import {
-  useAuth,
-  useUser,
-  useFirestore,
-  useCollection,
-  useMemoFirebase,
-  addDocumentNonBlocking,
-  deleteDocumentNonBlocking,
-} from '@/firebase';
+import { useAuth, useUser } from '@/firebase';
 import { signOut } from 'firebase/auth';
-import {
-  collection,
-  query,
-  orderBy,
-  doc,
-  serverTimestamp,
-} from 'firebase/firestore';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -93,24 +78,7 @@ const roastLevelColors = {
 export function DashboardLayout() {
   const auth = useAuth();
   const { user } = useUser();
-  const firestore = useFirestore();
-
-  const evaluationsCollectionRef = useMemoFirebase(
-    () =>
-      user ? collection(firestore, 'users', user.uid, 'evaluations') : null,
-    [firestore, user]
-  );
-  const evaluationsQuery = useMemoFirebase(
-    () =>
-      evaluationsCollectionRef
-        ? query(evaluationsCollectionRef, orderBy('createdAt', 'desc'))
-        : null,
-    [evaluationsCollectionRef]
-  );
-
-  const { data: evaluations = [], isLoading: isLoadingEvaluations } =
-    useCollection<Evaluation>(evaluationsQuery);
-
+  const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
   const [selectedEvaluation, setSelectedEvaluation] = useState<
     Evaluation | 'new'
   >('new');
@@ -124,8 +92,9 @@ export function DashboardLayout() {
     root.classList.add(theme);
   }, [theme]);
 
-  const handleAddEvaluation = (evaluationData: Omit<Evaluation, 'id'>) => {
-    if (!evaluationsCollectionRef) return;
+  const handleAddEvaluation = (
+    evaluationData: Omit<Evaluation, 'id' | 'createdAt'>
+  ) => {
     if (
       evaluations.some(
         (e) =>
@@ -142,42 +111,24 @@ export function DashboardLayout() {
       return;
     }
 
-    const newEvaluation = {
+    const newEvaluation: Evaluation = {
       ...evaluationData,
-      createdAt: serverTimestamp(),
+      id: `eval-${Date.now()}`,
+      createdAt: new Date().toISOString(),
     };
 
-    addDocumentNonBlocking(evaluationsCollectionRef, newEvaluation)
-      .then((docRef) => {
-        toast({
-          title: 'Evaluation Saved',
-          description: 'Your coffee evaluation has been saved to the cloud.',
-        });
-        // We don't need to manually select it, the collection listener will update the UI
-        // and the user can select it from the list.
-        handleNewEvaluation();
-      })
-      .catch((error) => {
-        console.error('Error adding document: ', error);
-        toast({
-          title: 'Error Saving',
-          description:
-            'There was an issue saving your evaluation. Please try again.',
-          variant: 'destructive',
-        });
-      });
+    setEvaluations((prev) => [newEvaluation, ...prev]);
+    toast({
+      title: 'Evaluation Saved',
+      description: 'Your coffee evaluation has been saved locally.',
+    });
+    handleNewEvaluation();
   };
 
   const handleDeleteEvaluation = (evaluationId: string) => {
-    if (!user) return;
-    const docRef = doc(
-      firestore,
-      'users',
-      user.uid,
-      'evaluations',
-      evaluationId
+    setEvaluations((prev) =>
+      prev.filter((evaluation) => evaluation.id !== evaluationId)
     );
-    deleteDocumentNonBlocking(docRef);
     toast({
       title: 'Evaluation Deleted',
       description: 'The evaluation has been removed.',
