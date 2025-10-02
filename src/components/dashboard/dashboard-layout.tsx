@@ -18,7 +18,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import type { Evaluation, ScoreSet } from '@/lib/types';
 import { SessionView } from './session-view';
 import { CuppingCompassLogo } from '../cupping-compass-logo';
-import { Coffee, PlusCircle, Settings, FileDown } from 'lucide-react';
+import { Coffee, PlusCircle, Settings, FileDown, LogOut } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import {
@@ -39,6 +39,16 @@ import {
 } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Button } from '../ui/button';
+import { useAuth, useUser } from '@/firebase';
+import { signOut } from 'firebase/auth';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 const roastLevelColors = {
   light: 'bg-[#966F33]',
@@ -48,6 +58,8 @@ const roastLevelColors = {
 };
 
 export function DashboardLayout() {
+  const auth = useAuth();
+  const { user } = useUser();
   const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
   const [selectedEvaluation, setSelectedEvaluation] = useState<
     Evaluation | 'new'
@@ -99,7 +111,6 @@ export function DashboardLayout() {
       const pageHeight = doc.internal.pageSize.height;
       const pageWidth = doc.internal.pageSize.width;
       const margin = 15;
-      const contentWidth = pageWidth - margin * 2;
       let y = margin;
 
       const checkPageBreak = (neededHeight: number) => {
@@ -133,7 +144,6 @@ export function DashboardLayout() {
       doc.line(margin, y, pageWidth - margin, y);
       y += 10;
 
-      // --- Draw Score ---
       const drawScore = (
         label: string,
         score: number,
@@ -216,6 +226,20 @@ export function DashboardLayout() {
       toast({
         title: 'Error exporting PDF',
         description: 'An unexpected error occurred during PDF generation.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
+      // The redirect is handled by the page component
+    } catch (error) {
+      console.error('Error signing out:', error);
+      toast({
+        title: 'Error Signing Out',
+        description: 'Could not sign out. Please try again.',
         variant: 'destructive',
       });
     }
@@ -348,16 +372,41 @@ export function DashboardLayout() {
               </Dialog>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton
-                className="justify-start"
-                tooltip={{ children: 'User Profile' }}
-              >
-                <Avatar className="size-6">
-                  <AvatarImage src="https://picsum.photos/100" />
-                  <AvatarFallback>U</AvatarFallback>
-                </Avatar>
-                <span>User Profile</span>
-              </SidebarMenuButton>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <SidebarMenuButton
+                    className="justify-start"
+                    tooltip={{ children: 'User Profile' }}
+                  >
+                    <Avatar className="size-6">
+                      <AvatarImage
+                        src={user?.photoURL ?? 'https://picsum.photos/100'}
+                      />
+                      <AvatarFallback>
+                        {user?.email?.[0].toUpperCase() ?? 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span>User Profile</span>
+                  </SidebarMenuButton>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">
+                        {user?.displayName ?? 'User'}
+                      </p>
+                      <p className="text-xs leading-none text-muted-foreground">
+                        {user?.email}
+                      </p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarFooter>
