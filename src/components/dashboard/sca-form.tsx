@@ -41,7 +41,7 @@ const intensitySchema = z.enum(['low', 'medium', 'high'], {
 const aromaCategorySchema = z.enum([
   'Floral',
   'Frutal',
- 'Especiado',
+  'Especiado',
   'Nueces/Cacao',
   'Caramelizado',
   'Herbal',
@@ -179,7 +179,7 @@ const ScoreSlider = ({
 const aromaCategories = [
   'Floral',
   'Frutal',
- 'Especiado',
+  'Especiado',
   'Nueces/Cacao',
   'Caramelizado',
   'Herbal',
