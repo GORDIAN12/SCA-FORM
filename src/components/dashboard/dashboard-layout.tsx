@@ -82,7 +82,6 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { useMemoFirebase } from '@/firebase/provider';
-import { InvitationsView } from './invitations-view';
 
 export function DashboardLayout() {
   const auth = useAuth();
@@ -108,7 +107,7 @@ export function DashboardLayout() {
       where('participantUids', 'array-contains', user.uid)
     );
   }, [firestore, user?.uid]);
-  const { data: sessions = [], isLoading: isLoadingSessions } =
+  const { data: sessions, isLoading: isLoadingSessions } =
     useCollection<CuppingSession>(sessionsQuery);
 
   const selectedSession = useMemo(
@@ -329,9 +328,6 @@ export function DashboardLayout() {
               </SidebarMenuItem>
             ))}
           </SidebarMenu>
-          <div className="mt-4">
-            <InvitationsView />
-          </div>
         </SidebarContent>
         <SidebarFooter>
           <SidebarMenu>
