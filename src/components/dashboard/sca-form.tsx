@@ -415,7 +415,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                 className="w-full"
                 onValueChange={setActiveCupTab}
               >
-                <TabsList className="grid w-full grid-cols-5">
+                <TabsList className="grid w-full grid-cols-5" disabled={isReadOnly}>
                   {fields.map((field, index) => (
                     <TabsTrigger key={field.id} value={`cup-${index + 1}`}>
                       Cup {index + 1}
@@ -680,7 +680,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                             </div>
 
                             <Tabs defaultValue="hot" className="w-full">
-                              <TabsList className="grid w-full grid-cols-3">
+                              <TabsList className="grid w-full grid-cols-3" disabled={isReadOnly}>
                                 <TabsTrigger value="hot">Hot</TabsTrigger>
                                 <TabsTrigger value="warm">Warm</TabsTrigger>
                                 <TabsTrigger value="cold">Cold</TabsTrigger>
@@ -940,27 +940,25 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                   );
                 })}
               </Tabs>
-               {isReadOnly && (
-                 <Card>
-                     <CardContent className="pt-6">
-                         <Tabs 
-                             defaultValue="hot" 
-                             className="w-full" 
-                             onValueChange={(value) => setActiveTempTab(value as 'hot' | 'warm' | 'cold')}
-                         >
-                             <TabsList className="grid w-full grid-cols-3">
-                                 <TabsTrigger value="hot">Hot</TabsTrigger>
-                                 <TabsTrigger value="warm">Warm</TabsTrigger>
-                                 <TabsTrigger value="cold">Cold</TabsTrigger>
-                             </TabsList>
-                         </Tabs>
-                         <h3 className="text-center text-xl font-semibold my-4">Flavor Profile</h3>
-                         <div className="h-80">
-                             {flavorProfileData && <FlavorProfileChart scores={flavorProfileData} />}
-                         </div>
-                     </CardContent>
-                 </Card>
-               )}
+              <Card>
+                  <CardContent className="pt-6">
+                      <Tabs 
+                          defaultValue="hot" 
+                          className="w-full" 
+                          onValueChange={(value) => setActiveTempTab(value as 'hot' | 'warm' | 'cold')}
+                      >
+                          <TabsList className="grid w-full grid-cols-3">
+                              <TabsTrigger value="hot">Hot</TabsTrigger>
+                              <TabsTrigger value="warm">Warm</TabsTrigger>
+                              <TabsTrigger value="cold">Cold</TabsTrigger>
+                          </TabsList>
+                      </Tabs>
+                      <h3 className="text-center text-xl font-semibold my-4">Flavor Profile</h3>
+                      <div className="h-80">
+                          {flavorProfileData && <FlavorProfileChart scores={flavorProfileData} />}
+                      </div>
+                  </CardContent>
+              </Card>
                <div className="p-6 space-y-6">
                  <Separator />
                  <div className="space-y-2">
