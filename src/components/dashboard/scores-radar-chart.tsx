@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/chart';
 import type { ScoreSet } from '@/lib/types';
 import { PolarAngleAxis, PolarGrid, Radar, RadarChart } from 'recharts';
+import { useMemo } from 'react';
 
 interface ScoresRadarChartProps {
   scores:
@@ -18,7 +19,7 @@ interface ScoresRadarChartProps {
         hot: Partial<ScoreSet>;
         warm: Partial<ScoreSet>;
         cold: Partial<ScoreSet>;
-      };
+      } | null;
 }
 
 const chartConfig = {
@@ -43,9 +44,13 @@ const chartConfig = {
 const ATTRIBUTES_TO_SHOW = ['flavor', 'aftertaste', 'acidity', 'body', 'balance'];
 
 export function ScoresRadarChart({ scores }: ScoresRadarChartProps) {
-  const isMultiSeries = 'hot' in scores && 'warm' in scores && 'cold' in scores;
+  const isMultiSeries = scores && 'hot' in scores && 'warm' in scores && 'cold' in scores;
 
   const chartData = useMemo(() => {
+    if (!scores) {
+      return [];
+    }
+    
     if (isMultiSeries) {
       const multiScores = scores as {
         hot: Partial<ScoreSet>;
@@ -124,6 +129,3 @@ export function ScoresRadarChart({ scores }: ScoresRadarChartProps) {
     </ChartContainer>
   );
 }
-
-// We need to import and use useMemo for this component
-import { useMemo } from 'react';
