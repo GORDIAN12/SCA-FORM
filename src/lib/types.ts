@@ -45,20 +45,3 @@ export interface Evaluation {
   createdAt: string | Timestamp;
   userId: string;
 }
-
-export interface CuppingSession {
-  id: string;
-  name: string;
-  createdAt: Timestamp;
-  adminUid: string;
-  participantUids: string[];
-}
-
-export interface Invitation {
-  id: string;
-  sessionId: string;
-  sessionName: string;
-  invitedEmail: string;
-  invitedBy: string; // UID
-  status: 'pending' | 'accepted' | 'rejected';
-}
