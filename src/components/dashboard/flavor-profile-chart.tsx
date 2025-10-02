@@ -50,7 +50,7 @@ export function FlavorProfileChart({ scores }: FlavorProfileChartProps) {
       config={chartConfig}
       className="mx-auto aspect-square h-full max-h-[400px]"
     >
-      <RadarChart data={chartData} domain={[6, 10]}>
+      <RadarChart data={chartData}>
         <ChartTooltip
           cursor={false}
           content={<ChartTooltipContent indicator="line" />}
