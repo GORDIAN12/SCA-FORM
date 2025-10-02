@@ -449,5 +449,3 @@ export function DashboardLayout() {
     </SidebarProvider>
   );
 }
-
-    
