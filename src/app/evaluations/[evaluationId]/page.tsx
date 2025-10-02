@@ -1,7 +1,7 @@
 'use client';
 
 import { useDoc, useFirestore, useUser } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { doc, DocumentReference } from 'firebase/firestore';
 import { useParams, useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScaForm } from '@/components/dashboard/sca-form';
@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
 import { CuppingCompassLogo } from '@/components/cupping-compass-logo';
 import { ScoresOverview } from '@/components/dashboard/scores-overview';
+import { useMemo } from 'react';
 
 export default function EvaluationPage() {
   const { user, isUserLoading } = useUser();
@@ -19,10 +20,16 @@ export default function EvaluationPage() {
   const params = useParams();
   const { evaluationId } = params;
 
-  const evaluationRef =
-    user && evaluationId && firestore
-      ? doc(firestore, 'users', user.uid, 'evaluations', evaluationId as string)
-      : null;
+  const evaluationRef = useMemo(() => {
+    if (!user || !evaluationId || !firestore) return null;
+    return doc(
+      firestore,
+      'users',
+      user.uid,
+      'evaluations',
+      evaluationId as string
+    ) as DocumentReference<Evaluation>;
+  }, [user, evaluationId, firestore]);
 
   const {
     data: evaluation,
