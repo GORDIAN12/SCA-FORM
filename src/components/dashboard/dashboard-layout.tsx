@@ -112,12 +112,12 @@ export function DashboardLayout() {
     useCollection<CuppingSession>(sessionsQuery);
 
   const selectedSession = useMemo(
-    () => sessions.find((s) => s.id === selectedSessionId) || null,
+    () => (sessions ? sessions.find((s) => s.id === selectedSessionId) || null : null),
     [sessions, selectedSessionId]
   );
 
   useEffect(() => {
-    if (!selectedSessionId && sessions.length > 0) {
+    if (!selectedSessionId && sessions && sessions.length > 0) {
       setSelectedSessionId(sessions[0].id);
     }
   }, [sessions, selectedSessionId]);
