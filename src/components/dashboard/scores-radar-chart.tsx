@@ -48,8 +48,6 @@ export function ScoresRadarChart({ scores }: ScoresRadarChartProps) {
   const isMultiSeries = scores && 'hot' in scores && 'warm' in scores && 'cold' in scores;
 
   const chartData = useMemo(() => {
-    // CRITICAL FIX: If scores are null or undefined at any point, return an empty array.
-    // recharts can handle an empty array, but not null/undefined.
     if (!scores) {
       return [];
     }
@@ -61,7 +59,6 @@ export function ScoresRadarChart({ scores }: ScoresRadarChartProps) {
         cold: Partial<ScoreSet>;
       };
       
-      // Ensure nested properties are not undefined
       if (!multiScores.hot || !multiScores.warm || !multiScores.cold) {
         return [];
       }
