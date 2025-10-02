@@ -90,10 +90,11 @@ export type CupFormValues = z.infer<typeof cupEvaluationSchema>;
 export type ScoreSetFormValues = z.infer<typeof scoreSetSchema>;
 
 interface ScaFormProps {
-  initialData?: Evaluation | null;
-  onSubmit: (data: Omit<Evaluation, 'id' | 'createdAt'>) => void;
+  initialData?: Omit<Evaluation, 'id' | 'createdAt' | 'userId'> | null;
+  onSubmit: (data: Omit<Evaluation, 'id' | 'createdAt' | 'userId'>) => void;
   onValuesChange?: (data: ScaFormValues) => void;
   onActiveCupChange?: (cupId: string, cupData: CupFormValues | null) => void;
+  isSubmitting?: boolean;
 }
 
 export interface ScaFormRef {
@@ -227,7 +228,7 @@ const createDefaultFormValues = (): ScaFormValues => ({
 });
 
 export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
-  ({ initialData, onSubmit, onValuesChange, onActiveCupChange }, ref) => {
+  ({ initialData, onSubmit, onValuesChange, onActiveCupChange, isSubmitting }, ref) => {
     const [activeCupTab, setActiveCupTab] = useState('cup-1');
 
     const form = useForm<ScaFormValues>({
@@ -290,7 +291,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
     }, [watchedValues.cups]);
 
     function handleSubmit(values: ScaFormValues) {
-      const evaluationData: Omit<Evaluation, 'id' | 'createdAt'> = {
+      const evaluationData: Omit<Evaluation, 'id' | 'createdAt' | 'userId'> = {
         coffeeName: values.coffeeName,
         roastLevel: values.roastLevel,
         cups: values.cups,
@@ -303,7 +304,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
     const capitalize = (s: string) =>
       s.charAt(0).toUpperCase() + s.slice(1).replace(/([A-Z])/g, ' $1');
 
-    const isReadOnly = !!initialData;
+    const isReadOnly = !!initialData || isSubmitting;
 
     return (
       <Card>
@@ -389,7 +390,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
               >
                 <TabsList className="grid w-full grid-cols-5">
                   {fields.map((field, index) => (
-                    <TabsTrigger key={field.id} value={`cup-${index + 1}`}>
+                    <TabsTrigger key={field.id} value={`cup-${index + 1}`} disabled={isReadOnly}>
                       Cup {index + 1}
                     </TabsTrigger>
                   ))}
@@ -433,7 +434,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                     const finalScore =
                       cupValues.aroma + avgScores + cupValues.cupperScore;
 
-                    const totalScore = finalScore - qualityScore;
+                    const totalScore = finalScore - baseScore;
                     return isNaN(totalScore) ? 0 : totalScore;
                   }, [cupValues]);
 
@@ -651,9 +652,9 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
 
                             <Tabs defaultValue="hot" className="w-full">
                               <TabsList className="grid w-full grid-cols-3">
-                                <TabsTrigger value="hot">Hot</TabsTrigger>
-                                <TabsTrigger value="warm">Warm</TabsTrigger>
-                                <TabsTrigger value="cold">Cold</TabsTrigger>
+                                <TabsTrigger value="hot" disabled={isReadOnly}>Hot</TabsTrigger>
+                                <TabsTrigger value="warm" disabled={isReadOnly}>Warm</TabsTrigger>
+                                <TabsTrigger value="cold" disabled={isReadOnly}>Cold</TabsTrigger>
                               </TabsList>
                               {(['hot', 'warm', 'cold'] as const).map(
                                 (temp) => (
@@ -910,15 +911,17 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                   );
                 })}
               </Tabs>
-              <div className="p-6">
-                <Separator />
-                <div className="space-y-2 mt-6">
-                  <div className="flex justify-between text-xl font-bold">
-                    <span>Overall Average Score</span>
-                    <span>{overallScore.toFixed(2)}</span>
+              {!initialData && (
+                <div className="p-6">
+                  <Separator />
+                  <div className="space-y-2 mt-6">
+                    <div className="flex justify-between text-xl font-bold">
+                      <span>Overall Average Score</span>
+                      <span>{overallScore.toFixed(2)}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
             </CardContent>
           </form>
         </Form>

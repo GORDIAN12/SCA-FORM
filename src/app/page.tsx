@@ -2,7 +2,7 @@
 
 import { useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScaForm } from '@/components/dashboard/sca-form';
 import type { Evaluation } from '@/lib/types';
@@ -11,6 +11,19 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { CuppingCompassLogo } from '@/components/cupping-compass-logo';
+import {
+  Sidebar,
+  SidebarProvider,
+  SidebarTrigger,
+  SidebarContent,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarInset,
+} from '@/components/ui/sidebar';
+import { EvaluationHistory } from '@/components/dashboard/evaluation-history';
+import { Menu } from 'lucide-react';
 
 export default function Home() {
   const { user, isUserLoading } = useUser();
@@ -18,6 +31,7 @@ export default function Home() {
   const firestore = useFirestore();
   const { toast } = useToast();
   const formRef = useRef<{ submit: () => void; reset: () => void }>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -30,6 +44,7 @@ export default function Home() {
   ) => {
     if (!user || !firestore) return;
 
+    setIsSubmitting(true);
     const newEvaluation = {
       ...evaluationData,
       userId: user.uid,
@@ -43,18 +58,21 @@ export default function Home() {
         user.uid,
         'evaluations'
       );
-      await addDoc(evaluationsCollection, newEvaluation);
+      const docRef = await addDoc(evaluationsCollection, newEvaluation);
       toast({
         title: 'Evaluation Saved',
         description: 'Your coffee evaluation has been saved.',
       });
       formRef.current?.reset();
+      router.push(`/evaluations/${docRef.id}`);
     } catch (error: any) {
       toast({
         title: 'Error Saving Evaluation',
         description: error.message,
         variant: 'destructive',
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -77,29 +95,57 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/80 px-6 backdrop-blur-sm">
-        <div className="flex items-center gap-2">
-          <CuppingCompassLogo className="size-8 text-primary" />
-          <h1 className="text-xl font-semibold">Cupping Compass</h1>
-        </div>
-        <Button onClick={async () => {
-          const { getAuth, signOut } = await import('firebase/auth');
-          const auth = getAuth();
-          await signOut(auth);
-          router.push('/login');
-        }}>Logout</Button>
-      </header>
-      <main className="p-4 sm:p-6 lg:p-8">
-        <div className="mx-auto max-w-4xl space-y-6">
-          <ScaForm ref={formRef} onSubmit={handleAddEvaluation} />
-          <div className="flex justify-center">
-            <Button onClick={handleTriggerSubmit} className="w-full md:w-1/2">
-              Save Evaluation
+    <SidebarProvider>
+      <Sidebar>
+        <SidebarContent className="p-0">
+          <SidebarHeader className="p-4">
+            <div className="flex items-center gap-2">
+              <CuppingCompassLogo className="size-8 text-primary" />
+              <h2 className="text-lg font-semibold">History</h2>
+            </div>
+          </SidebarHeader>
+          <SidebarMenu className="flex-1 px-4">
+            <EvaluationHistory userId={user.uid} />
+          </SidebarMenu>
+        </SidebarContent>
+      </Sidebar>
+      <SidebarInset>
+        <div className="min-h-screen bg-background">
+          <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/80 px-6 backdrop-blur-sm">
+            <div className="flex items-center gap-2">
+              <SidebarTrigger className="md:hidden">
+                <Menu />
+              </SidebarTrigger>
+              <CuppingCompassLogo className="size-8 text-primary hidden sm:block" />
+              <h1 className="text-xl font-semibold">Cupping Compass</h1>
+            </div>
+            <Button
+              onClick={async () => {
+                const { getAuth, signOut } = await import('firebase/auth');
+                const auth = getAuth();
+                await signOut(auth);
+                router.push('/login');
+              }}
+            >
+              Logout
             </Button>
-          </div>
+          </header>
+          <main className="p-4 sm:p-6 lg:p-8">
+            <div className="mx-auto max-w-4xl space-y-6">
+              <ScaForm ref={formRef} onSubmit={handleAddEvaluation} isSubmitting={isSubmitting} />
+              <div className="flex justify-center">
+                <Button
+                  onClick={handleTriggerSubmit}
+                  className="w-full md:w-1/2"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? 'Saving...' : 'Save Evaluation'}
+                </Button>
+              </div>
+            </div>
+          </main>
         </div>
-      </main>
-    </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
