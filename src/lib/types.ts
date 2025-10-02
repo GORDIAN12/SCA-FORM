@@ -1,3 +1,4 @@
+import type { Timestamp } from 'firebase/firestore';
 
 export interface ScoreSet {
   flavor: number;
@@ -41,5 +42,23 @@ export interface Evaluation {
   roastLevel: 'light' | 'medium' | 'medium-dark' | 'dark';
   cups: CupEvaluation[];
   overallScore: number;
-  createdAt: string;
+  createdAt: string | Timestamp;
+  userId: string;
+}
+
+export interface CuppingSession {
+  id: string;
+  name: string;
+  createdAt: Timestamp;
+  adminUid: string;
+  participantUids: string[];
+}
+
+export interface Invitation {
+  id: string;
+  sessionId: string;
+  sessionName: string;
+  invitedEmail: string;
+  invitedBy: string; // UID
+  status: 'pending' | 'accepted' | 'rejected';
 }

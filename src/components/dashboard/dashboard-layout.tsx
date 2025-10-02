@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import jsPDF from 'jspdf';
+import { useState, useEffect, useMemo } from 'react';
 import {
   SidebarProvider,
   Sidebar,
@@ -15,16 +14,18 @@ import {
   SidebarFooter,
 } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import type { Evaluation, ScoreSet } from '@/lib/types';
+import type { Evaluation, CuppingSession, Invitation } from '@/lib/types';
 import { SessionView } from './session-view';
 import { CuppingCompassLogo } from '../cupping-compass-logo';
 import {
   Coffee,
   PlusCircle,
   Settings,
-  FileDown,
   LogOut,
   Trash2,
+  Users,
+  Send,
+  Mail,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -32,6 +33,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -46,8 +48,20 @@ import {
 } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Button } from '../ui/button';
-import { useAuth, useUser } from '@/firebase';
+import { Input } from '../ui/input';
+import { useAuth, useUser, useFirestore, useCollection } from '@/firebase';
 import { signOut } from 'firebase/auth';
+import {
+  addDoc,
+  collection,
+  serverTimestamp,
+  doc,
+  deleteDoc,
+  query,
+  where,
+  updateDoc,
+  arrayUnion,
+} from 'firebase/firestore';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -67,24 +81,46 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-
-const roastLevelColors = {
-  light: 'bg-[#966F33]',
-  medium: 'bg-[#6A4C2E]',
-  'medium-dark': 'bg-[#4A3522]',
-  dark: 'bg-[#3A2418]',
-};
+import { useMemoFirebase } from '@/firebase/provider';
+import { InvitationsView } from './invitations-view';
 
 export function DashboardLayout() {
   const auth = useAuth();
   const { user } = useUser();
-  const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
-  const [selectedEvaluation, setSelectedEvaluation] = useState<
-    Evaluation | 'new'
-  >('new');
+  const firestore = useFirestore();
+
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(
+    null
+  );
+  const [isNewSessionDialogOpen, setIsNewSessionDialogOpen] = useState(false);
+  const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
+  const [newSessionName, setNewSessionName] = useState('');
+  const [inviteEmail, setInviteEmail] = useState('');
+
   const [key, setKey] = useState(Date.now());
   const [theme, setTheme] = useState('light');
   const { toast } = useToast();
+
+  const sessionsQuery = useMemoFirebase(() => {
+    if (!user?.uid) return null;
+    return query(
+      collection(firestore, 'sessions'),
+      where('participantUids', 'array-contains', user.uid)
+    );
+  }, [firestore, user?.uid]);
+  const { data: sessions = [], isLoading: isLoadingSessions } =
+    useCollection<CuppingSession>(sessionsQuery);
+
+  const selectedSession = useMemo(
+    () => sessions.find((s) => s.id === selectedSessionId) || null,
+    [sessions, selectedSessionId]
+  );
+
+  useEffect(() => {
+    if (!selectedSessionId && sessions.length > 0) {
+      setSelectedSessionId(sessions[0].id);
+    }
+  }, [sessions, selectedSessionId]);
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -92,198 +128,63 @@ export function DashboardLayout() {
     root.classList.add(theme);
   }, [theme]);
 
-  const handleAddEvaluation = (
-    evaluationData: Omit<Evaluation, 'id' | 'createdAt'>
-  ) => {
-    if (
-      evaluations.some(
-        (e) =>
-          e.coffeeName.toLowerCase() ===
-          evaluationData.coffeeName.toLowerCase()
-      )
-    ) {
-      toast({
-        title: 'Duplicate Coffee Name',
-        description:
-          'An evaluation with this coffee name already exists. Please use a different name.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    const newEvaluation: Evaluation = {
-      ...evaluationData,
-      id: `eval-${Date.now()}`,
-      createdAt: new Date().toISOString(),
-    };
-
-    setEvaluations((prev) => [newEvaluation, ...prev]);
-    toast({
-      title: 'Evaluation Saved',
-      description: 'Your coffee evaluation has been saved locally.',
-    });
-    handleNewEvaluation();
-  };
-
-  const handleDeleteEvaluation = (evaluationId: string) => {
-    setEvaluations((prev) =>
-      prev.filter((evaluation) => evaluation.id !== evaluationId)
-    );
-    toast({
-      title: 'Evaluation Deleted',
-      description: 'The evaluation has been removed.',
-    });
-    // If the deleted one was selected, go back to new evaluation screen
-    if (
-      selectedEvaluation !== 'new' &&
-      selectedEvaluation.id === evaluationId
-    ) {
-      handleNewEvaluation();
-    }
-  };
-
-  const handleSelectEvaluation = (evaluation: Evaluation) => {
-    setSelectedEvaluation(evaluation);
-    setKey(Date.now());
-  };
-
-  const handleNewEvaluation = () => {
-    setSelectedEvaluation('new');
-    setKey(Date.now());
-  };
-
-  const drawScore = (
-    doc: jsPDF,
-    label: string,
-    score: number,
-    x: number,
-    lineY: number
-  ) => {
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    doc.text(label, x, lineY, {
-      baseline: 'middle',
-    });
-    doc.text(score.toFixed(2), x + 40, lineY, {
-      baseline: 'middle',
-    });
-  };
-
-  const handleExportToPdf = async (evaluation: Evaluation) => {
+  const handleCreateSession = async () => {
+    if (!newSessionName.trim() || !user) return;
     try {
-      const doc = new jsPDF('p', 'mm', 'a4');
-      const pageHeight = doc.internal.pageSize.height;
-      const pageWidth = doc.internal.pageSize.width;
-      const margin = 15;
-      let y = margin;
-
-      const checkPageBreak = (neededHeight: number) => {
-        if (y + neededHeight > pageHeight - margin) {
-          doc.addPage();
-          y = margin;
-        }
-      };
-
-      const capitalize = (s: string) =>
-        s.charAt(0).toUpperCase() + s.slice(1);
-
-      // --- PDF Header ---
-      doc.setFontSize(22);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Cupping Compass - Evaluation Report', pageWidth / 2, y, {
-        align: 'center',
+      await addDoc(collection(firestore, 'sessions'), {
+        name: newSessionName,
+        adminUid: user.uid,
+        participantUids: [user.uid],
+        createdAt: serverTimestamp(),
       });
-      y += 10;
-      doc.setFontSize(16);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`Coffee: ${evaluation.coffeeName}`, margin, y);
-      doc.text(
-        `Overall Score: ${evaluation.overallScore.toFixed(2)}`,
-        pageWidth - margin,
-        y,
-        { align: 'right' }
-      );
-      y += 10;
-      doc.setDrawColor(200);
-      doc.line(margin, y, pageWidth - margin, y);
-      y += 10;
-
-      // --- Loop through cups and temperatures ---
-      for (let cupIndex = 0; cupIndex < evaluation.cups.length; cupIndex++) {
-        const cup = evaluation.cups[cupIndex];
-        checkPageBreak(80); // Estimate height for a full cup section
-        doc.setFontSize(14);
-        doc.setFont('helvetica', 'bold');
-        doc.text(`Cup ${cupIndex + 1}`, margin, y);
-        doc.setFontSize(12);
-        doc.setFont('helvetica', 'normal');
-        doc.text(
-          `Cup Total Score: ${cup.totalScore.toFixed(2)}`,
-          pageWidth - margin,
-          y,
-          { align: 'right' }
-        );
-        y += 8;
-
-        // Draw Aroma score for the cup
-        drawScore(doc, 'Aroma:', cup.aroma, margin + 5, y);
-        y += 10;
-
-        for (const temp of ['hot', 'warm', 'cold'] as const) {
-          checkPageBreak(50);
-          doc.setFontSize(12);
-          doc.setFont('helvetica', 'bold');
-          doc.text(capitalize(temp), margin + 5, y);
-          y += 8;
-
-          const scores = cup.scores[temp];
-          const scoreKeys: (keyof ScoreSet)[] = [
-            'flavor',
-            'aftertaste',
-            'acidity',
-            'body',
-            'balance',
-          ];
-
-          scoreKeys.forEach((key) => {
-            if (typeof scores[key] === 'number') {
-              drawScore(
-                doc,
-                `${capitalize(key)}:`,
-                scores[key] as number,
-                margin + 10,
-                y
-              );
-              y += 8;
-            }
-          });
-
-          if (temp !== 'cold') {
-            y += 2;
-            doc.setLineDashPattern([1, 1], 0);
-            doc.line(margin, y, pageWidth - margin, y);
-            doc.setLineDashPattern([], 0);
-            y += 8;
-          }
-        }
-        y += 10; // Extra space between cups
-      }
-
-      doc.save(`${evaluation.coffeeName.replace(/\s+/g, '-')}-evaluation.pdf`);
-    } catch (error) {
-      console.error('Error generating PDF:', error);
       toast({
-        title: 'Error exporting PDF',
-        description: 'An unexpected error occurred during PDF generation.',
+        title: 'Session Created',
+        description: `"${newSessionName}" has been created.`,
+      });
+      setNewSessionName('');
+      setIsNewSessionDialogOpen(false);
+    } catch (error: any) {
+      toast({
+        title: 'Error creating session',
+        description: error.message,
         variant: 'destructive',
       });
     }
+  };
+
+  const handleInviteUser = async () => {
+    if (!inviteEmail.trim() || !selectedSession || !user) return;
+    try {
+      await addDoc(collection(firestore, 'invitations'), {
+        sessionId: selectedSession.id,
+        sessionName: selectedSession.name,
+        invitedEmail: inviteEmail,
+        invitedBy: user.uid,
+        status: 'pending',
+      });
+      toast({
+        title: 'Invitation Sent',
+        description: `${inviteEmail} has been invited to "${selectedSession.name}".`,
+      });
+      setInviteEmail('');
+      setIsInviteDialogOpen(false);
+    } catch (error: any) {
+      toast({
+        title: 'Error sending invitation',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleSelectSession = (sessionId: string) => {
+    setSelectedSessionId(sessionId);
+    setKey(Date.now());
   };
 
   const handleSignOut = async () => {
     try {
       await signOut(auth);
-      // The redirect is handled by the page component
     } catch (error) {
       console.error('Error signing out:', error);
       toast({
@@ -294,12 +195,7 @@ export function DashboardLayout() {
     }
   };
 
-  const currentEvaluationData =
-    selectedEvaluation === 'new' ? null : selectedEvaluation;
-  const currentTitle =
-    selectedEvaluation === 'new'
-      ? 'Nueva Evaluación'
-      : selectedEvaluation.coffeeName;
+  const currentTitle = selectedSession?.name || 'Cargando...';
 
   return (
     <SidebarProvider>
@@ -313,97 +209,129 @@ export function DashboardLayout() {
           </div>
         </SidebarHeader>
         <SidebarContent>
-          <div className="p-2 font-semibold">Bitácora</div>
+          <div className="p-2 font-semibold">Sesiones de Cata</div>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton
-                onClick={handleNewEvaluation}
-                isActive={selectedEvaluation === 'new'}
+              <Dialog
+                open={isNewSessionDialogOpen}
+                onOpenChange={setIsNewSessionDialogOpen}
               >
-                <PlusCircle />
-                <span>Nueva Evaluación</span>
-              </SidebarMenuButton>
+                <DialogTrigger asChild>
+                  <SidebarMenuButton>
+                    <PlusCircle />
+                    <span>Nueva Sesión</span>
+                  </SidebarMenuButton>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Crear Nueva Sesión de Cata</DialogTitle>
+                    <DialogDescription>
+                      Dale un nombre a tu nueva sesión. Luego podrás invitar a
+                      otros a unirse.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="py-4">
+                    <Label htmlFor="session-name">Nombre de la Sesión</Label>
+                    <Input
+                      id="session-name"
+                      value={newSessionName}
+                      onChange={(e) => setNewSessionName(e.target.value)}
+                      placeholder="e.g., Catación de Etiopías"
+                    />
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      onClick={handleCreateSession}
+                      disabled={!newSessionName.trim()}
+                    >
+                      Crear Sesión
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </SidebarMenuItem>
-            {evaluations.map((evaluation) => (
-              <SidebarMenuItem key={evaluation.id} className="relative group">
+            {isLoadingSessions && (
+              <>
+                <div className="p-2">
+                  <div className="h-6 w-3/4 animate-pulse rounded-md bg-muted/50" />
+                </div>
+                <div className="p-2">
+                  <div className="h-6 w-1/2 animate-pulse rounded-md bg-muted/50" />
+                </div>
+              </>
+            )}
+            {sessions.map((session) => (
+              <SidebarMenuItem key={session.id} className="relative group">
                 <SidebarMenuButton
-                  onClick={() => handleSelectEvaluation(evaluation)}
-                  isActive={
-                    selectedEvaluation !== 'new' &&
-                    selectedEvaluation.id === evaluation.id
-                  }
+                  onClick={() => handleSelectSession(session.id)}
+                  isActive={selectedSessionId === session.id}
                   tooltip={{
-                    children: evaluation.coffeeName,
+                    children: session.name,
                     className: 'w-48 text-center',
                   }}
-                  className="w-full pr-14"
+                  className="w-full pr-8"
                 >
                   <div className="flex items-center gap-2 truncate">
-                    <Coffee />
-                    <span
-                      className={cn(
-                        'size-3 rounded-full',
-                        roastLevelColors[evaluation.roastLevel]
-                      )}
-                    />
-                    <span className="truncate">{evaluation.coffeeName}</span>
+                    <Users />
+                    <span className="truncate">{session.name}</span>
                   </div>
                 </SidebarMenuButton>
 
                 <div className="absolute right-1 top-1.5 flex items-center">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleExportToPdf(evaluation);
-                    }}
-                    className="p-1 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:text-foreground"
-                    aria-label={`Export ${evaluation.coffeeName} to PDF`}
-                  >
-                    <FileDown className="size-4 shrink-0" />
-                  </button>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <button
-                        onClick={(e) => e.stopPropagation()}
-                        className="p-1 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:text-destructive"
-                        aria-label={`Delete ${evaluation.coffeeName}`}
-                      >
-                        <Trash2 className="size-4 shrink-0" />
-                      </button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          This action cannot be undone. This will permanently
-                          delete the evaluation for &quot;
-                          {evaluation.coffeeName}&quot;.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel
-                          onClick={(e) => e.stopPropagation()}
+                  {session.adminUid === user?.uid && (
+                     <Dialog
+                      open={isInviteDialogOpen}
+                      onOpenChange={setIsInviteDialogOpen}
+                    >
+                      <DialogTrigger asChild>
+                         <button
+                           onClick={(e) => e.stopPropagation()}
+                           className="p-1 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:text-foreground"
+                          aria-label={`Invitar a ${session.name}`}
                         >
-                          Cancel
-                        </AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteEvaluation(evaluation.id);
-                          }}
-                          className={cn(
-                            'bg-destructive text-destructive-foreground hover:bg-destructive/90'
-                          )}
-                        >
-                          Delete
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                          <Send className="size-4 shrink-0" />
+                        </button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>
+                            Invitar a &quot;{session.name}&quot;
+                          </DialogTitle>
+                          <DialogDescription>
+                            Ingresa el email del usuario que quieres invitar a
+                            esta sesión.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="py-4">
+                          <Label htmlFor="invite-email">
+                            Email del invitado
+                          </Label>
+                          <Input
+                            id="invite-email"
+                            type="email"
+                            value={inviteEmail}
+                            onChange={(e) => setInviteEmail(e.target.value)}
+                            placeholder="usuario@example.com"
+                          />
+                        </div>
+                        <DialogFooter>
+                          <Button
+                            onClick={handleInviteUser}
+                            disabled={!inviteEmail.trim()}
+                          >
+                            Enviar Invitación
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                  )}
                 </div>
               </SidebarMenuItem>
             ))}
           </SidebarMenu>
+          <div className="mt-4">
+            <InvitationsView />
+          </div>
         </SidebarContent>
         <SidebarFooter>
           <SidebarMenu>
@@ -514,8 +442,7 @@ export function DashboardLayout() {
         <main id="main-content" className="flex-1 overflow-auto p-4 sm:p-6">
           <SessionView
             key={key}
-            evaluation={currentEvaluationData}
-            onAddEvaluation={handleAddEvaluation}
+            session={selectedSession}
           />
         </main>
       </SidebarInset>
