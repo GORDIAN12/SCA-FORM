@@ -58,7 +58,6 @@ export function ScoresRadarChart({ scores }: ScoresRadarChartProps) {
         cold: Partial<ScoreSet>;
       };
       
-      // Robustness check: ensure sub-objects exist before processing
       if (!multiScores.hot || !multiScores.warm || !multiScores.cold) {
         return [];
       }
