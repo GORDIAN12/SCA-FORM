@@ -940,23 +940,25 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                   );
                 })}
               </Tabs>
-              {!isReadOnly && (
-                <Card>
-                    <CardContent className="pt-6">
-                        <Tabs defaultValue="hot" className="w-full" onValueChange={(value) => setActiveTempTab(value as 'hot' | 'warm' | 'cold')}>
-                            <TabsList className="grid w-full grid-cols-3">
-                                <TabsTrigger value="hot">Hot</TabsTrigger>
-                                <TabsTrigger value="warm">Warm</TabsTrigger>
-                                <TabsTrigger value="cold">Cold</TabsTrigger>
-                            </TabsList>
-                        </Tabs>
-                        <h3 className="text-center text-xl font-semibold my-4">Flavor Profile</h3>
-                        <div className="h-80">
-                            {flavorProfileData && <FlavorProfileChart scores={flavorProfileData} />}
-                        </div>
-                    </CardContent>
-                </Card>
-               )}
+               <Card>
+                   <CardContent className="pt-6">
+                       <Tabs 
+                           defaultValue="hot" 
+                           className="w-full" 
+                           onValueChange={(value) => setActiveTempTab(value as 'hot' | 'warm' | 'cold')}
+                       >
+                           <TabsList className="grid w-full grid-cols-3">
+                               <TabsTrigger value="hot" disabled={isReadOnly}>Hot</TabsTrigger>
+                               <TabsTrigger value="warm" disabled={isReadOnly}>Warm</TabsTrigger>
+                               <TabsTrigger value="cold" disabled={isReadOnly}>Cold</TabsTrigger>
+                           </TabsList>
+                       </Tabs>
+                       <h3 className="text-center text-xl font-semibold my-4">Flavor Profile</h3>
+                       <div className="h-80">
+                           {flavorProfileData && <FlavorProfileChart scores={flavorProfileData} />}
+                       </div>
+                   </CardContent>
+               </Card>
                <div className="p-6 space-y-6">
                  <Separator />
                  <div className="space-y-2">
