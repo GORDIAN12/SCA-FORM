@@ -305,6 +305,9 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
     }, [activeCupTab, activeCupData, onActiveCupChange]);
 
     const overallScore = useMemo(() => {
+      if(initialData?.overallScore) {
+        return initialData.overallScore;
+      }
       if (!watchedValues.cups || watchedValues.cups.length === 0) return 0;
       const validCups = watchedValues.cups.filter(
         (cup) => cup && typeof cup.totalScore === 'number'
@@ -312,7 +315,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
       if (validCups.length === 0) return 0;
       const total = validCups.reduce((acc, cup) => acc + cup.totalScore, 0);
       return total / validCups.length;
-    }, [watchedValues.cups]);
+    }, [watchedValues.cups, initialData]);
 
     function handleSubmit(values: ScaFormValues) {
       const evaluationData: Omit<Evaluation, 'id' | 'createdAt' | 'userId'> = {
@@ -335,7 +338,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
         <CardHeader>
           <CardTitle>SCA Evaluation Form</CardTitle>
           <CardDescription>
-            Enter the coffee cupping details below, cup by cup.
+            {isReadOnly ? 'Viewing a saved coffee evaluation.' : 'Enter the coffee cupping details below, cup by cup.'}
           </CardDescription>
         </CardHeader>
         <Form {...form}>
@@ -463,11 +466,13 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                   }, [cupValues]);
 
                   useEffect(() => {
-                    form.setValue(
-                      `cups.${index}.totalScore`,
-                      parseFloat(cupTotalScore.toFixed(2))
-                    );
-                  }, [cupTotalScore, index, form]);
+                    if (!isReadOnly) {
+                      form.setValue(
+                        `cups.${index}.totalScore`,
+                        parseFloat(cupTotalScore.toFixed(2))
+                      );
+                    }
+                  }, [cupTotalScore, index, form, isReadOnly]);
 
                   return (
                     <TabsContent key={field.id} value={`cup-${index + 1}`}>

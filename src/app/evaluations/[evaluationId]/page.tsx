@@ -4,7 +4,7 @@ import { useDoc, useFirestore, useUser } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { useParams, useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ScoresOverview } from '@/components/dashboard/scores-overview';
+import { ScaForm } from '@/components/dashboard/sca-form';
 import type { Evaluation } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -51,6 +51,17 @@ export default function EvaluationPage() {
     return <div className="p-8">Evaluation not found.</div>;
   }
 
+  // The evaluation object from useDoc has a 'createdAt' timestamp that might not
+  // be in the same shape as what ScaForm expects if it's not converted from Firestore timestamp.
+  // The form doesn't use createdAt, so we can just pass the rest.
+  const formData = {
+    coffeeName: evaluation.coffeeName,
+    roastLevel: evaluation.roastLevel,
+    cups: evaluation.cups,
+    overallScore: evaluation.overallScore,
+  };
+
+
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/80 px-6 backdrop-blur-sm">
@@ -80,7 +91,7 @@ export default function EvaluationPage() {
       </header>
       <main className="p-4 sm:p-6 lg:p-8">
         <div className="mx-auto max-w-4xl space-y-6">
-          <ScoresOverview evaluation={evaluation} />
+           <ScaForm initialData={formData} onSubmit={() => {}} />
         </div>
       </main>
     </div>
