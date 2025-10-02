@@ -32,6 +32,8 @@ import {
 import { cn } from '@/lib/utils';
 import { Coffee } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { FlavorProfileChart } from './flavor-profile-chart';
+import type { ScoreSet } from '@/lib/types';
 
 const scoreSchema = z.coerce.number().min(6).max(10);
 const intensitySchema = z.enum(['low', 'medium', 'high'], {
@@ -40,7 +42,7 @@ const intensitySchema = z.enum(['low', 'medium', 'high'], {
 const aromaCategorySchema = z.enum([
   'Floral',
   'Frutal',
-  'Especiado',
+ 'Especiado',
   'Nueces/Cacao',
   'Caramelizado',
   'Herbal',
@@ -178,7 +180,7 @@ const ScoreSlider = ({
 const aromaCategories = [
   'Floral',
   'Frutal',
-  'Especiado',
+ 'Especiado',
   'Nueces/Cacao',
   'Caramelizado',
   'Herbal',
@@ -230,6 +232,7 @@ const createDefaultFormValues = (): ScaFormValues => ({
 export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
   ({ initialData, onSubmit, onValuesChange, onActiveCupChange, isSubmitting }, ref) => {
     const [activeCupTab, setActiveCupTab] = useState('cup-1');
+    const [activeTempTab, setActiveTempTab] = useState<'hot' | 'warm' | 'cold'>('hot');
 
     const form = useForm<ScaFormValues>({
       resolver: zodResolver(formSchema),
@@ -265,20 +268,42 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
     });
 
     const watchedValues = useWatch({ control: form.control });
-    
+
     useEffect(() => {
       if (onValuesChange) {
         onValuesChange(watchedValues as ScaFormValues);
       }
     }, [watchedValues, onValuesChange]);
+    
+    const activeCupIndex = useMemo(() => {
+      return parseInt(activeCupTab.split('-')[1], 10) - 1;
+    }, [activeCupTab]);
+
+    const activeCupData = watchedValues.cups?.[activeCupIndex];
+    
+    const flavorProfileData = useMemo(() => {
+        if (!activeCupData) return null;
+
+        const { aroma, scores } = activeCupData;
+        const tempScores = scores?.[activeTempTab];
+
+        if (!tempScores) return null;
+
+        return {
+            aroma,
+            flavor: tempScores.flavor,
+            aftertaste: tempScores.aftertaste,
+            acidity: tempScores.acidity,
+            body: tempScores.body,
+            balance: tempScores.balance,
+        };
+    }, [activeCupData, activeTempTab]);
 
     useEffect(() => {
-      if (onActiveCupChange) {
-        const cupIndex = parseInt(activeCupTab.split('-')[1], 10) - 1;
-        const activeCupData = watchedValues.cups?.[cupIndex] ?? null;
+      if (onActiveCupChange && activeCupData) {
         onActiveCupChange(activeCupTab, activeCupData as CupFormValues | null);
       }
-    }, [activeCupTab, watchedValues.cups, onActiveCupChange]);
+    }, [activeCupTab, activeCupData, onActiveCupChange]);
 
     const overallScore = useMemo(() => {
       if (!watchedValues.cups || watchedValues.cups.length === 0) return 0;
@@ -911,6 +936,23 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                   );
                 })}
               </Tabs>
+              {!isReadOnly && (
+                <Card>
+                    <CardContent className="pt-6">
+                        <Tabs defaultValue="hot" className="w-full" onValueChange={(value) => setActiveTempTab(value as 'hot' | 'warm' | 'cold')}>
+                            <TabsList className="grid w-full grid-cols-3">
+                                <TabsTrigger value="hot">Hot</TabsTrigger>
+                                <TabsTrigger value="warm">Warm</TabsTrigger>
+                                <TabsTrigger value="cold">Cold</TabsTrigger>
+                            </TabsList>
+                        </Tabs>
+                        <h3 className="text-center text-xl font-semibold my-4">Flavor Profile</h3>
+                        <div className="h-80">
+                            {flavorProfileData && <FlavorProfileChart scores={flavorProfileData} />}
+                        </div>
+                    </CardContent>
+                </Card>
+               )}
                <div className="p-6 space-y-6">
                  <Separator />
                  <div className="space-y-2">
