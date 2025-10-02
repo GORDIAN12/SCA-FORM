@@ -32,7 +32,7 @@ export function InvitationsView() {
     );
   }, [firestore, user?.email]);
 
-  const { data: invitations = [], isLoading } =
+  const { data: invitations, isLoading } =
     useCollection<Invitation>(invitationsQuery);
 
   const handleInvitation = async (
@@ -85,8 +85,8 @@ export function InvitationsView() {
     );
   }
 
-  if (invitations.length === 0) {
-    return null; // Don't show the card if there are no pending invitations
+  if (!invitations || invitations.length === 0) {
+    return null; // Don't show the card if there are no pending invitations or data is null
   }
 
   return (
