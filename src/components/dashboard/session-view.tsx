@@ -102,7 +102,7 @@ export function SessionView({ session }: SessionViewProps) {
              </Button>
              {isLoadingEvaluations && <Skeleton className="h-10 w-full" />}
              <ul className="space-y-2">
-                {evaluations.map(evalItem => (
+                {evaluations && evaluations.map(evalItem => (
                   <li key={evalItem.id}>
                     <Button 
                       onClick={() => handleSelectEvaluation(evalItem)}
