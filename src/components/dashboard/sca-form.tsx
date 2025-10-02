@@ -32,7 +32,6 @@ import {
 import { cn } from '@/lib/utils';
 import { Coffee } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ScoresRadarChart } from './scores-radar-chart';
 
 const scoreSchema = z.coerce.number().min(6).max(10);
 const intensitySchema = z.enum(['low', 'medium', 'high'], {
@@ -267,9 +266,6 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
 
     const watchedValues = useWatch({ control: form.control });
     
-    const activeCupIndex = parseInt(activeCupTab.split('-')[1], 10) - 1;
-    const activeCupScores = watchedValues.cups?.[activeCupIndex]?.scores;
-
     useEffect(() => {
       if (onValuesChange) {
         onValuesChange(watchedValues as ScaFormValues);
@@ -923,11 +919,6 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                      <span>{overallScore.toFixed(2)}</span>
                    </div>
                  </div>
-                 { !initialData && activeCupScores && activeCupScores.hot && activeCupScores.warm && activeCupScores.cold && (
-                   <div className="h-80 md:h-96">
-                     <ScoresRadarChart scores={activeCupScores} />
-                   </div>
-                 )}
                </div>
             </CardContent>
           </form>

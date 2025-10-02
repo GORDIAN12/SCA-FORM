@@ -32,9 +32,6 @@ body {
     --chart-3: 18 27% 60%;
     --chart-4: 4 28% 40%;
     --chart-5: 100 8% 70%;
-    --chart-temp-hot: 0 72% 51%; /* red */
-    --chart-temp-warm: 39 92% 58%; /* orange */
-    --chart-temp-cold: 217 91% 60%; /* blue */
     --radius: 0.5rem;
     --sidebar-background: 100 8% 96%;
     --sidebar-foreground: 4 28% 23%;
@@ -70,9 +67,6 @@ body {
     --chart-3: 29 32% 55%;
     --chart-4: 0 0% 66%;
     --chart-5: 0 0% 40%;
-    --chart-temp-hot: 0 82% 61%; /* red */
-    --chart-temp-warm: 39 100% 68%; /* orange */
-    --chart-temp-cold: 217 100% 70%; /* blue */
     --sidebar-background: 0 0% 7%;
     --sidebar-foreground: 0 0% 88%;
     --sidebar-primary: 29 32% 48%;

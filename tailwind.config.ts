@@ -53,9 +53,6 @@ export default {
           '3': 'hsl(var(--chart-3))',
           '4': 'hsl(var(--chart-4))',
           '5': 'hsl(var(--chart-5))',
-          'temp-hot': 'hsl(var(--chart-temp-hot))',
-          'temp-warm': 'hsl(var(--chart-temp-warm))',
-          'temp-cold': 'hsl(var(--chart-temp-cold))',
         },
         sidebar: {
           DEFAULT: 'hsl(var(--sidebar-background))',
