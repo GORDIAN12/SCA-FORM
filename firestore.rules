@@ -1,0 +1,61 @@
+/**
+ * @fileOverview Firestore Security Rules for Cupping Compass.
+ *
+ * Core Philosophy:
+ * This ruleset enforces a strict user-ownership model, where each user can only access their own data.
+ *
+ * Data Structure:
+ * All data is nested under /users/{userId}, ensuring clear ownership and access control.
+ *
+ * Key Security Decisions:
+ * - Users can only access their own profile data.
+ * - Users can create their profile (self-registration).
+ * - Listing of users is not allowed.
+ *
+ * Denormalization for Authorization:
+ *  - The `userId` is derived from the path `/users/{userId}`.
+ *
+ * Structural Segregation:
+ *  - Uses separate collections for user data.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * @description Controls access to user profile information. Only the user with the matching `userId` can access this document.
+     * @path /users/{userId}
+     * @allow (create) - A user can create their own profile if `request.auth.uid == userId`.
+     * @allow (get, update, delete) - A user can get, update, or delete their own profile if `request.auth.uid == userId` and the document exists.
+     * @deny (create) - A user cannot create a profile with a different `userId`.
+     * @deny (get, update, delete) - A user cannot get, update, or delete another user's profile.
+     * @principle Enforces document ownership for all operations.
+     */
+    match /users/{userId} {
+      // Helper function to check if the requesting user is the owner of the document.
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+
+      // Helper function to check if the requesting user is the owner of an existing document.
+      function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+      }
+
+      // Allow a user to create their own profile.
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+
+      // Allow a user to get their own profile.
+      allow get: if isOwner(userId);
+
+      // Allow a user to list their own profile. Listing more than one profile is never allowed.
+      allow list: if isOwner(userId);
+
+      // Allow a user to update their own profile, but prevent changing the user id.
+      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+
+      // Allow a user to delete their own profile.
+      allow delete: if isExistingOwner(userId);
+    }
+  }
+}

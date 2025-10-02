@@ -1,0 +1,63 @@
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the Cupping Compass application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user."
+        },
+        "email": {
+          "type": "string",
+          "description": "Email address of the user.",
+          "format": "email"
+        },
+        "name": {
+          "type": "string",
+          "description": "The user's display name."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the user account was created.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "email",
+        "name",
+        "createdAt"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profile information. Uses path-based ownership for security: only the user with the matching `userId` can access this document.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user, matching the Firebase Auth UID."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "This Firestore data structure focuses on storing user data. Since the authentication providers are password and anonymous, the primary concern is managing user profiles. We leverage path-based ownership for user data, which provides a simple and secure way to manage access control. This approach directly corresponds to the application's need to associate uploaded SCA data, reports, and sessions with specific users.\n\n**Authorization Independence:** The structure inherently provides Authorization Independence, as user-specific data is located under the `/users/{userId}` path, which uses `request.auth.uid` to establish access control. There is no reliance on `get()` calls to parent documents for authorization.\n\n**QAPs:**  This structure directly supports secure `list` operations for user data. Rules can easily filter based on `request.auth.uid == userId` to allow a user to list only their own data. Because the application does not contain roles or shared objects, there are no additional security contexts required."
+  }
+}
