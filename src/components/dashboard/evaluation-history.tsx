@@ -84,7 +84,9 @@ export function EvaluationHistory({ userId }: EvaluationHistoryProps) {
           </SidebarMenuItem>
         ))
       ) : (
-        <p className="text-sm text-muted-foreground p-2">No evaluations yet.</p>
+        <p className="text-sm text-muted-foreground p-2">
+          Aún no hay evaluaciones.
+        </p>
       )}
     </SidebarMenu>
   );

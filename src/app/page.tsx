@@ -18,12 +18,13 @@ import {
   SidebarContent,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuItem,
+  SidebarFooter,
   SidebarMenuButton,
   SidebarInset,
 } from '@/components/ui/sidebar';
 import { EvaluationHistory } from '@/components/dashboard/evaluation-history';
-import { Menu } from 'lucide-react';
+import { Menu, LogOut, Settings } from 'lucide-react';
+import { SettingsDialog } from '@/components/settings-dialog';
 
 export default function Home() {
   const { user, isUserLoading } = useUser();
@@ -32,6 +33,7 @@ export default function Home() {
   const { toast } = useToast();
   const formRef = useRef<{ submit: () => void; reset: () => void }>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -101,12 +103,29 @@ export default function Home() {
           <SidebarHeader className="p-4">
             <div className="flex items-center gap-2">
               <CuppingCompassLogo className="size-8 text-primary" />
-              <h2 className="text-lg font-semibold">History</h2>
+              <h2 className="text-lg font-semibold">Bitácora</h2>
             </div>
           </SidebarHeader>
           <SidebarMenu className="flex-1 px-4">
             <EvaluationHistory userId={user.uid} />
           </SidebarMenu>
+          <SidebarFooter className="p-4 flex flex-col gap-2">
+             <SidebarMenuButton onClick={() => setIsSettingsOpen(true)}>
+                <Settings className="size-4" />
+                <span>Settings</span>
+              </SidebarMenuButton>
+            <SidebarMenuButton
+              onClick={async () => {
+                const { getAuth, signOut } = await import('firebase/auth');
+                const auth = getAuth();
+                await signOut(auth);
+                router.push('/login');
+              }}
+            >
+              <LogOut className="size-4" />
+              <span>Logout</span>
+            </SidebarMenuButton>
+          </SidebarFooter>
         </SidebarContent>
       </Sidebar>
       <SidebarInset>
@@ -119,20 +138,14 @@ export default function Home() {
               <CuppingCompassLogo className="size-8 text-primary hidden sm:block" />
               <h1 className="text-xl font-semibold">Cupping Compass</h1>
             </div>
-            <Button
-              onClick={async () => {
-                const { getAuth, signOut } = await import('firebase/auth');
-                const auth = getAuth();
-                await signOut(auth);
-                router.push('/login');
-              }}
-            >
-              Logout
-            </Button>
           </header>
           <main className="p-4 sm:p-6 lg:p-8">
             <div className="mx-auto max-w-4xl space-y-6">
-              <ScaForm ref={formRef} onSubmit={handleAddEvaluation} isSubmitting={isSubmitting} />
+              <ScaForm
+                ref={formRef}
+                onSubmit={handleAddEvaluation}
+                isSubmitting={isSubmitting}
+              />
               <div className="flex justify-center">
                 <Button
                   onClick={handleTriggerSubmit}
@@ -146,6 +159,7 @@ export default function Home() {
           </main>
         </div>
       </SidebarInset>
+      <SettingsDialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
     </SidebarProvider>
   );
 }
