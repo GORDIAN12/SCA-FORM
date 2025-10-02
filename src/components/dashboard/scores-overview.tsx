@@ -38,7 +38,7 @@ export function ScoresOverview({ evaluation }: ScoresOverviewProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex justify-between items-center">
+        <CardTitle className="flex justify-between items-start">
           <span className="text-2xl">{coffeeName}</span>
           <div className="flex flex-col items-end">
             <span className="text-3xl font-bold text-primary">

@@ -3,18 +3,22 @@ import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
 } from '@/components/ui/chart';
-import {
-  PolarAngleAxis,
-  PolarGrid,
-  Radar,
-  RadarChart,
-} from 'recharts';
+import type { ScoreSet } from '@/lib/types';
+import { PolarAngleAxis, PolarGrid, Radar, RadarChart } from 'recharts';
 
 interface ScoresRadarChartProps {
-  scores: {
-    [key: string]: number;
-  };
+  scores:
+    | {
+        [key: string]: number;
+      }
+    | {
+        hot: Partial<ScoreSet>;
+        warm: Partial<ScoreSet>;
+        cold: Partial<ScoreSet>;
+      };
 }
 
 const chartConfig = {
@@ -22,16 +26,58 @@ const chartConfig = {
     label: 'Score',
     color: 'hsl(var(--chart-1))',
   },
+  hot: {
+    label: 'Hot',
+    color: 'hsl(var(--chart-temp-hot))',
+  },
+  warm: {
+    label: 'Warm',
+    color: 'hsl(var(--chart-temp-warm))',
+  },
+  cold: {
+    label: 'Cold',
+    color: 'hsl(var(--chart-temp-cold))',
+  },
 };
 
+const ATTRIBUTES_TO_SHOW = ['flavor', 'aftertaste', 'acidity', 'body', 'balance'];
+
 export function ScoresRadarChart({ scores }: ScoresRadarChartProps) {
-  const chartData = Object.keys(scores).map((key) => ({
-    attribute: key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1'),
-    score: parseFloat(scores[key].toFixed(2)),
-  }));
+  const isMultiSeries = 'hot' in scores && 'warm' in scores && 'cold' in scores;
+
+  const chartData = useMemo(() => {
+    if (isMultiSeries) {
+      const multiScores = scores as {
+        hot: Partial<ScoreSet>;
+        warm: Partial<ScoreSet>;
+        cold: Partial<ScoreSet>;
+      };
+      return ATTRIBUTES_TO_SHOW.map((attribute) => {
+        const key = attribute as keyof ScoreSet;
+        return {
+          attribute: attribute.charAt(0).toUpperCase() + attribute.slice(1),
+          hot: multiScores.hot[key] ? Number(multiScores.hot[key]) : 0,
+          warm: multiScores.warm[key] ? Number(multiScores.warm[key]) : 0,
+          cold: multiScores.cold[key] ? Number(multiScores.cold[key]) : 0,
+        };
+      });
+    } else {
+        const singleScores = scores as { [key: string]: number };
+        return Object.keys(singleScores)
+        .filter(key => ATTRIBUTES_TO_SHOW.includes(key) || key === "aroma" || key === "cupperScore")
+        .map((key) => ({
+          attribute: key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1'),
+          score: parseFloat(singleScores[key].toFixed(2)),
+        }));
+    }
+  }, [scores, isMultiSeries]);
+
 
   return (
-    <ChartContainer config={chartConfig} className="mx-auto w-full h-full">
+    <ChartContainer
+      config={chartConfig}
+      className="mx-auto w-full h-full"
+    >
       <RadarChart data={chartData}>
         <ChartTooltip
           cursor={false}
@@ -39,17 +85,45 @@ export function ScoresRadarChart({ scores }: ScoresRadarChartProps) {
         />
         <PolarGrid />
         <PolarAngleAxis dataKey="attribute" tick={{ fontSize: 12 }} />
-        <Radar
-          dataKey="score"
-          fill="var(--color-score)"
-          fillOpacity={0.6}
-          stroke="var(--color-score)"
-          dot={{
-            r: 4,
-            fillOpacity: 1,
-          }}
-        />
+
+        {isMultiSeries ? (
+          <>
+            <Radar
+              dataKey="hot"
+              fill="var(--color-hot)"
+              fillOpacity={0.4}
+              stroke="var(--color-hot)"
+              dot={{ r: 4, fillOpacity: 1 }}
+            />
+            <Radar
+              dataKey="warm"
+              fill="var(--color-warm)"
+              fillOpacity={0.4}
+              stroke="var(--color-warm)"
+              dot={{ r: 4, fillOpacity: 1 }}
+            />
+            <Radar
+              dataKey="cold"
+              fill="var(--color-cold)"
+              fillOpacity={0.4}
+              stroke="var(--color-cold)"
+              dot={{ r: 4, fillOpacity: 1 }}
+            />
+             <ChartLegend content={<ChartLegendContent />} />
+          </>
+        ) : (
+          <Radar
+            dataKey="score"
+            fill="var(--color-score)"
+            fillOpacity={0.6}
+            stroke="var(--color-score)"
+            dot={{ r: 4, fillOpacity: 1 }}
+          />
+        )}
       </RadarChart>
     </ChartContainer>
   );
 }
+
+// We need to import and use useMemo for this component
+import { useMemo } from 'react';
