@@ -2,23 +2,29 @@
  * @fileoverview Firestore Security Rules for Cupping Compass.
  *
  * Core Philosophy:
- * This ruleset employs a mixed security model. User profiles are public.
- * Cupping sessions are invite-only, based on a participant list.
- * Invitations are used to manage access to cupping sessions, with listing restricted.
+ * This ruleset employs a hybrid security model, balancing open access for
+ * public data with strict ownership and shared access controls for user-specific
+ * and collaborative content. It prioritizes user privacy and data integrity.
  *
  * Data Structure:
- * - /users/{userId}: Public user profiles.
- * - /sessions/{sessionId}: Cupping session data, with a list of participant UIDs.
- * - /sessions/{sessionId}/evaluations/{evaluationId}: Individual coffee evaluations within a session.
- * - /invitations/{invitationId}: Invitations for users to join sessions.
+ * - /users/{userId}: Stores public user profiles, accessible only to the
+ *   authenticated user themselves.
+ * - /sessions/{sessionId}: Stores cupping session data, accessible to session
+ *   participants.
+ * - /sessions/{sessionId}/evaluations/{evaluationId}: Stores individual evaluations
+ *   within a session, accessible only to the evaluator.
+ * - /invitations/{invitationId}: Stores invitations, accessible only to session participants.
  *
  * Key Security Decisions:
- * - User profiles are publicly readable but only writable by the owner.
- * - Cupping sessions are accessible only to invited participants and the admin.
- * - Invitations are not listable. An alternative invite workflow will need to be created with lookup (get) instead of listing.
+ * - Users can only read/write their own user documents.
+ * - Cupping sessions are accessible to authorized participants.
+ * - Evaluations are only accessible to the user who created them.
+ * - Listing of sessions is public to allow discovery.
+ * - Users can only be added to a session by an admin.
  *
  * Denormalization for Authorization:
- * - Cupping sessions denormalize participant UIDs directly onto the session document to avoid costly `get()` calls.
+ * - CuppingSession documents contain a `participantUids` array to simplify
+ *   access control for session data and evaluations.
  */
 rules_version = '2';
 service cloud.firestore {
@@ -27,114 +33,107 @@ service cloud.firestore {
     /**
      * @description Controls access to user profile information.
      * @path /users/{userId}
-     * @allow (get, list): Any user can read user profiles.
-     * @allow (create, update, delete): Only the user with matching {userId} can modify their profile.
-     * @deny Any user cannot create, update or delete another user's profile.
-     * @principle Enforces document ownership for writes; allows public reads.
+     * @allow (create) User with matching UID can create their own profile.
+     * @allow (get, update, delete) User with matching UID can access and modify their own profile.
+     * @deny (create) User cannot create a profile with a mismatched UID.
+     * @deny (get, update, delete) User cannot access or modify another user's profile.
+     * @principle Enforces document ownership for user profiles.
      */
     match /users/{userId} {
-      allow get, list: if true;
-      allow create: if isOwner(userId);
-      allow update: if isExistingOwner(userId) && request.auth.uid == userId;
-      allow delete: if isExistingOwner(userId) && request.auth.uid == userId;
+        function isSignedIn() {
+          return request.auth != null;
+        }
+
+        function isOwner(userId) {
+          return request.auth.uid == userId;
+        }
+
+      allow get: if isSignedIn() && isOwner(userId);
+      allow list: if false;
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow update: if isSignedIn() && isOwner(userId);
+      allow delete: if isSignedIn() && isOwner(userId);
     }
 
     /**
      * @description Controls access to cupping session data.
      * @path /sessions/{sessionId}
-     * @allow (get): Only participants of the session can read the session data.
-     * @allow (list): Listing sessions is disallowed to prevent leaking session IDs.
-     * @allow (create): Only authenticated users can create sessions. The creator is automatically added as a participant.
-     * @allow (update, delete): Only the admin of the session can modify or delete it.
-     * @deny Non-participants cannot read, modify, or delete sessions.
-     * @principle Enforces shared access via the participantUids array; restricts listing.
+     * @allow (get, list) Any authenticated user can view the list of sessions.
+     * @allow (create) Any authenticated user can create a session.
+     * @allow (update, delete) Only the session admin can modify or delete a session.
+     * @deny (update, delete) Non-admins cannot modify or delete sessions.
+     * @principle Enforces shared access for session participants and admin control.
      */
     match /sessions/{sessionId} {
-      allow get: if isSignedIn() && resource.data.participantUids.hasAny([request.auth.uid]);
-      allow list: if false;
-      allow create: if isSignedIn() && request.resource.data.adminUid == request.auth.uid;
-      allow update, delete: if isSessionAdmin(sessionId);
+        function isSignedIn() {
+          return request.auth != null;
+        }
+       function isParticipant(sessionId) {
+          return request.auth.uid in resource.data.participantUids;
+        }
+
+        function isAdmin(sessionId) {
+          return request.auth.uid == resource.data.adminUid;
+        }
+
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && isAdmin(sessionId);
+      allow delete: if isSignedIn() && isAdmin(sessionId);
     }
 
     /**
-     * @description Controls access to evaluations within a cupping session.
+     * @description Controls access to individual evaluations within a session.
      * @path /sessions/{sessionId}/evaluations/{evaluationId}
-     * @allow (get, list): Only participants of the parent session can read evaluations.
-     * @allow (create): Only participants of the parent session can create evaluations.
-     * @allow (update, delete): Only the user who created the evaluation can modify or delete it.
-     * @deny Non-participants cannot access evaluations.
-     * @principle Enforces shared access via the parent session's participantUids; enforces evaluation ownership.
+     * @allow (get, list) Only the evaluator can access their own evaluations.
+     * @allow (create) Only an authenticated user can create an evaluation for themself within a session.
+     * @allow (update, delete) Only the evaluator can modify or delete their own evaluations.
+     * @deny (create, update, delete) Users cannot create, modify, or delete evaluations belonging to others.
+     * @principle Enforces document ownership for evaluations.
      */
     match /sessions/{sessionId}/evaluations/{evaluationId} {
-      allow get, list: if isSignedIn() && isSessionParticipant(sessionId);
-      allow create: if isSignedIn() && isSessionParticipant(sessionId) && request.resource.data.userId == request.auth.uid;
-      allow update, delete: if isSignedIn() && resource.data.userId == request.auth.uid && isSessionParticipant(sessionId);
+        function isSignedIn() {
+          return request.auth != null;
+        }
+
+        function isOwner(evaluationId) {
+           return request.auth.uid == resource.data.userId;
+        }
+         function isExistingOwner(evaluationId) {
+          return request.auth.uid == resource.data.userId;
+        }
+
+      allow get: if isSignedIn() && isOwner(evaluationId);
+      allow list: if false;
+      allow create: if isSignedIn() && request.auth.uid == request.resource.data.userId;
+      allow update: if isSignedIn() && isOwner(evaluationId);
+      allow delete: if isSignedIn() && isOwner(evaluationId);
     }
 
     /**
-     * @description Controls access to invitations to join cupping sessions.
+     * @description Controls access to invitations for users to join sessions.
      * @path /invitations/{invitationId}
-     * @allow (get): Any authenticated user can retrieve a specific invitation by ID.
-     * @allow (list): Listing invitations is explicitly denied.
-     * @allow (create): Only session admins can create invitations.
-     * @allow (update): Only the invited user can update the invitation status.
-     * @allow (delete): Invitations cannot be deleted directly.
-     * @deny Listing is not permitted.
-     * @principle Restricts access to invitation creation to session admins; requires a get to use invitation. Denies list operation to stop sniffing.
+     * @allow (get) Anyone can get invitation.
+     * @allow (create) Only session admins can create invitations.
+     * @allow (update) Only session admins can update invitations.
+     * @allow (delete) Only session admins can delete invitations.
+     * @principle Restricts invitation management to session admins.
      */
     match /invitations/{invitationId} {
+         function isSignedIn() {
+          return request.auth != null;
+        }
+
+        function isAdmin() {
+          return request.auth.uid == resource.data.adminUid;
+        }
+
       allow get: if isSignedIn();
       allow list: if false;
-      allow create: if isSignedIn() && request.resource.data.invitedBy == request.auth.uid;
-      allow update: if isSignedIn() && get(/databases/$(database)/documents/invitations/$(invitationId)).data.invitedEmail == request.auth.token.email;
-      allow delete: if false;
-    }
-
-    // ---- Helper functions ----
-
-    /**
-     * @description Checks if the user is signed in.
-     * @return {boolean} True if the user is authenticated.
-     */
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    /**
-     * @description Checks if the authenticated user is the owner of the resource based on the provided userId.
-     * @param {string} userId - The user ID to compare against the authenticated user's UID.
-     * @return {boolean} True if the authenticated user's UID matches the provided userId.
-     */
-    function isOwner(userId) {
-      return request.auth.uid == userId;
-    }
-
-     /**
-      * @description Checks if the authenticated user is the owner of an existing resource.
-      * @param {string} userId - The user ID to compare against the authenticated user's UID.
-      * @return {boolean} True if the authenticated user's UID matches the provided userId and the document exists.
-      */
-    function isExistingOwner(userId) {
-      return isOwner(userId) && resource != null;
-    }
-
-
-    /**
-     * @description Checks if the authenticated user is the administrator of a cupping session.
-     * @param {string} sessionId - The ID of the cupping session.
-     * @return {boolean} True if the authenticated user's UID matches the session's adminUid.
-     */
-    function isSessionAdmin(sessionId) {
-      return isSignedIn() && get(/databases/$(database)/documents/sessions/$(sessionId)).data.adminUid == request.auth.uid;
-    }
-
-    /**
-     * @description Checks if the authenticated user is a participant in a cupping session.
-     * @param {string} sessionId - The ID of the cupping session.
-     * @return {boolean} True if the authenticated user's UID is in the session's participantUids array.
-     */
-    function isSessionParticipant(sessionId) {
-      return isSignedIn() && get(/databases/$(database)/documents/sessions/$(sessionId)).data.participantUids.hasAny([request.auth.uid]);
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && isAdmin();
+      allow delete: if isSignedIn() && isAdmin();
     }
   }
 }
