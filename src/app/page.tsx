@@ -2,12 +2,9 @@
 
 import { useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  ScaForm,
-  type ScaFormValues,
-} from '@/components/dashboard/sca-form';
+import { ScaForm } from '@/components/dashboard/sca-form';
 import type { Evaluation } from '@/lib/types';
 import { useFirestore } from '@/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -31,7 +28,7 @@ export default function Home() {
   const handleAddEvaluation = async (
     evaluationData: Omit<Evaluation, 'id' | 'createdAt' | 'userId'>
   ) => {
-    if (!user) return;
+    if (!user || !firestore) return;
 
     const newEvaluation = {
       ...evaluationData,
@@ -86,7 +83,12 @@ export default function Home() {
           <CuppingCompassLogo className="size-8 text-primary" />
           <h1 className="text-xl font-semibold">Cupping Compass</h1>
         </div>
-        <Button onClick={() => router.push('/login')}>Logout</Button>
+        <Button onClick={async () => {
+          const { getAuth, signOut } = await import('firebase/auth');
+          const auth = getAuth();
+          await signOut(auth);
+          router.push('/login');
+        }}>Logout</Button>
       </header>
       <main className="p-4 sm:p-6 lg:p-8">
         <div className="mx-auto max-w-4xl space-y-6">
