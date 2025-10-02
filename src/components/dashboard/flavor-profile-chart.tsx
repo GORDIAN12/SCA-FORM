@@ -24,6 +24,10 @@ const chartConfig = {
     label: 'Score',
     color: 'hsl(var(--chart-1))',
   },
+  accent: {
+    label: 'Score',
+    color: 'hsl(var(--accent))',
+  }
 };
 
 export function FlavorProfileChart({ scores }: FlavorProfileChartProps) {
@@ -55,7 +59,7 @@ export function FlavorProfileChart({ scores }: FlavorProfileChartProps) {
         <PolarGrid />
         <Radar
           dataKey="score"
-          fill="var(--color-score)"
+          fill="var(--color-accent)"
           fillOpacity={0.6}
           stroke="var(--color-score)"
           dot={{
