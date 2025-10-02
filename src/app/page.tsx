@@ -17,7 +17,6 @@ import {
   SidebarTrigger,
   SidebarContent,
   SidebarHeader,
-  SidebarMenu,
   SidebarFooter,
   SidebarMenuButton,
   SidebarInset,
@@ -106,9 +105,7 @@ export default function Home() {
               <h2 className="text-lg font-semibold">Cupping Compass</h2>
             </div>
           </SidebarHeader>
-          <SidebarMenu className="flex-1 px-4">
-            <EvaluationHistory userId={user.uid} />
-          </SidebarMenu>
+          <EvaluationHistory userId={user.uid} />
           <SidebarFooter className="p-4 flex flex-col gap-2">
              <SidebarMenuButton onClick={() => setIsSettingsOpen(true)}>
                 <Settings className="size-4" />
