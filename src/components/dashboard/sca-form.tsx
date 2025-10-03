@@ -93,7 +93,7 @@ export type CupFormValues = z.infer<typeof cupEvaluationSchema>;
 export type ScoreSetFormValues = z.infer<typeof scoreSetSchema>;
 
 interface ScaFormProps {
-  initialData?: Omit<Evaluation, 'id' | 'createdAt' | 'userId'> | null;
+  initialData?: Omit<Evaluation, 'id' | 'createdAt' | 'userId' | 'isFavorite'> | null;
   onSubmit: (data: Omit<Evaluation, 'id' | 'createdAt' | 'userId'>) => void;
   onValuesChange?: (data: ScaFormValues) => void;
   onActiveCupChange?: (cupId: string, cupData: CupFormValues | null) => void;
@@ -459,7 +459,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
               >
                 <TabsList className="grid w-full grid-cols-5" >
                   {fields.map((field, index) => (
-                    <TabsTrigger key={field.id} value={`cup-${index + 1}`} disabled={isReadOnly && `cup-${index + 1}` !== activeCupTab && fields.length > 1}>
+                    <TabsTrigger key={field.id} value={`cup-${index + 1}`}>
                       Cup {index + 1}
                     </TabsTrigger>
                   ))}
@@ -723,9 +723,9 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
 
                             <Tabs defaultValue="hot" className="w-full" onValueChange={(value) => setActiveTempTab(value as 'hot' | 'warm' | 'cold')} value={activeTempTab}>
                               <TabsList className="grid w-full grid-cols-3" >
-                                <TabsTrigger value="hot" disabled={isReadOnly && 'hot' !== activeTempTab}>Hot</TabsTrigger>
-                                <TabsTrigger value="warm" disabled={isReadOnly && 'warm' !== activeTempTab}>Warm</TabsTrigger>
-                                <TabsTrigger value="cold" disabled={isReadOnly && 'cold' !== activeTempTab}>Cold</TabsTrigger>
+                                <TabsTrigger value="hot">Hot</TabsTrigger>
+                                <TabsTrigger value="warm">Warm</TabsTrigger>
+                                <TabsTrigger value="cold">Cold</TabsTrigger>
                               </TabsList>
                               {(['hot', 'warm', 'cold'] as const).map(
                                 (temp) => (
@@ -994,9 +994,9 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                           value={activeTempTab}
                       >
                           <TabsList className="grid w-full grid-cols-3">
-                              <TabsTrigger value="hot" disabled={isReadOnly && activeTempTab !== 'hot'}>Hot</TabsTrigger>
-                              <TabsTrigger value="warm" disabled={isReadOnly && activeTempTab !== 'warm'}>Warm</TabsTrigger>
-                              <TabsTrigger value="cold" disabled={isReadOnly && activeTempTab !== 'cold'}>Cold</TabsTrigger>
+                              <TabsTrigger value="hot">Hot</TabsTrigger>
+                              <TabsTrigger value="warm">Warm</TabsTrigger>
+                              <TabsTrigger value="cold">Cold</TabsTrigger>
                           </TabsList>
                       </Tabs>
                       
