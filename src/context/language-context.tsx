@@ -3,10 +3,11 @@
 import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import en from '@/locales/en.json';
 import es from '@/locales/es.json';
+import pt from '@/locales/pt.json';
 
-const translations = { en, es };
+const translations = { en, es, pt };
 
-type Language = 'en' | 'es';
+type Language = 'en' | 'es' | 'pt';
 
 interface LanguageContextType {
   language: Language;
@@ -21,7 +22,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const storedLanguage = localStorage.getItem('language') as Language | null;
-    if (storedLanguage && ['en', 'es'].includes(storedLanguage)) {
+    if (storedLanguage && ['en', 'es', 'pt'].includes(storedLanguage)) {
       setLanguage(storedLanguage);
     }
   }, []);

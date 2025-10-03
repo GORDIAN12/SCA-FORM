@@ -48,7 +48,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
           </div>
           <div className="flex items-center justify-between">
             <Label htmlFor="language">{t('language')}</Label>
-            <Select value={language} onValueChange={(value) => setLanguage(value as 'en' | 'es')}>
+            <Select value={language} onValueChange={(value) => setLanguage(value as 'en' | 'es' | 'pt')}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Select a language" />
               </SelectTrigger>
