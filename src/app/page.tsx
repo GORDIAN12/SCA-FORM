@@ -4,7 +4,7 @@ import { useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ScaForm, ScaFormRef } from '@/components/dashboard/sca-form';
+import { ScaForm, ScaFormRef, AUTOSAVE_KEY } from '@/components/dashboard/sca-form';
 import type { Evaluation } from '@/lib/types';
 import { useFirestore } from '@/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -40,6 +40,16 @@ export default function Home() {
       router.push('/login');
     }
   }, [user, isUserLoading, router]);
+
+  useEffect(() => {
+    // On page load, check if there's a draft and load it.
+    if (formRef.current) {
+        const savedData = localStorage.getItem(AUTOSAVE_KEY);
+        if (savedData) {
+            formRef.current.loadDraft();
+        }
+    }
+  }, []);
 
   const handleAddEvaluation = async (
     evaluationData: Omit<Evaluation, 'id' | 'createdAt' | 'userId'>
