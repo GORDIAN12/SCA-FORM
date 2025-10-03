@@ -1,15 +1,17 @@
 'use client';
 
 import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy } from 'firebase/firestore';
+import { collection, query, orderBy, doc, deleteDoc, updateDoc } from 'firebase/firestore';
 import type { Evaluation } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft } from 'lucide-react';
 import { CuppingCompassLogo } from '@/components/cupping-compass-logo';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { HistoryItem } from '@/components/history/history-item';
+import { useState, useEffect } from 'react';
+import { AnimatePresence } from 'framer-motion';
 
 export default function HistoryPage() {
   const { user, isUserLoading } = useUser();
@@ -24,7 +26,15 @@ export default function HistoryPage() {
     );
   }, [firestore, user]);
 
-  const { data: evaluations, isLoading } = useCollection<Evaluation>(evaluationsQuery);
+  const { data, isLoading } = useCollection<Evaluation>(evaluationsQuery);
+
+  const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
+
+  useEffect(() => {
+    if (data) {
+      setEvaluations(data);
+    }
+  }, [data]);
 
   if (isUserLoading) {
     return (
@@ -40,14 +50,38 @@ export default function HistoryPage() {
     return null;
   }
 
+  const handleDelete = async (evaluationId: string) => {
+    if (!user || !firestore) return;
+    try {
+      const docRef = doc(firestore, 'users', user.uid, 'evaluations', evaluationId);
+      await deleteDoc(docRef);
+      setEvaluations((prev) => prev.filter((e) => e.id !== evaluationId));
+    } catch (error) {
+      console.error("Error deleting evaluation: ", error);
+    }
+  };
+
+  const handleToggleFavorite = async (evaluationId: string, currentState: boolean) => {
+    if (!user || !firestore) return;
+    try {
+      const docRef = doc(firestore, 'users', user.uid, 'evaluations', evaluationId);
+      await updateDoc(docRef, { isFavorite: !currentState });
+      setEvaluations((prev) => 
+        prev.map((e) => 
+          e.id === evaluationId ? { ...e, isFavorite: !currentState } : e
+        )
+      );
+    } catch (error) {
+      console.error("Error updating favorite status: ", error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
        <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/80 px-6 backdrop-blur-sm">
         <div className="flex items-center gap-4">
-          <Button variant="outline" size="icon" asChild>
-            <Link href="/">
-              <ChevronLeft className="h-4 w-4" />
-            </Link>
+          <Button variant="outline" size="icon" onClick={() => router.push('/')}>
+            <ChevronLeft className="h-4 w-4" />
           </Button>
           <div className="flex items-center gap-2">
             <CuppingCompassLogo className="size-8 text-primary" />
@@ -85,23 +119,16 @@ export default function HistoryPage() {
                   )}
                   {evaluations && evaluations.length > 0 ? (
                     <ul className="space-y-2">
+                      <AnimatePresence>
                       {evaluations.map((evaluation) => (
-                        <li key={evaluation.id}>
-                          <Button asChild variant="ghost" className="w-full h-auto justify-start text-left p-4">
-                            <Link href={`/evaluations/${evaluation.id}`}>
-                              <div className="flex-1">
-                                <div className="font-semibold text-base">{evaluation.coffeeName}</div>
-                                <div className="text-sm text-muted-foreground">
-                                  {evaluation.createdAt?.toDate().toLocaleDateString()} - Score: {evaluation.overallScore.toFixed(2)}
-                                </div>
-                              </div>
-                               <div className="text-lg font-bold text-primary">
-                                {evaluation.overallScore.toFixed(2)}
-                              </div>
-                            </Link>
-                          </Button>
-                        </li>
+                         <HistoryItem 
+                          key={evaluation.id}
+                          evaluation={evaluation}
+                          onDelete={handleDelete}
+                          onToggleFavorite={handleToggleFavorite}
+                         />
                       ))}
+                      </AnimatePresence>
                     </ul>
                   ) : (
                     !isLoading && <p className="text-center text-muted-foreground py-8">No hay evaluaciones guardadas.</p>

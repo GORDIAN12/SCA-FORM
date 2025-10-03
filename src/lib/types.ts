@@ -42,6 +42,7 @@ export interface Evaluation {
   overallScore: number;
   createdAt: any; // Allow serverTimestamp
   userId: string;
+  isFavorite?: boolean;
 }
 
 export interface ScaFormValues {
