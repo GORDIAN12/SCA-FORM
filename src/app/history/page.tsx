@@ -49,7 +49,7 @@ export default function HistoryPage() {
   const filteredEvaluations = useMemo(() => {
     return evaluations.filter(evaluation => {
       const matchesSearchTerm = evaluation.coffeeName.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesRoastLevel = roastLevelFilter ? evaluation.roastLevel === roastLevelFilter : true;
+      const matchesRoastLevel = !roastLevelFilter || roastLevelFilter === 'all' ? true : evaluation.roastLevel === roastLevelFilter;
       const matchesDate = dateFilter ? format(evaluation.createdAt?.toDate(), 'yyyy-MM-dd') === format(dateFilter, 'yyyy-MM-dd') : true;
 
       return matchesSearchTerm && matchesRoastLevel && matchesDate;
@@ -144,7 +144,7 @@ export default function HistoryPage() {
                             <SelectValue placeholder="Filtrar por tueste" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="">Todos los tuestes</SelectItem>
+                            <SelectItem value="all">Todos los tuestes</SelectItem>
                             <SelectItem value="light">Light</SelectItem>
                             <SelectItem value="medium">Medium</SelectItem>
                             <SelectItem value="medium-dark">Medium-Dark</SelectItem>
