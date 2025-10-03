@@ -11,13 +11,13 @@ import { CuppingCompassLogo } from '@/components/cupping-compass-logo';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { HistoryItem } from '@/components/history/history-item';
 import { useState, useEffect, useMemo } from 'react';
-import { AnimatePresence } from 'framer-motion';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { generatePdf } from '@/lib/generate-pdf';
 
 export default function HistoryPage() {
   const { user, isUserLoading } = useUser();
@@ -47,6 +47,7 @@ export default function HistoryPage() {
   }, [data]);
   
   const filteredEvaluations = useMemo(() => {
+    if (!evaluations) return [];
     return evaluations.filter(evaluation => {
       const matchesSearchTerm = evaluation.coffeeName.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesRoastLevel = !roastLevelFilter || roastLevelFilter === 'all' ? true : evaluation.roastLevel === roastLevelFilter;
@@ -94,6 +95,10 @@ export default function HistoryPage() {
     } catch (error) {
       console.error("Error updating favorite status: ", error);
     }
+  };
+  
+  const handleDownloadPdf = (evaluation: Evaluation) => {
+    generatePdf(evaluation);
   };
   
   const clearFilters = () => {
@@ -190,16 +195,15 @@ export default function HistoryPage() {
                   )}
                   {filteredEvaluations && filteredEvaluations.length > 0 ? (
                     <ul className="space-y-2">
-                      <AnimatePresence>
                       {filteredEvaluations.map((evaluation) => (
                          <HistoryItem 
                           key={evaluation.id}
                           evaluation={evaluation}
                           onDelete={handleDelete}
                           onToggleFavorite={handleToggleFavorite}
+                          onDownloadPdf={handleDownloadPdf}
                          />
                       ))}
-                      </AnimatePresence>
                     </ul>
                   ) : (
                     !isLoading && <p className="text-center text-muted-foreground py-8">No se encontraron evaluaciones con los filtros aplicados.</p>
