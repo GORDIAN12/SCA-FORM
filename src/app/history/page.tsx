@@ -30,6 +30,12 @@ export default function HistoryPage() {
   const [roastLevelFilter, setRoastLevelFilter] = useState('');
   const [dateFilter, setDateFilter] = useState<Date | undefined>();
 
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push('/login');
+    }
+  }, [user, isUserLoading, router]);
+
   const evaluationsQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
     return query(
@@ -59,18 +65,13 @@ export default function HistoryPage() {
     });
   }, [evaluations, searchTerm, roastLevelFilter, dateFilter]);
 
-  if (isUserLoading) {
+  if (isUserLoading || !user) {
     return (
       <div className="p-8">
         <Skeleton className="h-10 w-1/2 mb-4" />
         <Skeleton className="h-96 w-full" />
       </div>
     );
-  }
-
-  if (!user) {
-    router.push('/login');
-    return null;
   }
 
   const handleDelete = async (evaluationId: string) => {
