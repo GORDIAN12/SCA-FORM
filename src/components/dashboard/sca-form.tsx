@@ -995,7 +995,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                       >
                           <TabsList className="grid w-full grid-cols-3">
                               <TabsTrigger value="hot" disabled={isReadOnly && activeTempTab !== 'hot'}>Hot</TabsTrigger>
-                              <TabsTrigger value="warm" disabled={isReadOnly && activeTempTeb !== 'warm'}>Warm</TabsTrigger>
+                              <TabsTrigger value="warm" disabled={isReadOnly && activeTempTab !== 'warm'}>Warm</TabsTrigger>
                               <TabsTrigger value="cold" disabled={isReadOnly && activeTempTab !== 'cold'}>Cold</TabsTrigger>
                           </TabsList>
                       </Tabs>
