@@ -25,7 +25,6 @@ import { EvaluationHistory } from '@/components/dashboard/evaluation-history';
 import { Menu, LogOut, Settings } from 'lucide-react';
 import { SettingsDialog } from '@/components/settings-dialog';
 import { DraftsDialog } from '@/components/dashboard/drafts-dialog';
-import { BitacoraDialog } from '@/components/dashboard/bitacora-dialog';
 
 export default function Home() {
   const { user, isUserLoading } = useUser();
@@ -36,7 +35,6 @@ export default function Home() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isDraftsOpen, setIsDraftsOpen] = useState(false);
-  const [isBitacoraOpen, setIsBitacoraOpen] = useState(false);
   const [draftToLoad, setDraftToLoad] = useState<ScaFormValues | null>(null);
 
   useEffect(() => {
@@ -124,7 +122,6 @@ export default function Home() {
           </SidebarHeader>
           <EvaluationHistory 
             onDraftsClick={() => setIsDraftsOpen(true)}
-            onBitacoraClick={() => setIsBitacoraOpen(true)}
            />
           <SidebarFooter className="p-4 flex flex-col gap-2">
              <SidebarMenuButton onClick={() => setIsSettingsOpen(true)}>
@@ -178,7 +175,6 @@ export default function Home() {
       </SidebarInset>
       <SettingsDialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
       <DraftsDialog open={isDraftsOpen} onOpenChange={setIsDraftsOpen} onLoadDraft={handleLoadDraft} />
-      <BitacoraDialog open={isBitacoraOpen} onOpenChange={setIsBitacoraOpen} userId={user.uid} />
     </SidebarProvider>
   );
 }

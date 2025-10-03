@@ -7,15 +7,14 @@ import {
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { PlusCircle, Coffee, FileText, BookOpen } from 'lucide-react';
+import { PlusCircle, FileText, BookOpen } from 'lucide-react';
 import { ScrollArea } from '../ui/scroll-area';
 
 interface EvaluationHistoryProps {
   onDraftsClick: () => void;
-  onBitacoraClick: () => void;
 }
 
-export function EvaluationHistory({ onDraftsClick, onBitacoraClick }: EvaluationHistoryProps) {
+export function EvaluationHistory({ onDraftsClick }: EvaluationHistoryProps) {
   const pathname = usePathname();
 
   return (
@@ -28,9 +27,11 @@ export function EvaluationHistory({ onDraftsClick, onBitacoraClick }: Evaluation
           </SidebarMenuButton>
         </SidebarMenuItem>
          <SidebarMenuItem>
-          <SidebarMenuButton onClick={onBitacoraClick}>
-            <BookOpen className="size-4" />
-            <span>Bitácora</span>
+           <SidebarMenuButton asChild isActive={pathname === '/history'}>
+            <Link href="/history">
+              <BookOpen className="size-4" />
+              <span>Historial</span>
+            </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>
         <SidebarMenuItem>
