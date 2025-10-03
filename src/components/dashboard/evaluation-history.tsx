@@ -4,35 +4,19 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarMenu,
-  SidebarMenuSkeleton,
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { PlusCircle, Coffee, FileText } from 'lucide-react';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy } from 'firebase/firestore';
-import type { Evaluation } from '@/lib/types';
+import { PlusCircle, Coffee, FileText, BookOpen } from 'lucide-react';
 import { ScrollArea } from '../ui/scroll-area';
 
 interface EvaluationHistoryProps {
-  userId: string;
   onDraftsClick: () => void;
+  onBitacoraClick: () => void;
 }
 
-export function EvaluationHistory({ userId, onDraftsClick }: EvaluationHistoryProps) {
+export function EvaluationHistory({ onDraftsClick, onBitacoraClick }: EvaluationHistoryProps) {
   const pathname = usePathname();
-  const firestore = useFirestore();
-
-  const evaluationsQuery = useMemoFirebase(() => {
-    if (!firestore || !userId) return null;
-    return query(
-      collection(firestore, 'users', userId, 'evaluations'),
-      orderBy('createdAt', 'desc')
-    );
-  }, [firestore, userId]);
-
-  const { data: evaluations, isLoading } =
-    useCollection<Evaluation>(evaluationsQuery);
 
   return (
     <div className="flex flex-col h-full">
@@ -41,6 +25,12 @@ export function EvaluationHistory({ userId, onDraftsClick }: EvaluationHistoryPr
           <SidebarMenuButton onClick={onDraftsClick}>
               <FileText className="size-4" />
               <span>Mis Borradores</span>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+         <SidebarMenuItem>
+          <SidebarMenuButton onClick={onBitacoraClick}>
+            <BookOpen className="size-4" />
+            <span>Bitácora</span>
           </SidebarMenuButton>
         </SidebarMenuItem>
         <SidebarMenuItem>
@@ -52,31 +42,7 @@ export function EvaluationHistory({ userId, onDraftsClick }: EvaluationHistoryPr
           </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>
-      <ScrollArea className="flex-1">
-        <SidebarMenu className="px-4">
-          {isLoading && (
-            <>
-              <SidebarMenuSkeleton showIcon />
-              <SidebarMenuSkeleton showIcon />
-              <SidebarMenuSkeleton showIcon />
-            </>
-          )}
-          {evaluations?.map((evaluation) => (
-            <SidebarMenuItem key={evaluation.id}>
-              <SidebarMenuButton
-                asChild
-                isActive={pathname === `/evaluations/${evaluation.id}`}
-                className="w-full justify-start"
-              >
-                <Link href={`/evaluations/${evaluation.id}`}>
-                  <Coffee className="size-4" />
-                  <span className="truncate">{evaluation.coffeeName}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
-      </ScrollArea>
+      <ScrollArea className="flex-1" />
     </div>
   );
 }
