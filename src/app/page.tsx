@@ -17,12 +17,10 @@ import {
   SidebarTrigger,
   SidebarContent,
   SidebarHeader,
-  SidebarFooter,
-  SidebarMenuButton,
   SidebarInset,
 } from '@/components/ui/sidebar';
 import { EvaluationHistory } from '@/components/dashboard/evaluation-history';
-import { Menu, LogOut, Settings } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import { SettingsDialog } from '@/components/settings-dialog';
 import { DraftsDialog } from '@/components/dashboard/drafts-dialog';
 
@@ -122,24 +120,8 @@ export default function Home() {
           </SidebarHeader>
           <EvaluationHistory 
             onDraftsClick={() => setIsDraftsOpen(true)}
+            onSettingsClick={() => setIsSettingsOpen(true)}
            />
-          <SidebarFooter className="p-4 flex flex-col gap-2">
-             <SidebarMenuButton onClick={() => setIsSettingsOpen(true)}>
-                <Settings className="size-4" />
-                <span>Settings</span>
-              </SidebarMenuButton>
-            <SidebarMenuButton
-              onClick={async () => {
-                const { getAuth, signOut } = await import('firebase/auth');
-                const auth = getAuth();
-                await signOut(auth);
-                router.push('/login');
-              }}
-            >
-              <LogOut className="size-4" />
-              <span>Logout</span>
-            </SidebarMenuButton>
-          </SidebarFooter>
         </SidebarContent>
       </Sidebar>
       <SidebarInset>
