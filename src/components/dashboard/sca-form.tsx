@@ -293,27 +293,22 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
         if (onValuesChange) {
             onValuesChange(watchedValues as ScaFormValues);
         }
-        if (!isReadOnly && watchedValues.coffeeName) {
+        if (!isReadOnly && watchedValues.coffeeName && watchedValues.draftId) {
             try {
                 const drafts = JSON.parse(localStorage.getItem(DRAFTS_KEY) || '{}');
-                const draftId = watchedValues.draftId || `draft-${Date.now()}`;
-                
                 const updatedDraft = {
                     ...watchedValues,
-                    draftId,
                     lastModified: new Date().toISOString(),
                 };
                 
-                form.setValue('draftId', draftId, { shouldValidate: false, shouldDirty: false });
-                form.setValue('lastModified', updatedDraft.lastModified, { shouldValidate: false, shouldDirty: false });
-                
-                drafts[draftId] = updatedDraft;
+                drafts[watchedValues.draftId] = updatedDraft;
                 localStorage.setItem(DRAFTS_KEY, JSON.stringify(drafts));
+                // No need to call form.setValue for lastModified, it will trigger another render.
             } catch (error) {
                 console.error("Failed to save draft to localStorage", error);
             }
         }
-    }, [watchedValues, onValuesChange, isReadOnly, form]);
+    }, [watchedValues, onValuesChange, isReadOnly]);
     
     const activeCupIndex = useMemo(() => {
       return parseInt(activeCupTab.split('-')[1], 10) - 1;
@@ -1028,4 +1023,3 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
 ScaForm.displayName = 'ScaForm';
 export { DRAFTS_KEY };
     
-
