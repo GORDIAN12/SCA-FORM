@@ -28,14 +28,11 @@ import {
   useState,
   forwardRef,
   useImperativeHandle,
-  useRef,
 } from 'react';
 import { cn } from '@/lib/utils';
-import { Coffee, Download } from 'lucide-react';
+import { Coffee } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FlavorProfileChart } from './flavor-profile-chart';
-import { Button } from '../ui/button';
-import { exportChart } from '@/lib/export-chart';
 
 const scoreSchema = z.coerce.number().min(6).max(10);
 const intensitySchema = z.enum(['low', 'medium', 'high'], {
@@ -242,7 +239,6 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
   ({ initialData, onSubmit, onValuesChange, onActiveCupChange, isSubmitting }, ref) => {
     const [activeCupTab, setActiveCupTab] = useState('cup-1');
     const [activeTempTab, setActiveTempTab] = useState<'hot' | 'warm' | 'cold'>('hot');
-    const chartContainerRef = useRef<HTMLDivElement>(null);
     const isReadOnly = !!initialData;
     
     const form = useForm<ScaFormValues>({
@@ -988,20 +984,9 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
               </Tabs>
               <Card>
                   <CardHeader>
-                    <div className="flex justify-between items-center">
-                        <h3 className="text-xl font-semibold">Flavor Profile</h3>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => exportChart(chartContainerRef)}
-                          disabled={!flavorProfileData}
-                        >
-                          <Download className="h-4 w-4" />
-                          <span className="sr-only">Download Chart</span>
-                        </Button>
-                    </div>
+                    <h3 className="text-xl font-semibold">Flavor Profile</h3>
                   </CardHeader>
-                  <CardContent className="pt-6" ref={chartContainerRef}>
+                  <CardContent className="pt-6">
                       <Tabs 
                           defaultValue="hot" 
                           className="w-full" 
@@ -1010,7 +995,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                       >
                           <TabsList className="grid w-full grid-cols-3">
                               <TabsTrigger value="hot" disabled={isReadOnly && activeTempTab !== 'hot'}>Hot</TabsTrigger>
-                              <TabsTrigger value="warm" disabled={isReadOnly && activeTempTab !== 'warm'}>Warm</TabsTrigger>
+                              <TabsTrigger value="warm" disabled={isReadOnly && activeTempTeb !== 'warm'}>Warm</TabsTrigger>
                               <TabsTrigger value="cold" disabled={isReadOnly && activeTempTab !== 'cold'}>Cold</TabsTrigger>
                           </TabsList>
                       </Tabs>
