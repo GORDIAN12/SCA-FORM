@@ -228,11 +228,14 @@ const createDefaultFormValues = (): ScaFormValues => ({
   cups: Array.from({ length: 5 }, (_, i) => createDefaultCup(i)),
 });
 
+const AUTOSAVE_KEY = 'cupping-compass-autosave';
+
 export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
   ({ initialData, onSubmit, onValuesChange, onActiveCupChange, isSubmitting }, ref) => {
     const [activeCupTab, setActiveCupTab] = useState('cup-1');
     const [activeTempTab, setActiveTempTab] = useState<'hot' | 'warm' | 'cold'>('hot');
-
+    const isReadOnly = !!initialData;
+    
     const form = useForm<ScaFormValues>({
       resolver: zodResolver(formSchema),
       defaultValues: initialData
@@ -244,6 +247,20 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
         : createDefaultFormValues(),
     });
 
+     useEffect(() => {
+      if (!isReadOnly) {
+        try {
+          const savedData = localStorage.getItem(AUTOSAVE_KEY);
+          if (savedData) {
+            const parsedData = JSON.parse(savedData);
+            form.reset(parsedData);
+          }
+        } catch (error) {
+          console.error("Failed to load autosaved data from localStorage", error);
+        }
+      }
+    }, [isReadOnly, form]);
+
     useEffect(() => {
       if (initialData) {
         form.reset({
@@ -251,14 +268,17 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
           roastLevel: initialData.roastLevel,
           cups: initialData.cups,
         });
-      } else {
-        form.reset(createDefaultFormValues());
       }
     }, [initialData, form]);
 
     useImperativeHandle(ref, () => ({
       submit: form.handleSubmit(handleSubmit),
-      reset: () => form.reset(createDefaultFormValues()),
+      reset: () => {
+        form.reset(createDefaultFormValues());
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem(AUTOSAVE_KEY);
+        }
+      },
     }));
 
     const { fields } = useFieldArray({
@@ -272,7 +292,14 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
       if (onValuesChange) {
         onValuesChange(watchedValues as ScaFormValues);
       }
-    }, [watchedValues, onValuesChange]);
+       if (!isReadOnly) {
+        try {
+          localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(watchedValues));
+        } catch (error) {
+          console.error("Failed to save data to localStorage", error);
+        }
+      }
+    }, [watchedValues, onValuesChange, isReadOnly]);
     
     const activeCupIndex = useMemo(() => {
       return parseInt(activeCupTab.split('-')[1], 10) - 1;
@@ -324,14 +351,15 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
         cups: values.cups,
         overallScore: parseFloat(overallScore.toFixed(2)),
       };
-
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem(AUTOSAVE_KEY);
+      }
       onSubmit(evaluationData);
     }
 
     const capitalize = (s: string) =>
       s.charAt(0).toUpperCase() + s.slice(1).replace(/([A-Z])/g, ' $1');
 
-    const isReadOnly = !!initialData;
 
     return (
       <Card>
@@ -414,10 +442,11 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                 defaultValue="cup-1"
                 className="w-full"
                 onValueChange={setActiveCupTab}
+                value={activeCupTab}
               >
-                <TabsList className="grid w-full grid-cols-5" disabled={isReadOnly}>
+                <TabsList className="grid w-full grid-cols-5" >
                   {fields.map((field, index) => (
-                    <TabsTrigger key={field.id} value={`cup-${index + 1}`}>
+                    <TabsTrigger key={field.id} value={`cup-${index + 1}`} disabled={isReadOnly && `cup-${index + 1}` !== activeCupTab && fields.length > 1}>
                       Cup {index + 1}
                     </TabsTrigger>
                   ))}
@@ -679,11 +708,11 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                               </div>
                             </div>
 
-                            <Tabs defaultValue="hot" className="w-full">
-                              <TabsList className="grid w-full grid-cols-3" disabled={isReadOnly}>
-                                <TabsTrigger value="hot">Hot</TabsTrigger>
-                                <TabsTrigger value="warm">Warm</TabsTrigger>
-                                <TabsTrigger value="cold">Cold</TabsTrigger>
+                            <Tabs defaultValue="hot" className="w-full" onValueChange={(value) => setActiveTempTab(value as 'hot' | 'warm' | 'cold')} value={activeTempTab}>
+                              <TabsList className="grid w-full grid-cols-3" >
+                                <TabsTrigger value="hot" disabled={isReadOnly && 'hot' !== activeTempTab}>Hot</TabsTrigger>
+                                <TabsTrigger value="warm" disabled={isReadOnly && 'warm' !== activeTempTab}>Warm</TabsTrigger>
+                                <TabsTrigger value="cold" disabled={isReadOnly && 'cold' !== activeTempTab}>Cold</TabsTrigger>
                               </TabsList>
                               {(['hot', 'warm', 'cold'] as const).map(
                                 (temp) => (
@@ -946,11 +975,12 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                           defaultValue="hot" 
                           className="w-full" 
                           onValueChange={(value) => setActiveTempTab(value as 'hot' | 'warm' | 'cold')}
+                          value={activeTempTab}
                       >
                           <TabsList className="grid w-full grid-cols-3">
-                              <TabsTrigger value="hot">Hot</TabsTrigger>
-                              <TabsTrigger value="warm">Warm</TabsTrigger>
-                              <TabsTrigger value="cold">Cold</TabsTrigger>
+                              <TabsTrigger value="hot" disabled={isReadOnly && activeTempTab !== 'hot'}>Hot</TabsTrigger>
+                              <TabsTrigger value="warm" disabled={isReadOnly && activeTempTab !== 'warm'}>Warm</TabsTrigger>
+                              <TabsTrigger value="cold" disabled={isReadOnly && activeTempTab !== 'cold'}>Cold</TabsTrigger>
                           </TabsList>
                       </Tabs>
                       <h3 className="text-center text-xl font-semibold my-4">Flavor Profile</h3>
@@ -977,3 +1007,5 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
 );
 
 ScaForm.displayName = 'ScaForm';
+
+    
