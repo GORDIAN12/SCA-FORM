@@ -2,6 +2,10 @@
 import type { Evaluation } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScoresRadarChart } from './scores-radar-chart';
+import { useRef } from 'react';
+import { Button } from '../ui/button';
+import { Download } from 'lucide-react';
+import { exportChart } from '@/lib/export-chart';
 
 interface ScoresOverviewProps {
   evaluation: Evaluation;
@@ -9,6 +13,7 @@ interface ScoresOverviewProps {
 
 export function ScoresOverview({ evaluation }: ScoresOverviewProps) {
   const { coffeeName, overallScore, roastLevel, cups } = evaluation;
+  const chartRef = useRef<HTMLDivElement>(null);
 
   const averageScores = {
     aroma:
@@ -38,18 +43,31 @@ export function ScoresOverview({ evaluation }: ScoresOverviewProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex justify-between items-start">
-          <span className="text-2xl">{coffeeName}</span>
-          <div className="flex flex-col items-end">
-            <span className="text-3xl font-bold text-primary">
-              {overallScore.toFixed(2)}
-            </span>
-            <span className="text-sm text-muted-foreground">Overall Score</span>
-          </div>
-        </CardTitle>
-        <p className="text-sm text-muted-foreground">Roast Level: {roastLevel}</p>
+        <div className="flex justify-between items-start">
+            <div>
+                <CardTitle className="text-2xl">{coffeeName}</CardTitle>
+                <p className="text-sm text-muted-foreground pt-2">Roast Level: {roastLevel}</p>
+            </div>
+            <div className='flex flex-col items-end gap-2'>
+              <div className="flex flex-col items-end">
+                <span className="text-3xl font-bold text-primary">
+                  {overallScore.toFixed(2)}
+                </span>
+                <span className="text-sm text-muted-foreground">Overall Score</span>
+              </div>
+               <Button
+                variant="outline"
+                size="sm"
+                onClick={() => exportChart(chartRef)}
+              >
+                <Download className="mr-2 h-4 w-4" />
+                Download Chart
+              </Button>
+            </div>
+        </div>
+        
       </CardHeader>
-      <CardContent>
+      <CardContent ref={chartRef}>
         <div className="h-80 md:h-96">
           <ScoresRadarChart scores={averageScores} />
         </div>

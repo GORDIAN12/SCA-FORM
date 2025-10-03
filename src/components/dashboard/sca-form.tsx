@@ -28,11 +28,14 @@ import {
   useState,
   forwardRef,
   useImperativeHandle,
+  useRef,
 } from 'react';
 import { cn } from '@/lib/utils';
-import { Coffee } from 'lucide-react';
+import { Coffee, Download } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FlavorProfileChart } from './flavor-profile-chart';
+import { Button } from '../ui/button';
+import { exportChart } from '@/lib/export-chart';
 
 const scoreSchema = z.coerce.number().min(6).max(10);
 const intensitySchema = z.enum(['low', 'medium', 'high'], {
@@ -239,6 +242,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
   ({ initialData, onSubmit, onValuesChange, onActiveCupChange, isSubmitting }, ref) => {
     const [activeCupTab, setActiveCupTab] = useState('cup-1');
     const [activeTempTab, setActiveTempTab] = useState<'hot' | 'warm' | 'cold'>('hot');
+    const chartContainerRef = useRef<HTMLDivElement>(null);
     const isReadOnly = !!initialData;
     
     const form = useForm<ScaFormValues>({
@@ -303,7 +307,6 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                 
                 drafts[watchedValues.draftId] = updatedDraft;
                 localStorage.setItem(DRAFTS_KEY, JSON.stringify(drafts));
-                // No need to call form.setValue for lastModified, it will trigger another render.
             } catch (error) {
                 console.error("Failed to save draft to localStorage", error);
             }
@@ -984,7 +987,21 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                 })}
               </Tabs>
               <Card>
-                  <CardContent className="pt-6">
+                  <CardHeader>
+                    <div className="flex justify-between items-center">
+                        <h3 className="text-xl font-semibold">Flavor Profile</h3>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => exportChart(chartContainerRef)}
+                          disabled={!flavorProfileData}
+                        >
+                          <Download className="h-4 w-4" />
+                          <span className="sr-only">Download Chart</span>
+                        </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-6" ref={chartContainerRef}>
                       <Tabs 
                           defaultValue="hot" 
                           className="w-full" 
@@ -997,8 +1014,8 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                               <TabsTrigger value="cold" disabled={isReadOnly && activeTempTab !== 'cold'}>Cold</TabsTrigger>
                           </TabsList>
                       </Tabs>
-                      <h3 className="text-center text-xl font-semibold my-4">Flavor Profile</h3>
-                      <div className="h-80">
+                      
+                      <div className="h-80 mt-4">
                           {flavorProfileData && <FlavorProfileChart scores={flavorProfileData} />}
                       </div>
                   </CardContent>
@@ -1022,4 +1039,3 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
 
 ScaForm.displayName = 'ScaForm';
 export { DRAFTS_KEY };
-    

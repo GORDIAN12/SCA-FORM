@@ -4,13 +4,13 @@ import { useDoc, useFirestore, useUser } from '@/firebase';
 import { doc, DocumentReference } from 'firebase/firestore';
 import { useParams, useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ScaForm } from '@/components/dashboard/sca-form';
 import type { Evaluation } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
 import { CuppingCompassLogo } from '@/components/cupping-compass-logo';
 import { useMemo } from 'react';
+import { ScoresOverview } from '@/components/dashboard/scores-overview';
 
 export default function EvaluationPage() {
   const { user, isUserLoading } = useUser();
@@ -87,7 +87,7 @@ export default function EvaluationPage() {
       </header>
       <main className="p-4 sm:p-6 lg:p-8">
         <div className="mx-auto max-w-4xl space-y-6">
-          <ScaForm initialData={evaluation} onSubmit={() => {}} />
+          <ScoresOverview evaluation={evaluation} />
         </div>
       </main>
     </div>
