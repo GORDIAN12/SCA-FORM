@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { PlusCircle, Coffee } from 'lucide-react';
+import { PlusCircle, Coffee, FileText } from 'lucide-react';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy } from 'firebase/firestore';
 import type { Evaluation } from '@/lib/types';
@@ -36,6 +36,14 @@ export function EvaluationHistory({ userId }: EvaluationHistoryProps) {
   return (
     <div className="flex flex-col h-full">
       <SidebarMenu>
+        <SidebarMenuItem>
+          <SidebarMenuButton asChild isActive={pathname === '/drafts'}>
+            <Link href="/drafts">
+              <FileText className="size-4" />
+              <span>Mis Borradores</span>
+            </Link>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
         <SidebarMenuItem>
           <SidebarMenuButton asChild isActive={pathname === '/'}>
             <Link href="/">
