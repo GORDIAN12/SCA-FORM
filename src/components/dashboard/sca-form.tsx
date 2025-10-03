@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Slider } from '@/components/ui/slider';
-import type { Evaluation, CupEvaluation } from '@/lib/types';
+import type { Evaluation, CupEvaluation, ScaFormValues as ScaFormValuesType } from '@/lib/types';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
   useEffect,
@@ -81,9 +81,11 @@ const cupEvaluationSchema = z.object({
 });
 
 const formSchema = z.object({
+  draftId: z.string().optional(),
   coffeeName: z.string().min(1, 'Coffee name is required'),
   roastLevel: roastLevelSchema,
   cups: z.array(cupEvaluationSchema).length(5),
+  lastModified: z.string().optional(),
 });
 
 export type ScaFormValues = z.infer<typeof formSchema>;
@@ -100,8 +102,8 @@ interface ScaFormProps {
 
 export interface ScaFormRef {
   submit: () => void;
-  reset: () => void;
-  loadDraft: () => void;
+  reset: (isSubmission?: boolean) => void;
+  loadDraft: (data: ScaFormValues) => void;
 }
 
 const CupSelector = ({
@@ -224,12 +226,14 @@ const createDefaultCup = (index: number): CupFormValues => ({
 });
 
 const createDefaultFormValues = (): ScaFormValues => ({
+  draftId: `draft-${Date.now()}`,
   coffeeName: '',
   roastLevel: 'medium',
   cups: Array.from({ length: 5 }, (_, i) => createDefaultCup(i)),
+  lastModified: new Date().toISOString(),
 });
 
-export const AUTOSAVE_KEY = 'cupping-compass-autosave';
+const DRAFTS_KEY = 'cupping-compass-drafts';
 
 export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
   ({ initialData, onSubmit, onValuesChange, onActiveCupChange, isSubmitting }, ref) => {
@@ -260,23 +264,20 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
 
     useImperativeHandle(ref, () => ({
       submit: form.handleSubmit(handleSubmit),
-      reset: () => {
-        form.reset(createDefaultFormValues());
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem(AUTOSAVE_KEY);
-        }
-      },
-      loadDraft: () => {
-        if (!isReadOnly) {
-          try {
-            const savedData = localStorage.getItem(AUTOSAVE_KEY);
-            if (savedData) {
-              const parsedData = JSON.parse(savedData);
-              form.reset(parsedData);
+      reset: (isSubmission = false) => {
+        const currentDraftId = form.getValues('draftId');
+        if (isSubmission && currentDraftId) {
+            if (typeof window !== 'undefined') {
+                const drafts = JSON.parse(localStorage.getItem(DRAFTS_KEY) || '{}');
+                delete drafts[currentDraftId];
+                localStorage.setItem(DRAFTS_KEY, JSON.stringify(drafts));
             }
-          } catch (error) {
-            console.error("Failed to load autosaved data from localStorage", error);
-          }
+        }
+        form.reset(createDefaultFormValues());
+      },
+      loadDraft: (data) => {
+        if (!isReadOnly) {
+            form.reset(data);
         }
       }
     }));
@@ -289,17 +290,30 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
     const watchedValues = useWatch({ control: form.control });
 
     useEffect(() => {
-      if (onValuesChange) {
-        onValuesChange(watchedValues as ScaFormValues);
-      }
-       if (!isReadOnly) {
-        try {
-          localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(watchedValues));
-        } catch (error) {
-          console.error("Failed to save data to localStorage", error);
+        if (onValuesChange) {
+            onValuesChange(watchedValues as ScaFormValues);
         }
-      }
-    }, [watchedValues, onValuesChange, isReadOnly]);
+        if (!isReadOnly && watchedValues.coffeeName) {
+            try {
+                const drafts = JSON.parse(localStorage.getItem(DRAFTS_KEY) || '{}');
+                const draftId = watchedValues.draftId || `draft-${Date.now()}`;
+                
+                const updatedDraft = {
+                    ...watchedValues,
+                    draftId,
+                    lastModified: new Date().toISOString(),
+                };
+                
+                form.setValue('draftId', draftId, { shouldValidate: false, shouldDirty: false });
+                form.setValue('lastModified', updatedDraft.lastModified, { shouldValidate: false, shouldDirty: false });
+                
+                drafts[draftId] = updatedDraft;
+                localStorage.setItem(DRAFTS_KEY, JSON.stringify(drafts));
+            } catch (error) {
+                console.error("Failed to save draft to localStorage", error);
+            }
+        }
+    }, [watchedValues, onValuesChange, isReadOnly, form]);
     
     const activeCupIndex = useMemo(() => {
       return parseInt(activeCupTab.split('-')[1], 10) - 1;
@@ -351,9 +365,14 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
         cups: values.cups,
         overallScore: parseFloat(overallScore.toFixed(2)),
       };
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem(AUTOSAVE_KEY);
+      
+      const draftId = values.draftId;
+      if (!isReadOnly && draftId && typeof window !== 'undefined') {
+        const drafts = JSON.parse(localStorage.getItem(DRAFTS_KEY) || '{}');
+        delete drafts[draftId];
+        localStorage.setItem(DRAFTS_KEY, JSON.stringify(drafts));
       }
+
       onSubmit(evaluationData);
     }
 
@@ -1007,5 +1026,6 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
 );
 
 ScaForm.displayName = 'ScaForm';
-
+export { DRAFTS_KEY };
     
+

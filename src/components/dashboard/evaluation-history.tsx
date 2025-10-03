@@ -16,9 +16,10 @@ import { ScrollArea } from '../ui/scroll-area';
 
 interface EvaluationHistoryProps {
   userId: string;
+  onDraftsClick: () => void;
 }
 
-export function EvaluationHistory({ userId }: EvaluationHistoryProps) {
+export function EvaluationHistory({ userId, onDraftsClick }: EvaluationHistoryProps) {
   const pathname = usePathname();
   const firestore = useFirestore();
 
@@ -37,11 +38,9 @@ export function EvaluationHistory({ userId }: EvaluationHistoryProps) {
     <div className="flex flex-col h-full">
       <SidebarMenu>
         <SidebarMenuItem>
-          <SidebarMenuButton asChild isActive={pathname === '/drafts'}>
-            <Link href="/drafts">
+          <SidebarMenuButton onClick={onDraftsClick}>
               <FileText className="size-4" />
               <span>Mis Borradores</span>
-            </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>
         <SidebarMenuItem>

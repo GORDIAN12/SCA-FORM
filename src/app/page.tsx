@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScaForm, ScaFormRef, AUTOSAVE_KEY } from '@/components/dashboard/sca-form';
-import type { Evaluation } from '@/lib/types';
+import type { Evaluation, ScaFormValues } from '@/lib/types';
 import { useFirestore } from '@/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
@@ -24,7 +24,7 @@ import {
 import { EvaluationHistory } from '@/components/dashboard/evaluation-history';
 import { Menu, LogOut, Settings } from 'lucide-react';
 import { SettingsDialog } from '@/components/settings-dialog';
-import { DraftsButton } from '@/components/dashboard/drafts-button';
+import { DraftsDialog } from '@/components/dashboard/drafts-dialog';
 
 export default function Home() {
   const { user, isUserLoading } = useUser();
@@ -34,6 +34,8 @@ export default function Home() {
   const formRef = useRef<ScaFormRef>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isDraftsOpen, setIsDraftsOpen] = useState(false);
+  const [draftToLoad, setDraftToLoad] = useState<ScaFormValues | null>(null);
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -42,14 +44,11 @@ export default function Home() {
   }, [user, isUserLoading, router]);
 
   useEffect(() => {
-    // On page load, check if there's a draft and load it.
-    if (formRef.current) {
-        const savedData = localStorage.getItem(AUTOSAVE_KEY);
-        if (savedData) {
-            formRef.current.loadDraft();
-        }
+    if (draftToLoad) {
+      formRef.current?.loadDraft(draftToLoad);
+      setDraftToLoad(null); // Reset after loading
     }
-  }, []);
+  }, [draftToLoad]);
 
   const handleAddEvaluation = async (
     evaluationData: Omit<Evaluation, 'id' | 'createdAt' | 'userId'>
@@ -75,7 +74,7 @@ export default function Home() {
         title: 'Evaluation Saved',
         description: 'Your coffee evaluation has been saved.',
       });
-      formRef.current?.reset();
+      formRef.current?.reset(true); // pass true to indicate it's a final submission
       router.push(`/evaluations/${docRef.id}`);
     } catch (error: any) {
       toast({
@@ -106,6 +105,11 @@ export default function Home() {
     );
   }
 
+  const handleLoadDraft = (draft: ScaFormValues) => {
+    setDraftToLoad(draft);
+    setIsDraftsOpen(false);
+  };
+
   return (
     <SidebarProvider>
       <Sidebar>
@@ -116,9 +120,8 @@ export default function Home() {
               <h2 className="text-lg font-semibold">Cupping Compass</h2>
             </div>
           </SidebarHeader>
-          <EvaluationHistory userId={user.uid} />
+          <EvaluationHistory userId={user.uid} onDraftsClick={() => setIsDraftsOpen(true)} />
           <SidebarFooter className="p-4 flex flex-col gap-2">
-             <DraftsButton formRef={formRef} />
              <SidebarMenuButton onClick={() => setIsSettingsOpen(true)}>
                 <Settings className="size-4" />
                 <span>Settings</span>
@@ -169,6 +172,7 @@ export default function Home() {
         </div>
       </SidebarInset>
       <SettingsDialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
+      <DraftsDialog open={isDraftsOpen} onOpenChange={setIsDraftsOpen} onLoadDraft={handleLoadDraft} />
     </SidebarProvider>
   );
 }

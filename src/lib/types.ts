@@ -43,3 +43,11 @@ export interface Evaluation {
   createdAt: any; // Allow serverTimestamp
   userId: string;
 }
+
+export interface ScaFormValues {
+    draftId?: string;
+    coffeeName: string;
+    roastLevel: 'light' | 'medium' | 'medium-dark' | 'dark';
+    cups: CupEvaluation[];
+    lastModified?: string;
+}
