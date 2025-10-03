@@ -20,9 +20,10 @@ import {
   SidebarInset,
 } from '@/components/ui/sidebar';
 import { EvaluationHistory } from '@/components/dashboard/evaluation-history';
-import { Menu } from 'lucide-react';
+import { Menu, ArrowUpCircle } from 'lucide-react';
 import { SettingsDialog } from '@/components/settings-dialog';
 import { DraftsDialog } from '@/components/dashboard/drafts-dialog';
+import { cn } from '@/lib/utils';
 
 export default function Home() {
   const { user, isUserLoading } = useUser();
@@ -34,6 +35,30 @@ export default function Home() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isDraftsOpen, setIsDraftsOpen] = useState(false);
   const [draftToLoad, setDraftToLoad] = useState<ScaFormValues | null>(null);
+
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      // The scroll container is SidebarInset which is a <main> tag.
+      // However, the scrolling is on the window.
+      if (window.scrollY > 300) {
+        setShowScrollTop(true);
+      } else {
+        setShowScrollTop(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    });
+  };
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -153,6 +178,16 @@ export default function Home() {
               </div>
             </div>
           </main>
+           <button
+            onClick={scrollToTop}
+            className={cn(
+              'fixed bottom-8 right-8 z-50 p-2 rounded-full bg-primary text-primary-foreground shadow-lg transition-opacity hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+              showScrollTop ? 'opacity-100' : 'opacity-0'
+            )}
+            aria-label="Scroll to top"
+          >
+            <ArrowUpCircle className="h-6 w-6" />
+          </button>
         </div>
       </SidebarInset>
       <SettingsDialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen} />

@@ -7,10 +7,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 import type { Evaluation } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, ArrowUpCircle } from 'lucide-react';
 import { CuppingCompassLogo } from '@/components/cupping-compass-logo';
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { ScaForm } from '@/components/dashboard/sca-form';
+import { cn } from '@/lib/utils';
 
 export default function EvaluationPage() {
   const { user, isUserLoading } = useUser();
@@ -18,6 +19,28 @@ export default function EvaluationPage() {
   const router = useRouter();
   const params = useParams();
   const { evaluationId } = params;
+
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 300) {
+        setShowScrollTop(true);
+      } else {
+        setShowScrollTop(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    });
+  };
 
   const evaluationRef = useMemo(() => {
     if (!user || !evaluationId || !firestore) return null;
@@ -93,6 +116,16 @@ export default function EvaluationPage() {
            />
         </div>
       </main>
+       <button
+        onClick={scrollToTop}
+        className={cn(
+          'fixed bottom-8 right-8 z-50 p-2 rounded-full bg-primary text-primary-foreground shadow-lg transition-opacity hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+          showScrollTop ? 'opacity-100' : 'opacity-0'
+        )}
+        aria-label="Scroll to top"
+      >
+        <ArrowUpCircle className="h-6 w-6" />
+      </button>
     </div>
   );
 }
