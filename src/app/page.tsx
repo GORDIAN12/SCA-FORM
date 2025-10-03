@@ -4,7 +4,7 @@ import { useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ScaForm } from '@/components/dashboard/sca-form';
+import { ScaForm, ScaFormRef } from '@/components/dashboard/sca-form';
 import type { Evaluation } from '@/lib/types';
 import { useFirestore } from '@/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -24,13 +24,14 @@ import {
 import { EvaluationHistory } from '@/components/dashboard/evaluation-history';
 import { Menu, LogOut, Settings } from 'lucide-react';
 import { SettingsDialog } from '@/components/settings-dialog';
+import { DraftsButton } from '@/components/dashboard/drafts-button';
 
 export default function Home() {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
   const firestore = useFirestore();
   const { toast } = useToast();
-  const formRef = useRef<{ submit: () => void; reset: () => void }>(null);
+  const formRef = useRef<ScaFormRef>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
@@ -107,6 +108,7 @@ export default function Home() {
           </SidebarHeader>
           <EvaluationHistory userId={user.uid} />
           <SidebarFooter className="p-4 flex flex-col gap-2">
+             <DraftsButton formRef={formRef} />
              <SidebarMenuButton onClick={() => setIsSettingsOpen(true)}>
                 <Settings className="size-4" />
                 <span>Settings</span>

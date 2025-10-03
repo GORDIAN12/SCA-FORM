@@ -101,6 +101,7 @@ interface ScaFormProps {
 export interface ScaFormRef {
   submit: () => void;
   reset: () => void;
+  loadDraft: () => void;
 }
 
 const CupSelector = ({
@@ -228,7 +229,7 @@ const createDefaultFormValues = (): ScaFormValues => ({
   cups: Array.from({ length: 5 }, (_, i) => createDefaultCup(i)),
 });
 
-const AUTOSAVE_KEY = 'cupping-compass-autosave';
+export const AUTOSAVE_KEY = 'cupping-compass-autosave';
 
 export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
   ({ initialData, onSubmit, onValuesChange, onActiveCupChange, isSubmitting }, ref) => {
@@ -246,20 +247,6 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
           }
         : createDefaultFormValues(),
     });
-
-     useEffect(() => {
-      if (!isReadOnly) {
-        try {
-          const savedData = localStorage.getItem(AUTOSAVE_KEY);
-          if (savedData) {
-            const parsedData = JSON.parse(savedData);
-            form.reset(parsedData);
-          }
-        } catch (error) {
-          console.error("Failed to load autosaved data from localStorage", error);
-        }
-      }
-    }, [isReadOnly, form]);
 
     useEffect(() => {
       if (initialData) {
@@ -279,6 +266,19 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
           localStorage.removeItem(AUTOSAVE_KEY);
         }
       },
+      loadDraft: () => {
+        if (!isReadOnly) {
+          try {
+            const savedData = localStorage.getItem(AUTOSAVE_KEY);
+            if (savedData) {
+              const parsedData = JSON.parse(savedData);
+              form.reset(parsedData);
+            }
+          } catch (error) {
+            console.error("Failed to load autosaved data from localStorage", error);
+          }
+        }
+      }
     }));
 
     const { fields } = useFieldArray({
