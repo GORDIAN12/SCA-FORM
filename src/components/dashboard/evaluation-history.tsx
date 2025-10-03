@@ -8,7 +8,7 @@ import {
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { PlusCircle, FileText, BookOpen, Settings, LogOut } from 'lucide-react';
-import { ScrollArea } from '../ui/scroll-area';
+import { useLanguage } from '@/context/language-context';
 
 interface EvaluationHistoryProps {
   onDraftsClick: () => void;
@@ -18,6 +18,7 @@ interface EvaluationHistoryProps {
 export function EvaluationHistory({ onDraftsClick, onSettingsClick }: EvaluationHistoryProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { t } = useLanguage();
 
   return (
     <div className="flex flex-col h-full">
@@ -26,28 +27,28 @@ export function EvaluationHistory({ onDraftsClick, onSettingsClick }: Evaluation
           <SidebarMenuButton asChild isActive={pathname === '/'}>
             <Link href="/">
               <PlusCircle className="size-4" />
-              <span>New Evaluation</span>
+              <span>{t('newEvaluation')}</span>
             </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>
         <SidebarMenuItem>
           <SidebarMenuButton onClick={onDraftsClick}>
               <FileText className="size-4" />
-              <span>Mis Borradores</span>
+              <span>{t('myDrafts')}</span>
           </SidebarMenuButton>
         </SidebarMenuItem>
          <SidebarMenuItem>
            <SidebarMenuButton asChild isActive={pathname === '/history'}>
             <Link href="/history">
               <BookOpen className="size-4" />
-              <span>Historial</span>
+              <span>{t('history')}</span>
             </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>
         <SidebarMenuItem>
             <SidebarMenuButton onClick={onSettingsClick}>
                 <Settings className="size-4" />
-                <span>Settings</span>
+                <span>{t('settings')}</span>
             </SidebarMenuButton>
         </SidebarMenuItem>
         <SidebarMenuItem>
@@ -60,7 +61,7 @@ export function EvaluationHistory({ onDraftsClick, onSettingsClick }: Evaluation
                 }}
             >
                 <LogOut className="size-4" />
-                <span>Logout</span>
+                <span>{t('logout')}</span>
             </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>

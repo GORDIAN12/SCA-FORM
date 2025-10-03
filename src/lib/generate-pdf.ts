@@ -1,7 +1,7 @@
 import jsPDF from 'jspdf';
 import type { Evaluation } from './types';
 
-export const generatePdf = (evaluation: Evaluation) => {
+export const generatePdf = (evaluation: Evaluation, t: (key: string) => string) => {
   const doc = new jsPDF();
 
   // Header
@@ -16,15 +16,15 @@ export const generatePdf = (evaluation: Evaluation) => {
 
   doc.setFontSize(12);
   doc.setFont('helvetica', 'normal');
-  doc.text(`Roast Level: ${evaluation.roastLevel.charAt(0).toUpperCase() + evaluation.roastLevel.slice(1)}`, 20, 48);
-  doc.text(`Evaluation Date: ${evaluation.createdAt.toDate().toLocaleDateString()}`, 20, 56);
+  doc.text(`${t('roastLevel')}: ${evaluation.roastLevel.charAt(0).toUpperCase() + evaluation.roastLevel.slice(1)}`, 20, 48);
+  doc.text(`${t('evaluationDate')}: ${evaluation.createdAt.toDate().toLocaleDateString()}`, 20, 56);
 
   doc.line(20, 62, 190, 62); // Separator
 
   // Overall Score
   doc.setFontSize(28);
   doc.setFont('helvetica', 'bold');
-  doc.text('Overall Score', 105, 75, { align: 'center' });
+  doc.text(t('overallScore'), 105, 75, { align: 'center' });
   doc.setFontSize(48);
   doc.text(evaluation.overallScore.toFixed(2), 105, 95, { align: 'center' });
   
@@ -33,28 +33,28 @@ export const generatePdf = (evaluation: Evaluation) => {
   // Average Scores
   doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
-  doc.text('Average Attribute Scores', 20, 118);
+  doc.text(t('averageAttributeScores'), 20, 118);
 
   const averageScores = {
-    aroma:
+    [t('aroma')]:
       evaluation.cups.reduce((acc, cup) => acc + cup.aroma, 0) /
       evaluation.cups.length,
-    flavor:
+    [t('flavor')]:
       evaluation.cups.reduce((acc, cup) => acc + (cup.scores.hot.flavor + cup.scores.warm.flavor + cup.scores.cold.flavor) / 3, 0) /
       evaluation.cups.length,
-    aftertaste:
+    [t('aftertaste')]:
       evaluation.cups.reduce((acc, cup) => acc + (cup.scores.hot.aftertaste + cup.scores.warm.aftertaste + cup.scores.cold.aftertaste) / 3, 0) /
       evaluation.cups.length,
-    acidity:
+    [t('acidity')]:
       evaluation.cups.reduce((acc, cup) => acc + (cup.scores.hot.acidity + cup.scores.warm.acidity + cup.scores.cold.acidity) / 3, 0) /
       evaluation.cups.length,
-    body:
+    [t('body')]:
       evaluation.cups.reduce((acc, cup) => acc + (cup.scores.hot.body + cup.scores.warm.body + cup.scores.cold.body) / 3, 0) /
       evaluation.cups.length,
-    balance:
+    [t('balance')]:
       evaluation.cups.reduce((acc, cup) => acc + (cup.scores.hot.balance + cup.scores.warm.balance + cup.scores.cold.balance) / 3, 0) /
       evaluation.cups.length,
-    cupperScore:
+    [t('cupperScore')]:
         evaluation.cups.reduce((acc, cup) => acc + cup.cupperScore, 0) /
         evaluation.cups.length,
   };
@@ -81,7 +81,7 @@ export const generatePdf = (evaluation: Evaluation) => {
   // Footer
   doc.setFontSize(10);
   doc.setTextColor(150);
-  doc.text(`Generated on ${new Date().toLocaleDateString()}`, 105, 280, { align: 'center' });
+  doc.text(`${t('generatedOn')} ${new Date().toLocaleDateString()}`, 105, 280, { align: 'center' });
 
 
   // Save the PDF

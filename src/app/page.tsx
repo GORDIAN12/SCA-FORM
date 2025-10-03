@@ -24,6 +24,7 @@ import { Menu, ArrowUpCircle } from 'lucide-react';
 import { SettingsDialog } from '@/components/settings-dialog';
 import { DraftsDialog } from '@/components/dashboard/drafts-dialog';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/context/language-context';
 
 export default function Home() {
   const { user, isUserLoading } = useUser();
@@ -35,6 +36,7 @@ export default function Home() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isDraftsOpen, setIsDraftsOpen] = useState(false);
   const [draftToLoad, setDraftToLoad] = useState<ScaFormValues | null>(null);
+  const { t } = useLanguage();
 
   const [showScrollTop, setShowScrollTop] = useState(false);
 
@@ -94,14 +96,14 @@ export default function Home() {
       );
       const docRef = await addDoc(evaluationsCollection, newEvaluation);
       toast({
-        title: 'Evaluation Saved',
-        description: 'Your coffee evaluation has been saved.',
+        title: t('evaluationSaved'),
+        description: t('evaluationSavedDescription'),
       });
       formRef.current?.reset(true); // pass true to indicate it's a final submission
       router.push(`/evaluations/${docRef.id}`);
     } catch (error: any) {
       toast({
-        title: 'Error Saving Evaluation',
+        title: t('errorSavingEvaluation'),
         description: error.message,
         variant: 'destructive',
       });
@@ -157,7 +159,7 @@ export default function Home() {
                 <Menu />
               </SidebarTrigger>
               <CuppingCompassLogo className="size-8 text-primary hidden sm:block" />
-              <h1 className="text-xl font-semibold">New Evaluation</h1>
+              <h1 className="text-xl font-semibold">{t('newEvaluation')}</h1>
             </div>
           </header>
           <main className="p-4 sm:p-6 lg:p-8">
@@ -173,7 +175,7 @@ export default function Home() {
                   className="w-full md:w-1/2"
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? 'Saving...' : 'Save Evaluation'}
+                  {isSubmitting ? t('saving') : t('saveEvaluation')}
                 </Button>
               </div>
             </div>

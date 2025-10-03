@@ -41,6 +41,7 @@ import { Input } from '@/components/ui/input';
 import { CuppingCompassLogo } from '@/components/cupping-compass-logo';
 import { GoogleLogo } from '@/components/google-logo';
 import { MicrosoftLogo } from '@/components/microsoft-logo';
+import { useLanguage } from '@/context/language-context';
 
 const signUpSchema = z
   .object({
@@ -68,6 +69,7 @@ export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const { t } = useLanguage();
 
   const signUpForm = useForm<SignUpFormValues>({
     resolver: zodResolver(signUpSchema),
@@ -91,13 +93,13 @@ export default function LoginPage() {
     try {
       await createUserWithEmailAndPassword(auth, values.email, values.password);
       toast({
-        title: 'Account Created',
-        description: 'You have been successfully registered.',
+        title: t('accountCreated'),
+        description: t('youHaveBeenRegistered'),
       });
       router.push('/');
     } catch (error: any) {
       toast({
-        title: 'Registration Failed',
+        title: t('registrationFailed'),
         description: error.message,
         variant: 'destructive',
       });
@@ -111,13 +113,13 @@ export default function LoginPage() {
     try {
       await signInWithEmailAndPassword(auth, values.email, values.password);
       toast({
-        title: 'Signed In',
-        description: 'Welcome back!',
+        title: t('signedIn'),
+        description: t('welcomeBack'),
       });
       router.push('/');
     } catch (error: any) {
       toast({
-        title: 'Sign In Failed',
+        title: t('signInFailed'),
         description: error.message,
         variant: 'destructive',
       });
@@ -132,13 +134,13 @@ export default function LoginPage() {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
       toast({
-        title: 'Signed In',
-        description: 'Welcome!',
+        title: t('signedIn'),
+        description: t('welcome'),
       });
       router.push('/');
     } catch (error: any) {
       toast({
-        title: 'Sign In Failed',
+        title: t('signInFailed'),
         description: error.message,
         variant: 'destructive',
       });
@@ -153,13 +155,13 @@ export default function LoginPage() {
       const provider = new OAuthProvider('microsoft.com');
       await signInWithPopup(auth, provider);
       toast({
-        title: 'Signed In',
-        description: 'Welcome!',
+        title: t('signedIn'),
+        description: t('welcome'),
       });
       router.push('/');
     } catch (error: any) {
       toast({
-        title: 'Sign In Failed',
+        title: t('signInFailed'),
         description: error.message,
         variant: 'destructive',
       });
@@ -176,7 +178,7 @@ export default function LoginPage() {
             </div>
             <div className="relative flex justify-center text-xs uppercase">
                 <span className="bg-background px-2 text-muted-foreground">
-                Or continue with
+                {t('orContinueWith')}
                 </span>
             </div>
         </div>
@@ -201,15 +203,15 @@ export default function LoginPage() {
         </div>
         <Tabs defaultValue="sign-in" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="sign-in">Sign In</TabsTrigger>
-            <TabsTrigger value="sign-up">Sign Up</TabsTrigger>
+            <TabsTrigger value="sign-in">{t('signIn')}</TabsTrigger>
+            <TabsTrigger value="sign-up">{t('signUp')}</TabsTrigger>
           </TabsList>
           <TabsContent value="sign-in">
             <Card>
               <CardHeader>
-                <CardTitle>Sign In</CardTitle>
+                <CardTitle>{t('signIn')}</CardTitle>
                 <CardDescription>
-                  Enter your credentials to access your account.
+                  {t('signInDescription')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -223,7 +225,7 @@ export default function LoginPage() {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Email</FormLabel>
+                          <FormLabel>{t('email')}</FormLabel>
                           <FormControl>
                             <Input
                               type="email"
@@ -240,7 +242,7 @@ export default function LoginPage() {
                       name="password"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Password</FormLabel>
+                          <FormLabel>{t('password')}</FormLabel>
                           <FormControl>
                             <Input type="password" placeholder="••••••••" {...field} />
                           </FormControl>
@@ -249,7 +251,7 @@ export default function LoginPage() {
                       )}
                     />
                     <Button type="submit" className="w-full" disabled={isLoading}>
-                      {isLoading ? 'Signing In...' : 'Sign In'}
+                      {isLoading ? t('signingIn') : t('signIn')}
                     </Button>
                   </form>
                 </Form>
@@ -260,9 +262,9 @@ export default function LoginPage() {
           <TabsContent value="sign-up">
             <Card>
               <CardHeader>
-                <CardTitle>Sign Up</CardTitle>
+                <CardTitle>{t('signUp')}</CardTitle>
                 <CardDescription>
-                  Create an account to start your cupping journal.
+                  {t('signUpDescription')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -276,7 +278,7 @@ export default function LoginPage() {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Email</FormLabel>
+                          <FormLabel>{t('email')}</FormLabel>
                           <FormControl>
                             <Input
                               type="email"
@@ -293,7 +295,7 @@ export default function LoginPage() {
                       name="password"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Password</FormLabel>
+                          <FormLabel>{t('password')}</FormLabel>
                           <FormControl>
                             <Input type="password" placeholder="••••••••" {...field} />
                           </FormControl>
@@ -306,7 +308,7 @@ export default function LoginPage() {
                       name="confirmPassword"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Confirm Password</FormLabel>
+                          <FormLabel>{t('confirmPassword')}</FormLabel>
                           <FormControl>
                             <Input type="password" placeholder="••••••••" {...field} />
                           </FormControl>
@@ -315,7 +317,7 @@ export default function LoginPage() {
                       )}
                     />
                     <Button type="submit" className="w-full" disabled={isLoading}>
-                      {isLoading ? 'Creating Account...' : 'Create Account'}
+                      {isLoading ? t('creatingAccount') : t('createAccount')}
                     </Button>
                   </form>
                 </Form>

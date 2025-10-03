@@ -13,6 +13,7 @@ import { Trash2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import type { ScaFormValues } from '@/lib/types';
 import { DRAFTS_KEY } from './sca-form';
+import { useLanguage } from '@/context/language-context';
 
 interface DraftsDialogProps {
   open: boolean;
@@ -22,6 +23,7 @@ interface DraftsDialogProps {
 
 export function DraftsDialog({ open, onOpenChange, onLoadDraft }: DraftsDialogProps) {
   const [drafts, setDrafts] = useState<ScaFormValues[]>([]);
+  const { t } = useLanguage();
 
   useEffect(() => {
     if (open) {
@@ -43,9 +45,9 @@ export function DraftsDialog({ open, onOpenChange, onLoadDraft }: DraftsDialogPr
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Mis Borradores</DialogTitle>
+          <DialogTitle>{t('myDrafts')}</DialogTitle>
           <DialogDescription>
-            Selecciona un borrador para continuar evaluando o elimínalo.
+            {t('draftsDescription')}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -57,9 +59,9 @@ export function DraftsDialog({ open, onOpenChange, onLoadDraft }: DraftsDialogPr
                     className="flex-1 text-left"
                     onClick={() => onLoadDraft(draft)}
                   >
-                    <div className="font-semibold">{draft.coffeeName || 'Untitled Draft'}</div>
+                    <div className="font-semibold">{draft.coffeeName || t('untitledDraft')}</div>
                     <div className="text-sm text-muted-foreground">
-                      Last modified: {new Date(draft.lastModified!).toLocaleString()}
+                      {t('lastModified')}: {new Date(draft.lastModified!).toLocaleString()}
                     </div>
                   </button>
                   <Button
@@ -73,7 +75,7 @@ export function DraftsDialog({ open, onOpenChange, onLoadDraft }: DraftsDialogPr
               ))}
             </ul>
           ) : (
-            <p className="text-center text-muted-foreground">No hay borradores guardados.</p>
+            <p className="text-center text-muted-foreground">{t('noDrafts')}</p>
           )}
         </div>
       </DialogContent>

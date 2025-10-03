@@ -4,6 +4,7 @@ import type { Evaluation } from '@/lib/types';
 import { Star, Trash2, Download } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { useLanguage } from '@/context/language-context';
 
 interface HistoryItemProps {
   evaluation: Evaluation;
@@ -13,6 +14,7 @@ interface HistoryItemProps {
 }
 
 export function HistoryItem({ evaluation, onDelete, onToggleFavorite, onDownloadPdf }: HistoryItemProps) {
+  const { t } = useLanguage();
   return (
     <li className="flex items-center justify-between p-2 rounded-md hover:bg-accent/50 transition-colors group">
         <Link href={`/evaluations/${evaluation.id}`} className="flex-1 flex items-center gap-4 cursor-pointer">
@@ -31,7 +33,7 @@ export function HistoryItem({ evaluation, onDelete, onToggleFavorite, onDownload
             <div className="flex-1">
                 <div className="font-semibold text-base">{evaluation.coffeeName}</div>
                 <div className="text-sm text-muted-foreground">
-                    {evaluation.createdAt?.toDate().toLocaleDateString()} - Score: {evaluation.overallScore.toFixed(2)}
+                    {evaluation.createdAt?.toDate().toLocaleDateString()} - {t('score')}: {evaluation.overallScore.toFixed(2)}
                 </div>
             </div>
             <div className="text-lg font-bold text-primary pr-4">

@@ -18,11 +18,13 @@ import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { generatePdf } from '@/lib/generate-pdf';
+import { useLanguage } from '@/context/language-context';
 
 export default function HistoryPage() {
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
   const router = useRouter();
+  const { t } = useLanguage();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [roastLevelFilter, setRoastLevelFilter] = useState('');
@@ -98,7 +100,7 @@ export default function HistoryPage() {
   };
   
   const handleDownloadPdf = (evaluation: Evaluation) => {
-    generatePdf(evaluation);
+    generatePdf(evaluation, t);
   };
   
   const clearFilters = () => {
@@ -117,7 +119,7 @@ export default function HistoryPage() {
           <div className="flex items-center gap-2">
             <CuppingCompassLogo className="size-8 text-primary" />
             <h1 className="text-xl font-semibold hidden sm:block">
-              Historial de Evaluaciones
+              {t('historyPageTitle')}
             </h1>
           </div>
         </div>
@@ -129,31 +131,31 @@ export default function HistoryPage() {
             router.push('/login');
           }}
         >
-          Logout
+          {t('logout')}
         </Button>
       </header>
        <main className="p-4 sm:p-6 lg:p-8">
          <div className="mx-auto max-w-4xl space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Bitácora de Evaluaciones</CardTitle>
-                <CardDescription>Aquí están todas tus evaluaciones de café guardadas. Usa los filtros para encontrar evaluaciones específicas.</CardDescription>
+                <CardTitle>{t('evaluationLog')}</CardTitle>
+                <CardDescription>{t('evaluationLogDescription')}</CardDescription>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-4">
                     <Input 
-                        placeholder="Buscar por nombre..."
+                        placeholder={t('searchByName')}
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
                     />
                     <Select value={roastLevelFilter} onValueChange={setRoastLevelFilter}>
                         <SelectTrigger>
-                            <SelectValue placeholder="Filtrar por tueste" />
+                            <SelectValue placeholder={t('filterByRoast')} />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="all">Todos los tuestes</SelectItem>
-                            <SelectItem value="light">Light</SelectItem>
-                            <SelectItem value="medium">Medium</SelectItem>
-                            <SelectItem value="medium-dark">Medium-Dark</SelectItem>
-                            <SelectItem value="dark">Dark</SelectItem>
+                            <SelectItem value="all">{t('allRoasts')}</SelectItem>
+                            <SelectItem value="light">{t('roastLight')}</SelectItem>
+                            <SelectItem value="medium">{t('roastMedium')}</SelectItem>
+                            <SelectItem value="medium-dark">{t('roastMediumDark')}</SelectItem>
+                            <SelectItem value="dark">{t('roastDark')}</SelectItem>
                         </SelectContent>
                     </Select>
                      <Popover>
@@ -166,7 +168,7 @@ export default function HistoryPage() {
                             )}
                         >
                             <CalendarIcon className="mr-2 h-4 w-4" />
-                            {dateFilter ? format(dateFilter, "PPP") : <span>Seleccionar fecha</span>}
+                            {dateFilter ? format(dateFilter, "PPP") : <span>{t('pickDate')}</span>}
                         </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0">
@@ -180,7 +182,7 @@ export default function HistoryPage() {
                     </Popover>
                     <Button variant="outline" onClick={clearFilters}>
                         <FilterX className="mr-2 h-4 w-4" />
-                        Limpiar Filtros
+                        {t('clearFilters')}
                     </Button>
                 </div>
               </CardHeader>
@@ -206,7 +208,7 @@ export default function HistoryPage() {
                       ))}
                     </ul>
                   ) : (
-                    !isLoading && <p className="text-center text-muted-foreground py-8">No se encontraron evaluaciones con los filtros aplicados.</p>
+                    !isLoading && <p className="text-center text-muted-foreground py-8">{t('noEvaluationsFound')}</p>
                   )}
                 </div>
               </CardContent>

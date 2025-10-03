@@ -12,6 +12,7 @@ import { CuppingCompassLogo } from '@/components/cupping-compass-logo';
 import { useMemo, useState, useEffect } from 'react';
 import { ScaForm } from '@/components/dashboard/sca-form';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/context/language-context';
 
 export default function EvaluationPage() {
   const { user, isUserLoading } = useUser();
@@ -19,6 +20,7 @@ export default function EvaluationPage() {
   const router = useRouter();
   const params = useParams();
   const { evaluationId } = params;
+  const { t } = useLanguage();
 
   const [showScrollTop, setShowScrollTop] = useState(false);
 
@@ -78,7 +80,7 @@ export default function EvaluationPage() {
   }
 
   if (!evaluation) {
-    return <div className="p-8">Evaluation not found.</div>;
+    return <div className="p-8">{t('evaluationNotFound')}</div>;
   }
 
   return (
@@ -105,7 +107,7 @@ export default function EvaluationPage() {
             router.push('/login');
           }}
         >
-          Logout
+          {t('logout')}
         </Button>
       </header>
       <main className="p-4 sm:p-6 lg:p-8">

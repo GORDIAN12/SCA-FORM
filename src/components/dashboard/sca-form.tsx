@@ -33,6 +33,7 @@ import { cn } from '@/lib/utils';
 import { Coffee } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FlavorProfileChart } from './flavor-profile-chart';
+import { useLanguage } from '@/context/language-context';
 
 const scoreSchema = z.coerce.number().min(6).max(10);
 const intensitySchema = z.enum(['low', 'medium', 'high'], {
@@ -190,13 +191,6 @@ const aromaCategories = [
   'Otros',
 ];
 
-const roastLevels = [
-  { id: 'light', label: 'Light', color: 'bg-[#966F33]' },
-  { id: 'medium', label: 'Medium', color: 'bg-[#6A4C2E]' },
-  { id: 'medium-dark', label: 'Medium-Dark', color: 'bg-[#4A3522]' },
-  { id: 'dark', label: 'Dark', color: 'bg-[#3A2418]' },
-];
-
 const createDefaultScoreSet = (): ScoreSetFormValues => ({
   flavor: 8,
   aftertaste: 8,
@@ -240,6 +234,14 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
     const [activeCupTab, setActiveCupTab] = useState('cup-1');
     const [activeTempTab, setActiveTempTab] = useState<'hot' | 'warm' | 'cold'>('hot');
     const isReadOnly = !!initialData;
+    const { t } = useLanguage();
+
+    const roastLevels = [
+      { id: 'light', label: t('roastLight'), color: 'bg-[#966F33]' },
+      { id: 'medium', label: t('roastMedium'), color: 'bg-[#6A4C2E]' },
+      { id: 'medium-dark', label: t('roastMediumDark'), color: 'bg-[#4A3522]' },
+      { id: 'dark', label: t('roastDark'), color: 'bg-[#3A2418]' },
+    ];
     
     const form = useForm<ScaFormValues>({
       resolver: zodResolver(formSchema),
@@ -324,14 +326,14 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
         if (!tempScores) return null;
 
         return {
-            aroma,
-            flavor: tempScores.flavor,
-            aftertaste: tempScores.aftertaste,
-            acidity: tempScores.acidity,
-            body: tempScores.body,
-            balance: tempScores.balance,
+            [t('aroma').toLowerCase()]: aroma,
+            [t('flavor').toLowerCase()]: tempScores.flavor,
+            [t('aftertaste').toLowerCase()]: tempScores.aftertaste,
+            [t('acidity').toLowerCase()]: tempScores.acidity,
+            [t('body').toLowerCase()]: tempScores.body,
+            [t('balance').toLowerCase()]: tempScores.balance,
         };
-    }, [activeCupData, activeTempTab]);
+    }, [activeCupData, activeTempTab, t]);
 
     useEffect(() => {
       if (onActiveCupChange && activeCupData) {
@@ -377,9 +379,9 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
     return (
       <Card>
         <CardHeader>
-          <CardTitle>SCA Evaluation Form</CardTitle>
+          <CardTitle>{t('scaFormTitle')}</CardTitle>
           <CardDescription>
-            {isReadOnly ? 'Viendo una evaluación guardada.' : 'Enter the coffee cupping details below, cup by cup.'}
+            {isReadOnly ? t('scaFormDescriptionReadOnly') : t('scaFormDescriptionEdit')}
           </CardDescription>
         </CardHeader>
         <Form {...form}>
@@ -391,10 +393,10 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                   name="coffeeName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Coffee Name</FormLabel>
+                      <FormLabel>{t('coffeeName')}</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="e.g., Ethiopia Yirgacheffe"
+                          placeholder={t('coffeeNamePlaceholder')}
                           {...field}
                           disabled={isReadOnly || isSubmitting}
                         />
@@ -408,7 +410,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                   name="roastLevel"
                   render={({ field }) => (
                     <FormItem className="space-y-3">
-                      <FormLabel>Roast Level</FormLabel>
+                      <FormLabel>{t('roastLevel')}</FormLabel>
                       <FormControl>
                         <RadioGroup
                           onValueChange={field.onChange}
@@ -459,8 +461,8 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
               >
                 <TabsList className="grid w-full grid-cols-5" >
                   {fields.map((field, index) => (
-                    <TabsTrigger key={field.id} value={`cup-${index + 1}`}>
-                      Cup {index + 1}
+                    <TabsTrigger key={field.id} value={`cup-${index + 1}`} disabled={isReadOnly && activeCupTab !== `cup-${index + 1}`}>
+                      {t('cup')} {index + 1}
                     </TabsTrigger>
                   ))}
                 </TabsList>
@@ -520,12 +522,12 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                     <TabsContent key={field.id} value={`cup-${index + 1}`}>
                       <Card>
                         <CardHeader>
-                          <CardTitle>Cup {index + 1} Evaluation</CardTitle>
+                          <CardTitle>{t('cup')} {index + 1} {t('evaluation')}</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-6 pt-6">
                           <div className="space-y-4">
                             <h3 className="text-lg font-semibold">
-                              Cup Quality
+                              {t('cupQuality')}
                             </h3>
                             {(
                               ['uniformity', 'cleanCup', 'sweetness'] as const
@@ -538,7 +540,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                   <FormItem>
                                     <div className="flex justify-between items-center">
                                       <FormLabel>
-                                        {capitalize(quality)}
+                                        {t(quality)}
                                       </FormLabel>
                                       <div className="flex items-center gap-4">
                                         <CupSelector
@@ -557,14 +559,14 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                             ))}
                           </div>
                           <Separator />
-                          <h3 className="text-lg font-semibold">Scores</h3>
+                          <h3 className="text-lg font-semibold">{t('scores')}</h3>
                           <div className="space-y-4">
                             <FormField
                               control={form.control}
                               name={`cups.${index}.aromaCategory`}
                               render={({ field: aromaField }) => (
                                 <FormItem className="space-y-3">
-                                  <FormLabel>Aroma Category</FormLabel>
+                                  <FormLabel>{t('aromaCategory')}</FormLabel>
                                   <FormControl>
                                     <RadioGroup
                                       onValueChange={aromaField.onChange}
@@ -590,7 +592,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                                 'cursor-not-allowed opacity-70'
                                             )}
                                           >
-                                            {category}
+                                            {t(`aroma${category.replace('/', '')}`)}
                                           </FormLabel>
                                         </FormItem>
                                       ))}
@@ -603,7 +605,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
 
                             <div className="p-4 border rounded-md">
                               <h4 className="text-md font-medium mb-2">
-                                Fragrance / Aroma
+                                {t('fragranceAroma')}
                               </h4>
                               <div className="space-y-4">
                                 <FormField
@@ -612,7 +614,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                   render={({ field: scoreField }) => (
                                     <FormItem>
                                       <FormLabel className="flex justify-between">
-                                        <span>Aroma Score</span>
+                                        <span>{t('aromaScore')}</span>
                                         <span>
                                           {scoreField.value.toFixed(2)}
                                         </span>
@@ -632,7 +634,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                     name={`cups.${index}.dryFragrance`}
                                     render={({ field: intensityField }) => (
                                       <FormItem className="space-y-3">
-                                        <FormLabel>Dry Fragrance</FormLabel>
+                                        <FormLabel>{t('dryFragrance')}</FormLabel>
                                         <FormControl>
                                           <RadioGroup
                                             onValueChange={
@@ -647,7 +649,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                                 <RadioGroupItem value="low" />
                                               </FormControl>
                                               <FormLabel className="font-normal">
-                                                Low
+                                                {t('low')}
                                               </FormLabel>
                                             </FormItem>
                                             <FormItem className="flex items-center space-x-2 space-y-0">
@@ -655,7 +657,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                                 <RadioGroupItem value="medium" />
                                               </FormControl>
                                               <FormLabel className="font-normal">
-                                                Medium
+                                                {t('medium')}
                                               </FormLabel>
                                             </FormItem>
                                             <FormItem className="flex items-center space-x-2 space-y-0">
@@ -663,7 +665,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                                 <RadioGroupItem value="high" />
                                               </FormControl>
                                               <FormLabel className="font-normal">
-                                                High
+                                                {t('high')}
                                               </FormLabel>
                                             </FormItem>
                                           </RadioGroup>
@@ -677,7 +679,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                     name={`cups.${index}.wetAroma`}
                                     render={({ field: intensityField }) => (
                                       <FormItem className="space-y-3">
-                                        <FormLabel>Wet Aroma (Crust)</FormLabel>
+                                        <FormLabel>{t('wetAroma')}</FormLabel>
                                         <FormControl>
                                           <RadioGroup
                                             onValueChange={
@@ -692,7 +694,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                                 <RadioGroupItem value="low" />
                                               </FormControl>
                                               <FormLabel className="font-normal">
-                                                Low
+                                                {t('low')}
                                               </FormLabel>
                                             </FormItem>
                                             <FormItem className="flex items-center space-x-2 space-y-0">
@@ -700,7 +702,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                                 <RadioGroupItem value="medium" />
                                               </FormControl>
                                               <FormLabel className="font-normal">
-                                                Medium
+                                                {t('medium')}
                                               </FormLabel>
                                             </FormItem>
                                             <FormItem className="flex items-center space-x-2 space-y-0">
@@ -708,7 +710,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                                 <RadioGroupItem value="high" />
                                               </FormControl>
                                               <FormLabel className="font-normal">
-                                                High
+                                                {t('high')}
                                               </FormLabel>
                                             </FormItem>
                                           </RadioGroup>
@@ -723,9 +725,9 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
 
                             <Tabs defaultValue="hot" className="w-full" onValueChange={(value) => setActiveTempTab(value as 'hot' | 'warm' | 'cold')} value={activeTempTab}>
                               <TabsList className="grid w-full grid-cols-3" >
-                                <TabsTrigger value="hot">Hot</TabsTrigger>
-                                <TabsTrigger value="warm">Warm</TabsTrigger>
-                                <TabsTrigger value="cold">Cold</TabsTrigger>
+                                <TabsTrigger value="hot" disabled={isReadOnly && activeTempTab !== 'hot'}>{t('hot')}</TabsTrigger>
+                                <TabsTrigger value="warm" disabled={isReadOnly && activeTempTab !== 'warm'}>{t('warm')}</TabsTrigger>
+                                <TabsTrigger value="cold" disabled={isReadOnly && activeTempTab !== 'cold'}>{t('cold')}</TabsTrigger>
                               </TabsList>
                               {(['hot', 'warm', 'cold'] as const).map(
                                 (temp) => (
@@ -738,7 +740,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                           render={({ field: scoreField }) => (
                                             <FormItem>
                                               <FormLabel className="flex justify-between">
-                                                <span>Flavor</span>
+                                                <span>{t('flavor')}</span>
                                                 <span>
                                                   {scoreField.value.toFixed(2)}
                                                 </span>
@@ -760,7 +762,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                           render={({ field: scoreField }) => (
                                             <FormItem>
                                               <FormLabel className="flex justify-between">
-                                                <span>Aftertaste</span>
+                                                <span>{t('aftertaste')}</span>
                                                 <span>
                                                   {scoreField.value.toFixed(2)}
                                                 </span>
@@ -783,7 +785,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                             render={({ field: scoreField }) => (
                                               <FormItem>
                                                 <FormLabel className="flex justify-between">
-                                                  <span>Acidity Score</span>
+                                                  <span>{t('acidityScore')}</span>
                                                   <span>
                                                     {scoreField.value.toFixed(
                                                       2
@@ -807,7 +809,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                             }) => (
                                               <FormItem className="space-y-3">
                                                 <FormLabel>
-                                                  Acidity Intensity
+                                                  {t('acidityIntensity')}
                                                 </FormLabel>
                                                 <FormControl>
                                                   <RadioGroup
@@ -823,7 +825,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                                         <RadioGroupItem value="low" />
                                                       </FormControl>
                                                       <FormLabel className="font-normal">
-                                                        Low
+                                                        {t('low')}
                                                       </FormLabel>
                                                     </FormItem>
                                                     <FormItem className="flex items-center space-x-2 space-y-0">
@@ -831,7 +833,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                                         <RadioGroupItem value="medium" />
                                                       </FormControl>
                                                       <FormLabel className="font-normal">
-                                                        Medium
+                                                        {t('medium')}
                                                       </FormLabel>
                                                     </FormItem>
                                                     <FormItem className="flex items-center space-x-2 space-y-0">
@@ -839,7 +841,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                                         <RadioGroupItem value="high" />
                                                       </FormControl>
                                                       <FormLabel className="font-normal">
-                                                        High
+                                                        {t('high')}
                                                       </FormLabel>
                                                     </FormItem>
                                                   </RadioGroup>
@@ -858,7 +860,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                             render={({ field: scoreField }) => (
                                               <FormItem>
                                                 <FormLabel className="flex justify-between">
-                                                  <span>Body Score</span>
+                                                  <span>{t('bodyScore')}</span>
                                                   <span>
                                                     {scoreField.value.toFixed(
                                                       2
@@ -882,7 +884,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                             }) => (
                                               <FormItem className="space-y-3">
                                                 <FormLabel>
-                                                  Body Intensity
+                                                  {t('bodyIntensity')}
                                                 </FormLabel>
                                                 <FormControl>
                                                   <RadioGroup
@@ -898,7 +900,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                                         <RadioGroupItem value="low" />
                                                       </FormControl>
                                                       <FormLabel className="font-normal">
-                                                        Low
+                                                        {t('low')}
                                                       </FormLabel>
                                                     </FormItem>
                                                     <FormItem className="flex items-center space-x-2 space-y-0">
@@ -906,7 +908,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                                         <RadioGroupItem value="medium" />
                                                       </FormControl>
                                                       <FormLabel className="font-normal">
-                                                        Medium
+                                                        {t('medium')}
                                                       </FormLabel>
                                                     </FormItem>
                                                     <FormItem className="flex items-center space-x-2 space-y-0">
@@ -914,7 +916,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                                         <RadioGroupItem value="high" />
                                                       </FormControl>
                                                       <FormLabel className="font-normal">
-                                                        High
+                                                        {t('high')}
                                                       </FormLabel>
                                                     </FormItem>
                                                   </RadioGroup>
@@ -932,7 +934,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                           render={({ field: scoreField }) => (
                                             <FormItem>
                                               <FormLabel className="flex justify-between">
-                                                <span>Balance</span>
+                                                <span>{t('balance')}</span>
                                                 <span>
                                                   {scoreField.value.toFixed(2)}
                                                 </span>
@@ -960,7 +962,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                 render={({ field: scoreField }) => (
                                   <FormItem>
                                     <FormLabel className="flex justify-between">
-                                      <span>Cupper Score</span>
+                                      <span>{t('cupperScore')}</span>
                                       <span>
                                         {scoreField.value.toFixed(2)}
                                       </span>
@@ -984,7 +986,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
               </Tabs>
               <Card>
                   <CardHeader>
-                    <h3 className="text-xl font-semibold">Flavor Profile</h3>
+                    <h3 className="text-xl font-semibold">{t('flavorProfile')}</h3>
                   </CardHeader>
                   <CardContent className="pt-6">
                       <Tabs 
@@ -994,9 +996,9 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                           value={activeTempTab}
                       >
                           <TabsList className="grid w-full grid-cols-3">
-                              <TabsTrigger value="hot">Hot</TabsTrigger>
-                              <TabsTrigger value="warm">Warm</TabsTrigger>
-                              <TabsTrigger value="cold">Cold</TabsTrigger>
+                              <TabsTrigger value="hot" disabled={isReadOnly && activeTempTab !== 'hot'}>{t('hot')}</TabsTrigger>
+                              <TabsTrigger value="warm" disabled={isReadOnly && activeTempTab !== 'warm'}>{t('warm')}</TabsTrigger>
+                              <TabsTrigger value="cold" disabled={isReadOnly && activeTempTab !== 'cold'}>{t('cold')}</TabsTrigger>
                           </TabsList>
                       </Tabs>
                       
@@ -1009,7 +1011,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                  <Separator />
                  <div className="space-y-2">
                    <div className="flex justify-between text-xl font-bold">
-                     <span>Overall Average Score</span>
+                     <span>{t('overallAverageScore')}</span>
                      <span>{overallScore.toFixed(2)}</span>
                    </div>
                  </div>

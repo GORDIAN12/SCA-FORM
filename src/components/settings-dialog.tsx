@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useTheme } from 'next-themes';
+import { useLanguage } from '@/context/language-context';
 
 interface SettingsDialogProps {
   open: boolean;
@@ -25,19 +26,20 @@ interface SettingsDialogProps {
 
 export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   const { setTheme, theme } = useTheme();
+  const { language, setLanguage, t } = useLanguage();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Settings</DialogTitle>
+          <DialogTitle>{t('settings')}</DialogTitle>
           <DialogDescription>
-            Customize your experience.
+            {t('settingsDescription')}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-6 py-4">
           <div className="flex items-center justify-between">
-            <Label htmlFor="dark-mode">Dark Mode</Label>
+            <Label htmlFor="dark-mode">{t('darkMode')}</Label>
             <Switch
               id="dark-mode"
               checked={theme === 'dark'}
@@ -45,8 +47,8 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
             />
           </div>
           <div className="flex items-center justify-between">
-            <Label htmlFor="language">Language</Label>
-            <Select defaultValue="en">
+            <Label htmlFor="language">{t('language')}</Label>
+            <Select value={language} onValueChange={(value) => setLanguage(value as 'en' | 'es')}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Select a language" />
               </SelectTrigger>
