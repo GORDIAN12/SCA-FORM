@@ -44,9 +44,6 @@ export function EvaluationHistory({ onDraftsClick, onSettingsClick }: Evaluation
             </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>
-      </SidebarMenu>
-      <ScrollArea className="flex-1" />
-       <SidebarMenu className="mt-auto">
         <SidebarMenuItem>
             <SidebarMenuButton onClick={onSettingsClick}>
                 <Settings className="size-4" />
