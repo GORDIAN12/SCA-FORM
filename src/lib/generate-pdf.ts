@@ -106,12 +106,10 @@ export const generatePdf = async (
     doc.autoTable({
         body: additionalEvals,
         startY: finalY + 20,
-        theme: 'grid',
-        styles: {
-            fillColor: [245, 245, 245] // Light gray for the body
-        },
+        theme: 'striped',
         columnStyles: {
-            0: { fontStyle: 'bold' }
+            0: { fontStyle: 'bold', cellWidth: 50 },
+            1: { cellWidth: 'auto'}
         }
     });
 
