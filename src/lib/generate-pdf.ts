@@ -15,7 +15,7 @@ export const generatePdf = async (
   const doc = new jsPDF() as jsPDFWithAutoTable;
 
   // --- CHART GENERATION ---
-  const dataUrl = await toPng(chartNode, { cacheBust: true });
+  const dataUrl = await toPng(chartNode, { backgroundColor: 'white' });
 
   // --- PAGE 1: SUMMARY / COVER PAGE ---
   doc.setFontSize(22);
