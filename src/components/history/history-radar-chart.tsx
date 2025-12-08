@@ -81,14 +81,14 @@ export function HistoryRadarChart({ evaluation, t }: HistoryRadarChartProps) {
           cursor={false}
           content={<ChartTooltipContent indicator="line" />}
         />
-        <PolarAngleAxis dataKey="attribute" tick={{ fill: 'hsl(var(--foreground))', fontFamily: '"PT Sans"' }} />
+        <PolarAngleAxis dataKey="attribute" tick={{ fill: 'hsl(var(--foreground))' }} />
         <PolarGrid />
         <PolarRadiusAxis
           angle={90}
           domain={[6, 10]}
           tickCount={5}
           stroke="hsl(var(--foreground))"
-          tick={{ fill: 'hsl(var(--foreground))', fontFamily: '"PT Sans"' }}
+          tick={{ fill: 'hsl(var(--foreground))' }}
         />
         <Radar
           dataKey="score"
