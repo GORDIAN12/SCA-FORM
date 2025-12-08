@@ -97,5 +97,7 @@
     "aromaCaramelizado": "Caramelized",
     "aromaHerbal": "Herbal",
     "aromaTierra": "Earthy",
-    "aromaOtros": "Others"
+    "aromaOtros": "Others",
+    "additionalEvaluations": "Additional Evaluations",
+    "attribute": "Attribute"
 }

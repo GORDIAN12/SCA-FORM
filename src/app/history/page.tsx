@@ -10,7 +10,7 @@ import { ChevronLeft, FilterX, Calendar as CalendarIcon } from 'lucide-react';
 import { CuppingCompassLogo } from '@/components/cupping-compass-logo';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { HistoryItem } from '@/components/history/history-item';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -19,12 +19,15 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { generatePdf } from '@/lib/generate-pdf';
 import { useLanguage } from '@/context/language-context';
+import { HistoryRadarChart } from '@/components/history/history-radar-chart';
 
 export default function HistoryPage() {
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
   const router = useRouter();
   const { t } = useLanguage();
+  const chartContainerRef = useRef<HTMLDivElement>(null);
+  const [evaluationForPdf, setEvaluationForPdf] = useState<Evaluation | null>(null);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [roastLevelFilter, setRoastLevelFilter] = useState('');
@@ -53,7 +56,7 @@ export default function HistoryPage() {
       setEvaluations(data);
     }
   }, [data]);
-  
+
   const filteredEvaluations = useMemo(() => {
     if (!evaluations) return [];
     return evaluations.filter(evaluation => {
@@ -64,8 +67,18 @@ export default function HistoryPage() {
       return matchesSearchTerm && matchesRoastLevel && matchesDate;
     });
   }, [evaluations, searchTerm, roastLevelFilter, dateFilter]);
+  
+  useEffect(() => {
+      const createPdf = async () => {
+        if (evaluationForPdf && chartContainerRef.current) {
+          await generatePdf(evaluationForPdf, t, chartContainerRef.current);
+          setEvaluationForPdf(null); // Reset after generation
+        }
+      };
+      createPdf();
+  }, [evaluationForPdf, t]);
 
-  if (isUserLoading || !user) {
+  if (isUserLoading) {
     return (
       <div className="p-8">
         <Skeleton className="h-10 w-1/2 mb-4" />
@@ -101,7 +114,7 @@ export default function HistoryPage() {
   };
   
   const handleDownloadPdf = (evaluation: Evaluation) => {
-    generatePdf(evaluation, t);
+    setEvaluationForPdf(evaluation);
   };
   
   const clearFilters = () => {
@@ -216,6 +229,13 @@ export default function HistoryPage() {
             </Card>
          </div>
       </main>
+      <div className="absolute top-[-9999px] left-[-9999px]">
+        {evaluationForPdf && (
+            <div ref={chartContainerRef} style={{ width: '500px', height: '500px' }}>
+                <HistoryRadarChart evaluation={evaluationForPdf} t={t} />
+            </div>
+        )}
+      </div>
     </div>
   );
 }
