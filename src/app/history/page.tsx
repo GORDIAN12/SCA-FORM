@@ -78,7 +78,7 @@ export default function HistoryPage() {
       createPdf();
   }, [evaluationForPdf, t]);
 
-  if (isUserLoading) {
+  if (isUserLoading || !user) {
     return (
       <div className="p-8">
         <Skeleton className="h-10 w-1/2 mb-4" />
@@ -229,7 +229,7 @@ export default function HistoryPage() {
             </Card>
          </div>
       </main>
-      <div className="absolute top-[-9999px] left-[-9999px]">
+      <div className="fixed top-[-9999px] left-[-9999px]">
         {evaluationForPdf && (
             <div ref={chartContainerRef} style={{ width: '500px', height: '500px' }}>
                 <HistoryRadarChart evaluation={evaluationForPdf} t={t} />

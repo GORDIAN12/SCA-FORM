@@ -30,17 +30,15 @@ export const generatePdf = async (
   const roastLevelKey = `roast${evaluation.roastLevel.charAt(0).toUpperCase() + evaluation.roastLevel.slice(1).replace('-', '')}`;
   doc.text(`${t('roastLevel')}: ${t(roastLevelKey)}`, 20, 48);
   doc.text(`${t('evaluationDate')}: ${evaluation.createdAt.toDate().toLocaleDateString()}`, 20, 56);
-
+  
   doc.line(20, 62, 190, 62);
 
-  doc.setFontSize(28);
+  doc.setFontSize(18);
   doc.setFont('helvetica', 'bold');
   doc.text(t('overallScore'), 105, 75, { align: 'center' });
   doc.setFontSize(48);
   doc.text(evaluation.overallScore.toFixed(2), 105, 95, { align: 'center' });
   
-  doc.line(20, 105, 190, 105);
-
   // Add Radar Chart
   doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');

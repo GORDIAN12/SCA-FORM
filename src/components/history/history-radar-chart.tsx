@@ -41,6 +41,9 @@ export function HistoryRadarChart({ evaluation, t }: HistoryRadarChartProps) {
         const getAverage = (key: 'flavor' | 'aftertaste' | 'acidity' | 'body' | 'balance') => 
             evaluation.cups.reduce((acc, cup) => 
                 acc + (cup.scores.hot[key] + cup.scores.warm[key] + cup.scores.cold[key]) / 3, 0) / numCups;
+        
+        const getAverageSimple = (key: 'uniformity' | 'cleanCup' | 'sweetness') =>
+            evaluation.cups.reduce((acc, cup) => acc + (cup[key] ? 10 : 0), 0) / numCups;
 
         return {
             [t('aroma')]: evaluation.cups.reduce((acc, cup) => acc + cup.aroma, 0) / numCups,
@@ -49,6 +52,7 @@ export function HistoryRadarChart({ evaluation, t }: HistoryRadarChartProps) {
             [t('acidity')]: getAverage('acidity'),
             [t('body')]: getAverage('body'),
             [t('balance')]: getAverage('balance'),
+            [t('sweetness')]: getAverageSimple('sweetness'),
         };
     }, [evaluation, t]);
 
