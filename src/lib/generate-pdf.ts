@@ -1,7 +1,5 @@
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-import type { jsPDF as jsPDFType } from 'jspdf';
-import { toPng } from 'html-to-image';
 
 // Extend the jsPDF interface to include autoTable
 declare module 'jspdf' {
@@ -10,7 +8,66 @@ declare module 'jspdf' {
   }
 }
 
-export const generatePdf = async (reportJson: any, chartNodes: { [key: string]: HTMLElement }, t: (key: string) => string) => {
+const drawRadarChart = (doc: jsPDF, centerX: number, centerY: number, size: number, data: any, t: (key: string) => string) => {
+    const attributes = ['aroma', 'flavor', 'aftertaste', 'acidity', 'body', 'balance', 'sweetness'];
+    const numAxes = attributes.length;
+    const angleSlice = (2 * Math.PI) / numAxes;
+
+    // --- Draw Grid & Axes ---
+    doc.setDrawColor(200, 200, 200); // Light grey for grid
+    doc.setLineWidth(0.2);
+
+    for (let i = 1; i <= 5; i++) {
+        const radius = (size / 5) * i;
+        const points = [];
+        for (let j = 0; j < numAxes; j++) {
+            const angle = angleSlice * j - Math.PI / 2;
+            const x = centerX + radius * Math.cos(angle);
+            const y = centerY + radius * Math.sin(angle);
+            points.push([x, y]);
+        }
+        doc.lines(points, centerX, centerY, [1,1], 'S', true);
+    }
+    
+    // --- Draw Axis Lines and Labels ---
+    doc.setDrawColor(200, 200, 200);
+    doc.setFontSize(8);
+    doc.setTextColor(100, 100, 100);
+
+    attributes.forEach((attr, i) => {
+        const angle = angleSlice * i - Math.PI / 2;
+        const x1 = centerX;
+        const y1 = centerY;
+        const x2 = centerX + size * Math.cos(angle);
+        const y2 = centerY + size * Math.sin(angle);
+        doc.line(x1, y1, x2, y2);
+
+        // Label
+        const labelX = centerX + (size * 1.1) * Math.cos(angle);
+        const labelY = centerY + (size * 1.1) * Math.sin(angle);
+        doc.text(t(attr), labelX, labelY, { align: 'center', baseline: 'middle' });
+    });
+
+
+    // --- Draw Data Polygon ---
+    const dataPoints = attributes.map((attr, i) => {
+        const value = data[attr];
+        // Scale: value 6 -> radius 0, value 10 -> radius 'size'
+        const radius = ((value - 6) / 4) * size;
+        const angle = angleSlice * i - Math.PI / 2;
+        const x = centerX + radius * Math.cos(angle);
+        const y = centerY + radius * Math.sin(angle);
+        return [x, y];
+    });
+
+    doc.setFillColor(139, 69, 19, 0.35);
+    doc.setDrawColor(90, 40, 10);
+    doc.setLineWidth(0.5);
+    doc.lines(dataPoints, centerX, centerY, [1,1], 'FD', true);
+};
+
+
+export const generatePdf = async (reportJson: any, t: (key: string) => string) => {
   if (!reportJson) {
     console.error('Missing report data for PDF generation.');
     return;
@@ -18,20 +75,6 @@ export const generatePdf = async (reportJson: any, chartNodes: { [key: string]: 
 
   const doc = new jsPDF();
   const { cafe, resumen_general, tazas } = reportJson;
-
-  // --- CHART IMAGE GENERATION ---
-  const chartImagePromises = Object.entries(chartNodes).map(([key, node]) => 
-    toPng(node, { 
-      backgroundColor: 'white',
-      fontEmbedCSS: '' 
-    }).then(dataUrl => ({ key, dataUrl }))
-  );
-  
-  const chartImagesArray = await Promise.all(chartImagePromises);
-  const chartImages = chartImagesArray.reduce((acc, { key, dataUrl }) => {
-    acc[key] = dataUrl;
-    return acc;
-  }, {} as { [key: string]: string });
 
   // --- PAGE 1: SUMMARY ---
   doc.setFontSize(22);
@@ -69,7 +112,7 @@ export const generatePdf = async (reportJson: any, chartNodes: { [key: string]: 
   doc.text(`${t('generatedOn')}: ${new Date().toLocaleDateString()}`, 20, doc.internal.pageSize.getHeight() - 10);
 
   // --- PAGES PER CUP ---
-  tazas.forEach((taza: any, tazaIndex: number) => {
+  tazas.forEach((taza: any) => {
     doc.addPage();
     
     // Header
@@ -132,20 +175,20 @@ export const generatePdf = async (reportJson: any, chartNodes: { [key: string]: 
     doc.setFont('helvetica', 'bold');
     doc.text(t('flavorProfile'), doc.internal.pageSize.getWidth() / 2, secondTableFinalY + 15, { align: 'center'});
 
-    const chartSize = 60;
-    const chartY = secondTableFinalY + 20;
-    const chartSpacing = (doc.internal.pageSize.getWidth() - (chartSize * 3)) / 4;
+    const chartSize = 25;
+    const chartY = secondTableFinalY + 50;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const chartSpacing = (pageWidth - (chartSize * 2 * 3)) / 4;
 
     const phases = ['hot', 'warm', 'cold'];
     phases.forEach((phase, index) => {
-        const chartKey = `cup-${tazaIndex}-${phase}`;
-        const chartImage = chartImages[chartKey];
-        if (chartImage) {
-            const chartX = chartSpacing * (index + 1) + chartSize * index;
+        const chartData = taza.radar_charts[phase];
+        if (chartData) {
+            const chartX = chartSpacing * (index + 1) + (chartSize * 2 * index) + chartSize;
             doc.setFontSize(12);
             doc.setFont('helvetica', 'normal');
-            doc.text(t(phase), chartX + chartSize / 2, chartY, { align: 'center' });
-            doc.addImage(chartImage, 'PNG', chartX, chartY + 5, chartSize, chartSize);
+            doc.text(t(phase), chartX, chartY - chartSize - 10, { align: 'center' });
+            drawRadarChart(doc, chartX, chartY, chartSize, chartData, t);
         }
     });
   });
