@@ -1,12 +1,5 @@
 import type { Evaluation, CupEvaluation } from './types';
 
-const getAverage = (cups: CupEvaluation[], key: 'flavor' | 'aftertaste' | 'acidity' | 'body' | 'balance') => {
-    if (!cups || cups.length === 0) return 0;
-    const total = cups.reduce((acc, cup) => 
-        acc + (cup.scores.hot[key] + cup.scores.warm[key] + cup.scores.cold[key]) / 3, 0);
-    return total / cups.length;
-};
-
 const getAverageSimple = (cups: CupEvaluation[], key: 'uniformity' | 'cleanCup' | 'sweetness') => {
     if (!cups || cups.length === 0) return 0;
     const total = cups.reduce((acc, cup) => acc + (cup[key] ? 10 : 0), 0);
@@ -49,11 +42,15 @@ export const generateReportJson = (evaluation: Evaluation, t: (key: string) => s
       puntaje_catador: parseFloat(getAverageCupperScore(cups).toFixed(2)),
     },
     tazas: cups.map((cup, index) => {
-        const avgFlavor = (cup.scores.hot.flavor + cup.scores.warm.flavor + cup.scores.cold.flavor) / 3;
-        const avgAftertaste = (cup.scores.hot.aftertaste + cup.scores.warm.aftertaste + cup.scores.cold.aftertaste) / 3;
-        const avgAcidity = (cup.scores.hot.acidity + cup.scores.warm.acidity + cup.scores.cold.acidity) / 3;
-        const avgBody = (cup.scores.hot.body + cup.scores.warm.body + cup.scores.cold.body) / 3;
-        const avgBalance = (cup.scores.hot.balance + cup.scores.warm.balance + cup.scores.cold.balance) / 3;
+        const createRadarData = (phase: 'hot' | 'warm' | 'cold') => ({
+          aroma: parseFloat(cup.aroma.toFixed(2)),
+          flavor: parseFloat(cup.scores[phase].flavor.toFixed(2)),
+          aftertaste: parseFloat(cup.scores[phase].aftertaste.toFixed(2)),
+          acidity: parseFloat(cup.scores[phase].acidity.toFixed(2)),
+          body: parseFloat(cup.scores[phase].body.toFixed(2)),
+          balance: parseFloat(cup.scores[phase].balance.toFixed(2)),
+          sweetness: cup.sweetness ? 10 : 0,
+        });
 
         return {
             numero_taza: index + 1,
@@ -74,14 +71,10 @@ export const generateReportJson = (evaluation: Evaluation, t: (key: string) => s
                 dulzura: cup.sweetness ? 10 : 0,
                 puntaje_catador: cup.cupperScore,
             },
-            radar_chart: {
-                aroma: parseFloat(cup.aroma.toFixed(2)),
-                sabor: parseFloat(avgFlavor.toFixed(2)),
-                acidez: parseFloat(avgAcidity.toFixed(2)),
-                cuerpo: parseFloat(avgBody.toFixed(2)),
-                balance: parseFloat(avgBalance.toFixed(2)),
-                dulzura: cup.sweetness ? 10 : 0,
-                postgusto: parseFloat(avgAftertaste.toFixed(2)),
+            radar_charts: {
+              hot: createRadarData('hot'),
+              warm: createRadarData('warm'),
+              cold: createRadarData('cold'),
             },
         }
     }),

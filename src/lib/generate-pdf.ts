@@ -10,23 +10,25 @@ declare module 'jspdf' {
   }
 }
 
-export const generatePdf = async (reportJson: any, chartNode: HTMLElement, t: (key: string) => string) => {
-  if (!reportJson || !chartNode) {
-    console.error('Missing report data or chart node for PDF generation.');
+export const generatePdf = async (reportJson: any, chartNodes: HTMLElement[], t: (key: string) => string) => {
+  if (!reportJson || chartNodes.length === 0) {
+    console.error('Missing report data or chart nodes for PDF generation.');
     return;
   }
 
   const doc = new jsPDF();
   const { cafe, resumen_general, tazas } = reportJson;
 
-  // --- CHART GENERATION ---
-  const dataUrl = await toPng(chartNode, { 
-    backgroundColor: 'white',
-    fontEmbedCSS: '' 
-  });
+  // --- CHART IMAGE GENERATION ---
+  const chartImagePromises = chartNodes.map(node => 
+    toPng(node, { 
+      backgroundColor: 'white',
+      fontEmbedCSS: '' 
+    })
+  );
+  const chartImages = await Promise.all(chartImagePromises);
 
-
-  // --- PAGE 1: SUMMARY / COVER PAGE ---
+  // --- PAGE 1: SUMMARY ---
   doc.setFontSize(22);
   doc.setFont('helvetica', 'bold');
   doc.text(cafe.nombre, doc.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
@@ -39,28 +41,17 @@ export const generatePdf = async (reportJson: any, chartNode: HTMLElement, t: (k
   doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
   doc.text(`${t('overallScore')}: ${resumen_general.puntuacion_general.toFixed(2)}`, 20, 55);
-
-  const chartWidth = 120;
-  const chartHeight = 120;
-  const chartX = (doc.internal.pageSize.getWidth() - chartWidth) / 2;
   
-  if (dataUrl) {
-    doc.addImage(dataUrl, 'PNG', chartX, 65, chartWidth, chartHeight);
-  }
-
-  doc.setFontSize(14);
-  doc.text(t('averageAttributeScores'), doc.internal.pageSize.getWidth() / 2, 195, { align: 'center'});
-
   const summaryData = [
-      [t('fragranceAroma'), resumen_general.fragrancia_aroma.toFixed(2)],
-      [t('uniformity'), resumen_general.uniformidad.toFixed(2)],
-      [t('cleanCup'), resumen_general.taza_limpia.toFixed(2)],
-      [t('sweetness'), resumen_general.dulzura.toFixed(2)],
-      [t('cupperScore'), resumen_general.puntaje_catador.toFixed(2)],
+    [t('fragranceAroma'), resumen_general.fragrancia_aroma.toFixed(2)],
+    [t('uniformity'), resumen_general.uniformidad.toFixed(2)],
+    [t('cleanCup'), resumen_general.taza_limpia.toFixed(2)],
+    [t('sweetness'), resumen_general.dulzura.toFixed(2)],
+    [t('cupperScore'), resumen_general.puntaje_catador.toFixed(2)],
   ];
 
   doc.autoTable({
-      startY: 200,
+      startY: 65,
       head: [[t('attribute'), t('score')]],
       body: summaryData,
       theme: 'grid',
@@ -73,6 +64,7 @@ export const generatePdf = async (reportJson: any, chartNode: HTMLElement, t: (k
   doc.text(`${t('generatedOn')}: ${new Date().toLocaleDateString()}`, 20, doc.internal.pageSize.getHeight() - 10);
 
   // --- PAGES PER CUP ---
+  let chartImageIndex = 0;
   tazas.forEach((taza: any) => {
     doc.addPage();
     
@@ -102,29 +94,52 @@ export const generatePdf = async (reportJson: any, chartNode: HTMLElement, t: (k
         styles: { fontSize: 10, cellPadding: 3 },
         headStyles: { fillColor: [74, 44, 42] },
     });
+    
+    const tableFinalY = (doc as any).autoTable.previous.finalY;
 
     // Additional Evaluations
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
-    doc.text(t('additionalEvaluations'), 14, doc.autoTable.previous.finalY + 15);
+    doc.text(t('additionalEvaluations'), 14, tableFinalY + 15);
 
     const additionalBody = [
-        [t('acidity'), `${taza.evaluaciones_adicionales.acidez.puntuacion} (${taza.evaluaciones_adicionales.acidez.intensidad})`],
-        [t('body'), `${taza.evaluaciones_adicionales.cuerpo.puntuacion} (${taza.evaluaciones_adicionales.cuerpo.intensidad})`],
-        [t('fragranceAroma'), taza.evaluaciones_adicionales.fragrancia_aroma],
-        [t('uniformity'), taza.evaluaciones_adicionales.uniformidad],
-        [t('cleanCup'), taza.evaluaciones_adicionales.taza_limpia],
-        [t('sweetness'), taza.evaluaciones_adicionales.dulzura],
-        [t('cupperScore'), taza.evaluaciones_adicionales.puntaje_catador],
+        [t('acidity'), `${taza.evaluaciones_adicionales.acidez.puntuacion.toFixed(2)} (${taza.evaluaciones_adicionales.acidez.intensidad})`],
+        [t('body'), `${taza.evaluaciones_adicionales.cuerpo.puntuacion.toFixed(2)} (${taza.evaluaciones_adicionales.cuerpo.intensidad})`],
+        [t('fragranceAroma'), taza.evaluaciones_adicionales.fragrancia_aroma.toFixed(2)],
+        [t('uniformity'), taza.evaluaciones_adicionales.uniformidad.toFixed(2)],
+        [t('cleanCup'), taza.evaluaciones_adicionales.taza_limpia.toFixed(2)],
+        [t('sweetness'), taza.evaluaciones_adicionales.dulzura.toFixed(2)],
+        [t('cupperScore'), taza.evaluaciones_adicionales.puntaje_catador.toFixed(2)],
     ];
 
     doc.autoTable({
-        startY: doc.autoTable.previous.finalY + 20,
+        startY: tableFinalY + 20,
         head: [[t('attribute'), t('score')]],
         body: additionalBody,
         theme: 'grid',
         styles: { fontSize: 10, cellPadding: 3 },
         headStyles: { fillColor: [74, 44, 42] },
+    });
+    
+    const secondTableFinalY = (doc as any).autoTable.previous.finalY;
+
+    // Radar Charts
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text(t('flavorProfile'), doc.internal.pageSize.getWidth() / 2, secondTableFinalY + 15, { align: 'center'});
+
+    const chartSize = 60;
+    const chartY = secondTableFinalY + 20;
+    const chartSpacing = (doc.internal.pageSize.getWidth() - (chartSize * 3)) / 4;
+
+    const phases = ['hot', 'warm', 'cold'];
+    phases.forEach((phase, index) => {
+        const chartX = chartSpacing * (index + 1) + chartSize * index;
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'normal');
+        doc.text(t(phase), chartX + chartSize / 2, chartY, { align: 'center' });
+        doc.addImage(chartImages[chartImageIndex], 'PNG', chartX, chartY + 5, chartSize, chartSize);
+        chartImageIndex++;
     });
   });
 

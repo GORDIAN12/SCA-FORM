@@ -52,3 +52,13 @@ export interface ScaFormValues {
     cups: CupEvaluation[];
     lastModified?: string;
 }
+
+export interface RadarChartData {
+  aroma: number;
+  flavor: number;
+  aftertaste: number;
+  acidity: number;
+  body: number;
+  balance: number;
+  sweetness: number;
+}

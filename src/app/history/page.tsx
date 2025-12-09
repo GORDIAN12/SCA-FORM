@@ -2,7 +2,7 @@
 
 import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy, doc, deleteDoc, updateDoc } from 'firebase/firestore';
-import type { Evaluation } from '@/lib/types';
+import type { Evaluation, RadarChartData } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -31,8 +31,15 @@ export default function HistoryPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [roastLevelFilter, setRoastLevelFilter] = useState('');
   const [dateFilter, setDateFilter] = useState<Date | undefined>();
-  const chartRef = useRef<HTMLDivElement>(null);
-  const [pdfEvaluation, setPdfEvaluation] = useState<Evaluation | null>(null);
+  
+  const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
+  
+  const [pdfGenerationRequest, setPdfGenerationRequest] = useState<{
+    json: any;
+    charts: { name: string; data: RadarChartData }[];
+  } | null>(null);
+
+  const chartRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -49,8 +56,6 @@ export default function HistoryPage() {
   }, [firestore, user]);
 
   const { data, isLoading } = useCollection<Evaluation>(evaluationsQuery);
-
-  const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
 
   useEffect(() => {
     if (data) {
@@ -69,25 +74,19 @@ export default function HistoryPage() {
     });
   }, [evaluations, searchTerm, roastLevelFilter, dateFilter]);
   
-  useEffect(() => {
+   useEffect(() => {
     const createPdf = async () => {
-      if (pdfEvaluation && chartRef.current) {
-        const reportJson = generateReportJson(pdfEvaluation, t);
-        if (reportJson) {
-            await generatePdf(reportJson, chartRef.current, t);
-        }
-        setPdfEvaluation(null); // Reset after generation
+      if (pdfGenerationRequest && chartRefs.current.every(ref => ref)) {
+        await generatePdf(pdfGenerationRequest.json, chartRefs.current as HTMLElement[], t);
+        setPdfGenerationRequest(null); // Reset after generation
       }
     };
-    // Timeout to allow the chart to render before generating PDF
-    if (pdfEvaluation) {
-      const timer = setTimeout(() => {
-        createPdf();
-      }, 100);
 
+    if (pdfGenerationRequest) {
+      const timer = setTimeout(createPdf, 200); // Give charts time to render
       return () => clearTimeout(timer);
     }
-  }, [pdfEvaluation, t]);
+  }, [pdfGenerationRequest, t]);
 
 
   const handleDelete = async (evaluationId: string) => {
@@ -117,7 +116,17 @@ export default function HistoryPage() {
   };
   
   const handleDownloadPdf = (evaluation: Evaluation) => {
-    setPdfEvaluation(evaluation);
+    const reportJson = generateReportJson(evaluation, t);
+    if (!reportJson) return;
+
+    const chartsToRender: { name: string; data: RadarChartData }[] = [];
+    reportJson.tazas.forEach((taza: any, index: number) => {
+      chartsToRender.push({ name: `cup-${index}-hot`, data: taza.radar_charts.hot });
+      chartsToRender.push({ name: `cup-${index}-warm`, data: taza.radar_charts.warm });
+      chartsToRender.push({ name: `cup-${index}-cold`, data: taza.radar_charts.cold });
+    });
+    
+    setPdfGenerationRequest({ json: reportJson, charts: chartsToRender });
   };
   
   const clearFilters = () => {
@@ -233,11 +242,16 @@ export default function HistoryPage() {
          </div>
       </main>
       <div className="absolute top-[-9999px] left-[-9999px]">
-        {pdfEvaluation && (
-            <div ref={chartRef} style={{ width: '500px', height: '500px', backgroundColor: 'white' }}>
-               <HistoryRadarChart evaluation={pdfEvaluation} />
+        {pdfGenerationRequest &&
+          pdfGenerationRequest.charts.map((chart, index) => (
+            <div
+              key={chart.name}
+              ref={(el) => (chartRefs.current[index] = el)}
+              style={{ width: '300px', height: '300px', backgroundColor: 'white' }}
+            >
+              <HistoryRadarChart scores={chart.data} />
             </div>
-        )}
+          ))}
       </div>
     </div>
   );
