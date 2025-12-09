@@ -170,9 +170,9 @@ export const generatePdf = async (reportJson: any, t: (key: string) => string) =
     doc.setFont('helvetica', 'bold');
     doc.text(t('flavorProfile'), doc.internal.pageSize.getWidth() / 2, secondTableFinalY + 15, { align: 'center'});
 
-    const chartSize = 35; // Predetermined size (radius) for the chart
-    const chartY = secondTableFinalY + 60; // Y position for the charts
-    const chartSpacing = 65; // Space between the center of each chart
+    const chartSize = 25; // Predetermined size (radius) for the chart
+    const chartY = secondTableFinalY + 55; // Y position for the charts
+    const chartSpacing = 60; // Space between the center of each chart
     const totalChartsWidth = chartSpacing * 2;
     const startX = (doc.internal.pageSize.getWidth() - totalChartsWidth) / 2;
 
