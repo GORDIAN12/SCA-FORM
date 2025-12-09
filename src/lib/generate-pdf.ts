@@ -14,18 +14,48 @@ const drawRadarChart = (doc: jsPDF, centerX: number, centerY: number, size: numb
     const numAxes = attributes.length;
     const angleSlice = (2 * Math.PI) / numAxes;
 
+    // --- Draw Grid ---
+    doc.setDrawColor(200, 200, 200); // Light grey for grid
+    doc.setLineWidth(0.2);
+    const gridLevels = 4; // for scores 7, 8, 9, 10
+    for (let i = 1; i <= gridLevels; i++) {
+        const radius = (i / gridLevels) * size;
+        const gridPoints: [number, number][] = [];
+        for (let j = 0; j < numAxes; j++) {
+            const angle = angleSlice * j - Math.PI / 2;
+            const x = centerX + radius * Math.cos(angle);
+            const y = centerY + radius * Math.sin(angle);
+            gridPoints.push([x, y]);
+        }
+        doc.lines(gridPoints, 0, 0, [1, 1], 'S', true); // Draw closed polygon
+    }
+
+    // --- Draw Axes ---
+    for (let i = 0; i < numAxes; i++) {
+        const angle = angleSlice * i - Math.PI / 2;
+        const x = centerX + size * Math.cos(angle);
+        const y = centerY + size * Math.sin(angle);
+        doc.line(centerX, centerY, x, y);
+
+        // --- Draw Labels ---
+        const labelX = centerX + (size + 10) * Math.cos(angle);
+        const labelY = centerY + (size + 10) * Math.sin(angle);
+        doc.setFontSize(8);
+        doc.text(t(attributes[i]), labelX, labelY, { align: 'center', baseline: 'middle' });
+    }
+
     // --- Calculate Data Points ---
     const dataPoints: [number, number][] = attributes.map((attr, i) => {
-        const value = data[attr] || 6.0; // Default to 6 if value is missing
-        const radius = (((value - 6.0) / 4.0) * (size * 0.9)) + (size * 0.1); 
-        const angle = angleSlice * i - Math.PI / 2; // Start from the top
+        const value = data[attr] || 6.0;
+        const radius = ((value - 6.0) / 4.0) * size; // Scale from 6-10 range to 0-size range
+        const angle = angleSlice * i - Math.PI / 2;
         const x = centerX + radius * Math.cos(angle);
         const y = centerY + radius * Math.sin(angle);
         return [x, y];
     });
-    
-    // --- Draw only the red dots ---
-    doc.setFillColor(255, 0, 0); // Red color for the dots
+
+    // --- Draw Red Dots ---
+    doc.setFillColor(255, 0, 0); // Red color
     dataPoints.forEach(point => {
         doc.circle(point[0], point[1], 1, 'F'); // Draw a filled circle of radius 1
     });
@@ -153,7 +183,7 @@ export const generatePdf = async (reportJson: any, t: (key: string) => string) =
             const chartX = startX + (chartSpacing * index);
             doc.setFontSize(12);
             doc.setFont('helvetica', 'normal');
-            doc.text(t(phase), chartX, chartY - chartSize - 5, { align: 'center' });
+            doc.text(t(phase), chartX, chartY - chartSize - 15, { align: 'center' });
             drawRadarChart(doc, chartX, chartY, chartSize, chartData, t);
         }
     });
