@@ -1,12 +1,7 @@
-
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-import { toPng } from 'html-to-image';
-import { ReportRadarChart } from '@/components/history/report-radar-chart';
-import React from 'react';
-import { createRoot } from 'react-dom/client';
+import { generateRadarSVG } from './generate-radar-svg';
 import type { RadarChartData } from '@/lib/types';
-
 
 // Extend the jsPDF interface to include autoTable
 declare module 'jspdf' {
@@ -14,36 +9,6 @@ declare module 'jspdf' {
     autoTable: (options: any) => jsPDF;
   }
 }
-
-const renderChartToImage = async (data: RadarChartData, t: (key: string) => string): Promise<string> => {
-    const chartContainer = document.createElement('div');
-    chartContainer.style.position = 'absolute';
-    chartContainer.style.left = '-9999px';
-    chartContainer.style.width = '300px';
-    chartContainer.style.height = '300px';
-    chartContainer.style.backgroundColor = 'white';
-    document.body.appendChild(chartContainer);
-
-    const root = createRoot(chartContainer);
-    
-    return new Promise(async (resolve) => {
-        root.render(React.createElement(ReportRadarChart, { scores: data, t: t }));
-
-        // Short delay to ensure the chart is fully rendered before capturing
-        await new Promise(r => setTimeout(r, 500));
-
-        const dataUrl = await toPng(chartContainer, { 
-          quality: 1.0, 
-          pixelRatio: 2,
-          skipFonts: true
-        });
-        
-        root.unmount();
-        document.body.removeChild(chartContainer);
-        resolve(dataUrl);
-    });
-};
-
 
 export const generatePdf = async (reportJson: any, t: (key: string) => string) => {
   if (!reportJson) {
@@ -153,9 +118,9 @@ export const generatePdf = async (reportJson: any, t: (key: string) => string) =
     doc.setFont('helvetica', 'bold');
     doc.text(t('flavorProfile'), doc.internal.pageSize.getWidth() / 2, secondTableFinalY + 15, { align: 'center'});
 
-    const chartImageSize = 60; 
+    const chartSize = 60; 
     const chartY = secondTableFinalY + 20;
-    const chartSpacing = chartImageSize + 5;
+    const chartSpacing = chartSize + 5;
     const totalChartsWidth = chartSpacing * 3 - 5;
     const startX = (doc.internal.pageSize.getWidth() - totalChartsWidth) / 2;
 
@@ -167,10 +132,12 @@ export const generatePdf = async (reportJson: any, t: (key: string) => string) =
             const chartX = startX + (chartSpacing * i);
             doc.setFontSize(12);
             doc.setFont('helvetica', 'normal');
-            doc.text(t(phase), chartX + chartImageSize / 2, chartY, { align: 'center' });
+            doc.text(t(phase), chartX + chartSize / 2, chartY, { align: 'center' });
+            
+            const svgString = generateRadarSVG(chartData, t);
+            const svgDataUrl = 'data:image/svg+xml;base64,' + btoa(svgString);
 
-            const imageUrl = await renderChartToImage(chartData, t);
-            doc.addImage(imageUrl, 'PNG', chartX, chartY + 5, chartImageSize, chartImageSize);
+            doc.addImage(svgDataUrl, 'SVG', chartX, chartY + 5, chartSize, chartSize);
         }
     }
   }
