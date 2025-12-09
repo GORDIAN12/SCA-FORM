@@ -68,11 +68,6 @@ const drawRadarChart = (doc: jsPDF, centerX: number, centerY: number, size: numb
         return [x, y];
     });
 
-    // Draw the connecting lines
-    doc.setDrawColor(0, 0, 0); // Black
-    doc.setLineWidth(0.5);
-    doc.lines(dataPoints, 0, 0, [1, 1], 'S', true); // 'S' for stroke, 'true' for closed path
-
     // Draw red dots at each vertex
     doc.setFillColor(255, 0, 0); // Red
     dataPoints.forEach(point => {
