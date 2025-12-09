@@ -138,6 +138,8 @@ export const generatePdf = async (reportJson: any, t: (key: string) => string) =
             const svgString = generateRadarSVG(chartData, t);
 
             const canvas = document.createElement('canvas');
+            canvas.width = 1200;
+            canvas.height = 1200;
             const ctx = canvas.getContext('2d');
             const v = await Canvg.from(ctx!, svgString);
             await v.render();
