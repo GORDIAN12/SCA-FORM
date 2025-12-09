@@ -2,6 +2,7 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { generateRadarSVG } from './generate-radar-svg';
 import type { RadarChartData } from '@/lib/types';
+import { Canvg } from 'canvg';
 
 // Extend the jsPDF interface to include autoTable
 declare module 'jspdf' {
@@ -117,8 +118,8 @@ export const generatePdf = async (reportJson: any, t: (key: string) => string) =
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
     doc.text(t('flavorProfile'), doc.internal.pageSize.getWidth() / 2, secondTableFinalY + 15, { align: 'center'});
-
-    const chartSize = 60; 
+    
+    const chartSize = 60;
     const chartY = secondTableFinalY + 20;
     const chartSpacing = chartSize + 5;
     const totalChartsWidth = chartSpacing * 3 - 5;
@@ -135,9 +136,15 @@ export const generatePdf = async (reportJson: any, t: (key: string) => string) =
             doc.text(t(phase), chartX + chartSize / 2, chartY, { align: 'center' });
             
             const svgString = generateRadarSVG(chartData, t);
-            const svgDataUrl = 'data:image/svg+xml;base64,' + btoa(svgString);
 
-            doc.addImage(svgDataUrl, 'SVG', chartX, chartY + 5, chartSize, chartSize);
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const v = await Canvg.from(ctx!, svgString);
+            await v.render();
+            
+            const dataUrl = canvas.toDataURL('image/png');
+
+            doc.addImage(dataUrl, 'PNG', chartX, chartY + 5, chartSize, chartSize);
         }
     }
   }
