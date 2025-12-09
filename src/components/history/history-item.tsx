@@ -1,7 +1,7 @@
 'use client';
 
 import type { Evaluation } from '@/lib/types';
-import { Star, Trash2, FileJson } from 'lucide-react';
+import { Star, Trash2, FileDown } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/context/language-context';
@@ -50,8 +50,8 @@ export function HistoryItem({ evaluation, onDelete, onToggleFavorite, onDownload
                     onDownloadPdf(evaluation);
                 }}
             >
-                <FileJson className="h-5 w-5 text-muted-foreground group-hover:text-primary" />
-                <span className="sr-only">Generate Report JSON</span>
+                <FileDown className="h-5 w-5 text-muted-foreground group-hover:text-primary" />
+                <span className="sr-only">Generate Report PDF</span>
             </Button>
             <Button 
                 variant="ghost" 

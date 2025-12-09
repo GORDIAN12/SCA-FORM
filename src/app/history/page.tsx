@@ -10,7 +10,7 @@ import { ChevronLeft, FilterX, Calendar as CalendarIcon, FileDown } from 'lucide
 import { CuppingCompassLogo } from '@/components/cupping-compass-logo';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { HistoryItem } from '@/components/history/history-item';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -19,7 +19,8 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/context/language-context';
 import { generateReportJson } from '@/lib/generate-report-json';
-
+import { generatePdf } from '@/lib/generate-pdf';
+import { HistoryRadarChart } from '@/components/history/history-radar-chart';
 
 export default function HistoryPage() {
   const { user, isUserLoading } = useUser();
@@ -30,6 +31,8 @@ export default function HistoryPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [roastLevelFilter, setRoastLevelFilter] = useState('');
   const [dateFilter, setDateFilter] = useState<Date | undefined>();
+  const chartRef = useRef<HTMLDivElement>(null);
+  const [pdfEvaluation, setPdfEvaluation] = useState<Evaluation | null>(null);
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -66,14 +69,24 @@ export default function HistoryPage() {
     });
   }, [evaluations, searchTerm, roastLevelFilter, dateFilter]);
   
-  if (isUserLoading || isLoading) {
-    return (
-      <div className="p-8">
-        <Skeleton className="h-10 w-1/2 mb-4" />
-        <Skeleton className="h-96 w-full" />
-      </div>
-    );
-  }
+  useEffect(() => {
+    const createPdf = async () => {
+      if (pdfEvaluation && chartRef.current) {
+        const reportJson = generateReportJson(pdfEvaluation, t);
+        if (reportJson) {
+            await generatePdf(reportJson, chartRef.current, t);
+        }
+        setPdfEvaluation(null); // Reset after generation
+      }
+    };
+    // Timeout to allow the chart to render before generating PDF
+    const timer = setTimeout(() => {
+      createPdf();
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [pdfEvaluation, t]);
+
 
   const handleDelete = async (evaluationId: string) => {
     if (!user || !firestore) return;
@@ -102,8 +115,7 @@ export default function HistoryPage() {
   };
   
   const handleDownloadPdf = (evaluation: Evaluation) => {
-    const reportJson = generateReportJson(evaluation, t);
-    console.log(JSON.stringify(reportJson, null, 2));
+    setPdfEvaluation(evaluation);
   };
   
   const clearFilters = () => {
@@ -218,6 +230,13 @@ export default function HistoryPage() {
             </Card>
          </div>
       </main>
+      <div className="absolute top-[-9999px] left-[-9999px]">
+        {pdfEvaluation && (
+            <div ref={chartRef} style={{ width: '500px', height: '500px', backgroundColor: 'white' }}>
+               <HistoryRadarChart evaluation={pdfEvaluation} />
+            </div>
+        )}
+      </div>
     </div>
   );
 }
