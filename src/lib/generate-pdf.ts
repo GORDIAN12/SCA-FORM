@@ -32,7 +32,13 @@ const renderChartToImage = async (data: RadarChartData, t: (key: string) => stri
         // Short delay to ensure the chart is fully rendered before capturing
         await new Promise(r => setTimeout(r, 500));
 
-        const dataUrl = await toPng(chartContainer, { quality: 1.0, pixelRatio: 2 });
+        const dataUrl = await toPng(chartContainer, { 
+          quality: 1.0, 
+          pixelRatio: 2,
+          filter: (node: HTMLElement) => {
+            return node.tagName !== 'LINK'
+          }
+        });
         
         root.unmount();
         document.body.removeChild(chartContainer);
