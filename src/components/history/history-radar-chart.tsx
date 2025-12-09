@@ -70,14 +70,15 @@ export function HistoryRadarChart({ scores }: HistoryRadarChartProps) {
           angle={90}
           domain={[6, 10]}
           tickCount={5}
+          tick={{ fontSize: 10 }}
           axisLine={false}
-          tick={false}
         />
         <Radar
           dataKey="score"
           fill="var(--color-accent)"
-          fillOpacity={0.6}
-          stroke="var(--color-score)"
+          fillOpacity={0.35}
+          stroke="var(--color-accent)"
+          strokeWidth={2}
           dot={{
             r: 4,
             fillOpacity: 1,

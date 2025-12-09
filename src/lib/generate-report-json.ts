@@ -1,4 +1,6 @@
-import type { Evaluation, CupEvaluation } from './types';
+'use client';
+
+import type { Evaluation, CupEvaluation, RadarChartData } from './types';
 
 const getAverageSimple = (cups: CupEvaluation[], key: 'uniformity' | 'cleanCup' | 'sweetness') => {
     if (!cups || cups.length === 0) return 0;
@@ -16,6 +18,13 @@ const getAverageCupperScore = (cups: CupEvaluation[]) => {
     if (!cups || cups.length === 0) return 0;
     const total = cups.reduce((acc, cup) => acc + cup.cupperScore, 0);
     return total / cups.length;
+}
+
+const validateScore = (score: number | null | undefined): number => {
+    const num = Number(score);
+    if (!num || num < 6) return 6.00;
+    if (num > 10) return 10.00;
+    return parseFloat(num.toFixed(2));
 }
 
 export const generateReportJson = (evaluation: Evaluation, t: (key: string) => string) => {
@@ -42,14 +51,14 @@ export const generateReportJson = (evaluation: Evaluation, t: (key: string) => s
       puntaje_catador: parseFloat(getAverageCupperScore(cups).toFixed(2)),
     },
     tazas: cups.map((cup, index) => {
-        const createRadarData = (phase: 'hot' | 'warm' | 'cold') => ({
-          aroma: parseFloat(cup.aroma.toFixed(2)),
-          flavor: parseFloat(cup.scores[phase].flavor.toFixed(2)),
-          aftertaste: parseFloat(cup.scores[phase].aftertaste.toFixed(2)),
-          acidity: parseFloat(cup.scores[phase].acidity.toFixed(2)),
-          body: parseFloat(cup.scores[phase].body.toFixed(2)),
-          balance: parseFloat(cup.scores[phase].balance.toFixed(2)),
-          sweetness: cup.sweetness ? 10 : 0,
+        const createRadarData = (phase: 'hot' | 'warm' | 'cold'): RadarChartData => ({
+          aroma: validateScore(cup.aroma),
+          flavor: validateScore(cup.scores[phase].flavor),
+          aftertaste: validateScore(cup.scores[phase].aftertaste),
+          acidity: validateScore(cup.scores[phase].acidity),
+          body: validateScore(cup.scores[phase].body),
+          balance: validateScore(cup.scores[phase].balance),
+          sweetness: validateScore(cup.sweetness ? 10 : 6),
         });
 
         return {
