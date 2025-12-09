@@ -23,17 +23,15 @@ const drawRadarChart = (doc: jsPDF, centerX: number, centerY: number, size: numb
     const gridLevels = [7, 8, 9, 10]; // Scores to draw rings for
     gridLevels.forEach(level => {
         const radius = ((level - 6) / 4) * size;
-        if (radius > 0) { // Only draw if radius is positive
+        if (radius > 0) {
             const points: [number, number][] = [];
             for (let j = 0; j < numAxes; j++) {
                 const angle = angleSlice * j - Math.PI / 2;
                 points.push([centerX + radius * Math.cos(angle), centerY + radius * Math.sin(angle)]);
             }
-             // Draw the polygon for the grid ring
             doc.lines(points, 0, 0, [1,1], 'S', true);
 
-            // Draw score label on one of the axes
-            const labelAngle = angleSlice * 0 - Math.PI / 2; // on the 'aroma' axis
+            const labelAngle = angleSlice * 0 - Math.PI / 2;
             doc.text(level.toString(), centerX + radius * Math.cos(labelAngle), centerY + radius * Math.sin(labelAngle) - 1, { align: 'center'});
         }
     });
@@ -52,7 +50,6 @@ const drawRadarChart = (doc: jsPDF, centerX: number, centerY: number, size: numb
         const y2 = centerY + size * Math.sin(angle);
         doc.line(x1, y1, x2, y2);
 
-        // Label
         const labelX = centerX + (size * 1.1) * Math.cos(angle);
         const labelY = centerY + (size * 1.1) * Math.sin(angle);
         doc.text(t(attr), labelX, labelY, { align: 'center', baseline: 'middle' });
@@ -62,7 +59,6 @@ const drawRadarChart = (doc: jsPDF, centerX: number, centerY: number, size: numb
     // --- Draw Data Polygon ---
     const dataPoints: [number, number][] = attributes.map((attr, i) => {
         const value = data[attr];
-        // Scale: value 6 -> radius > 0, value 10 -> radius 'size'
         const radius = ((Math.max(6, value) - 6) / 4) * size;
         const angle = angleSlice * i - Math.PI / 2;
         const x = centerX + radius * Math.cos(angle);
@@ -70,10 +66,9 @@ const drawRadarChart = (doc: jsPDF, centerX: number, centerY: number, size: numb
         return [x, y];
     });
 
-    // Draw red dots at each vertex
     doc.setFillColor(255, 0, 0); // Red
     dataPoints.forEach(point => {
-        doc.circle(point[0], point[1], 1, 'F'); // 'F' for fill
+        doc.circle(point[0], point[1], 1, 'F');
     });
 };
 
