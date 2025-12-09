@@ -42,7 +42,7 @@ export const generateRadarSVG = (data: RadarChartData, t: (key: string) => strin
         const labelX = centerX + levelRadius * Math.cos(labelAngle);
         const labelY = centerY - levelRadius * Math.sin(labelAngle);
         if (level > 0) { // Don't label the center
-            svg += `<text x="${labelX + 10}" y="${labelY + (fontSize / 4)}" font-size="${fontSize * 0.7}" fill="#9CA3AF">${6 + (level - 1)}</text>`;
+            svg += `<text x="${labelX + 10}" y="${labelY + (fontSize / 4)}" font-size="${fontSize * 0.7}" fill="#9CA3AF">${5 + level}</text>`;
         }
     }
 
@@ -51,17 +51,7 @@ export const generateRadarSVG = (data: RadarChartData, t: (key: string) => strin
         svg += `<line x1="${centerX}" y1="${centerY}" x2="${endPoint.x}" y2="${endPoint.y}" stroke="#E5E7EB" stroke-width="${strokeWidth}" />`;
     });
 
-    // --- LABELS ---
-    ATTRIBUTES.forEach((attr, i) => {
-        const labelRadius = radius + labelMargin;
-        const angle = (Math.PI / 2) - (2 * Math.PI * i / NUM_ATTRIBUTES);
-        const x = centerX + labelRadius * Math.cos(angle);
-        const y = centerY - labelRadius * Math.sin(angle) + (fontSize / 3);
-        const textAnchor = (x < centerX - 10) ? 'end' : (x > centerX + 10) ? 'start' : 'middle';
-        svg += `<text x="${x}" y="${y}" text-anchor="${textAnchor}" fill="#4B5563" font-weight="bold">${t(attr)}</text>`;
-    });
-
-    // --- DATA POLYGON ---
+    // --- DATA POLYGON --- (Drawn before labels)
     const dataPoints = ATTRIBUTES.map((attr, i) => {
         const point = getPoint(data[attr], i, centerX, centerY, radius);
         return `${point.x},${point.y}`;
@@ -69,10 +59,20 @@ export const generateRadarSVG = (data: RadarChartData, t: (key: string) => strin
 
     svg += `<polygon points="${dataPoints}" fill="rgba(139, 69, 19, 0.35)" stroke="rgba(90, 40, 10, 0.9)" stroke-width="${strokeWidth * 2}" />`;
     
-    // --- DATA POINTS ---
+    // --- DATA POINTS --- (Drawn before labels)
     ATTRIBUTES.forEach((attr, i) => {
         const point = getPoint(data[attr], i, centerX, centerY, radius);
         svg += `<circle cx="${point.x}" cy="${point.y}" r="${strokeWidth * 2.5}" fill="#FF0000" />`;
+    });
+
+    // --- LABELS --- (Drawn last to be on top)
+    ATTRIBUTES.forEach((attr, i) => {
+        const labelRadius = radius + labelMargin;
+        const angle = (Math.PI / 2) - (2 * Math.PI * i / NUM_ATTRIBUTES);
+        const x = centerX + labelRadius * Math.cos(angle);
+        const y = centerY - labelRadius * Math.sin(angle) + (fontSize / 3);
+        const textAnchor = (x < centerX - 10) ? 'end' : (x > centerX + 10) ? 'start' : 'middle';
+        svg += `<text x="${x}" y="${y}" text-anchor="${textAnchor}" fill="#4B5563" font-weight="bold">${t(attr)}</text>`;
     });
 
 
