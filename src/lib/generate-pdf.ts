@@ -27,12 +27,15 @@ const drawRadarChart = (doc: jsPDF, centerX: number, centerY: number, size: numb
         return [x, y];
     });
     
+    // Set fill and stroke colors
     doc.setFillColor(139, 69, 19, 0.35);
     doc.setDrawColor(90, 40, 10, 0.9);
     doc.setLineWidth(0.5);
 
-    // Draw the filled polygon with its border
-    doc.path(dataPoints.flat()).fillAndStroke();
+    // Draw the filled polygon first
+    doc.lines(dataPoints, 0, 0, [1, 1], 'F');
+    // Then draw the stroke (border) on top
+    doc.lines(dataPoints, 0, 0, [1, 1], 'S');
 };
 
 
