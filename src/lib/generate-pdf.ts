@@ -119,9 +119,9 @@ export const generatePdf = async (reportJson: any, t: (key: string) => string) =
     doc.setFont('helvetica', 'bold');
     doc.text(t('flavorProfile'), doc.internal.pageSize.getWidth() / 2, secondTableFinalY + 15, { align: 'center'});
     
-    const chartSize = 48; // Reduced size to 80% of 60
-    const chartY = secondTableFinalY + 20;
-    const chartSpacing = chartSize + 10; // Adjusted spacing
+    const chartSize = 60;
+    const chartY = secondTableFinalY + 25;
+    const chartSpacing = 70;
     const totalChartsWidth = chartSpacing * 3 - 10;
     const startX = (doc.internal.pageSize.getWidth() - totalChartsWidth) / 2;
 
