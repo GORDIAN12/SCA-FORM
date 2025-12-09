@@ -35,9 +35,7 @@ const renderChartToImage = async (data: RadarChartData, t: (key: string) => stri
         const dataUrl = await toPng(chartContainer, { 
           quality: 1.0, 
           pixelRatio: 2,
-          filter: (node: HTMLElement) => {
-            return node.tagName !== 'LINK'
-          }
+          skipFonts: true
         });
         
         root.unmount();
