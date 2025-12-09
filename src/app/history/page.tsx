@@ -80,11 +80,13 @@ export default function HistoryPage() {
       }
     };
     // Timeout to allow the chart to render before generating PDF
-    const timer = setTimeout(() => {
-      createPdf();
-    }, 100);
+    if (pdfEvaluation) {
+      const timer = setTimeout(() => {
+        createPdf();
+      }, 100);
 
-    return () => clearTimeout(timer);
+      return () => clearTimeout(timer);
+    }
   }, [pdfEvaluation, t]);
 
 
