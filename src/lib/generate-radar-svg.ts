@@ -18,9 +18,10 @@ export const generateRadarSVG = (data: RadarChartData, t: (key: string) => strin
     const height = 1200;
     const centerX = width / 2;
     const centerY = height / 2;
-    const radius = width * 0.4; // 40% of width
-    const fontSize = width * 0.05; // 5% of width
+    const radius = width * 0.35; // Reduced radius to make more space for labels
+    const fontSize = width * 0.045; 
     const strokeWidth = width * 0.005;
+    const labelMargin = fontSize * 0.8; // Margin to push labels outwards
 
     let svg = `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg" style="background-color: white; font-family: sans-serif; font-size: ${fontSize}px;">`;
 
@@ -35,6 +36,14 @@ export const generateRadarSVG = (data: RadarChartData, t: (key: string) => strin
             return `${x},${y}`;
         }).join(' ');
         svg += `<polygon points="${points}" fill="none" stroke="#E5E7EB" stroke-width="${strokeWidth}" />`;
+        
+        // Add level labels (6, 7, 8, 9, 10)
+        const labelAngle = Math.PI / 2; // Top axis
+        const labelX = centerX + levelRadius * Math.cos(labelAngle);
+        const labelY = centerY - levelRadius * Math.sin(labelAngle);
+        if (level > 0) { // Don't label the center
+            svg += `<text x="${labelX + 10}" y="${labelY + (fontSize / 4)}" font-size="${fontSize * 0.7}" fill="#9CA3AF">${6 + (level - 1)}</text>`;
+        }
     }
 
     ATTRIBUTES.forEach((_, i) => {
@@ -44,12 +53,12 @@ export const generateRadarSVG = (data: RadarChartData, t: (key: string) => strin
 
     // --- LABELS ---
     ATTRIBUTES.forEach((attr, i) => {
-        const labelRadius = radius + (fontSize * 1.2);
+        const labelRadius = radius + labelMargin;
         const angle = (Math.PI / 2) - (2 * Math.PI * i / NUM_ATTRIBUTES);
         const x = centerX + labelRadius * Math.cos(angle);
-        const y = centerY - labelRadius * Math.sin(angle) + (fontSize / 3); // Adjust for better vertical alignment
+        const y = centerY - labelRadius * Math.sin(angle) + (fontSize / 3);
         const textAnchor = (x < centerX - 10) ? 'end' : (x > centerX + 10) ? 'start' : 'middle';
-        svg += `<text x="${x}" y="${y}" text-anchor="${textAnchor}" fill="#4B5563">${t(attr)}</text>`;
+        svg += `<text x="${x}" y="${y}" text-anchor="${textAnchor}" fill="#4B5563" font-weight="bold">${t(attr)}</text>`;
     });
 
     // --- DATA POLYGON ---
