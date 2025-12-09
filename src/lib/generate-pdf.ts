@@ -119,10 +119,10 @@ export const generatePdf = async (reportJson: any, t: (key: string) => string) =
     doc.setFont('helvetica', 'bold');
     doc.text(t('flavorProfile'), doc.internal.pageSize.getWidth() / 2, secondTableFinalY + 15, { align: 'center'});
     
-    const chartSize = 60;
+    const chartSize = 48; // Reduced size to 80% of 60
     const chartY = secondTableFinalY + 20;
-    const chartSpacing = chartSize + 5;
-    const totalChartsWidth = chartSpacing * 3 - 5;
+    const chartSpacing = chartSize + 10; // Adjusted spacing
+    const totalChartsWidth = chartSpacing * 3 - 10;
     const startX = (doc.internal.pageSize.getWidth() - totalChartsWidth) / 2;
 
     const phases: ('hot' | 'warm' | 'cold')[] = ['hot', 'warm', 'cold'];
@@ -141,7 +141,11 @@ export const generatePdf = async (reportJson: any, t: (key: string) => string) =
             canvas.width = 1200;
             canvas.height = 1200;
             const ctx = canvas.getContext('2d');
-            const v = await Canvg.from(ctx!, svgString);
+            if (!ctx) {
+                console.error('Failed to get canvas context');
+                continue;
+            }
+            const v = await Canvg.from(ctx, svgString);
             await v.render();
             
             const dataUrl = canvas.toDataURL('image/png');
