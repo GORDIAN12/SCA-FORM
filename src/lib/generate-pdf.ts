@@ -1,3 +1,4 @@
+
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
@@ -59,18 +60,24 @@ const drawRadarChart = (doc: jsPDF, centerX: number, centerY: number, size: numb
     // --- Draw Data Polygon ---
     const dataPoints: [number, number][] = attributes.map((attr, i) => {
         const value = data[attr];
-        // Scale: value 6 -> radius 0, value 10 -> radius 'size'
-        const radius = ((value - 6) / 4) * size;
+        // Scale: value 6 -> radius > 0, value 10 -> radius 'size'
+        const radius = ((Math.max(6, value) - 6) / 4) * size;
         const angle = angleSlice * i - Math.PI / 2;
         const x = centerX + radius * Math.cos(angle);
         const y = centerY + radius * Math.sin(angle);
         return [x, y];
     });
 
-    doc.setFillColor(139, 69, 19, 0.40);
-    doc.setDrawColor(90, 40, 10, 0.9);
+    // Draw the connecting lines
+    doc.setDrawColor(0, 0, 0); // Black
     doc.setLineWidth(0.5);
-    doc.lines(dataPoints, centerX, centerY, [1,1], 'FD', true);
+    doc.lines(dataPoints, 0, 0, [1, 1], 'S', true); // 'S' for stroke, 'true' for closed path
+
+    // Draw red dots at each vertex
+    doc.setFillColor(255, 0, 0); // Red
+    dataPoints.forEach(point => {
+        doc.circle(point[0], point[1], 1, 'F'); // 'F' for fill
+    });
 };
 
 
