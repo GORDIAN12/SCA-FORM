@@ -14,11 +14,13 @@ const drawRadarChart = (doc: jsPDF, centerX: number, centerY: number, size: numb
     const numAxes = attributes.length;
     const angleSlice = (2 * Math.PI) / numAxes;
 
-    // --- Draw Grid ---
-    doc.setDrawColor(200, 200, 200); // Light grey for grid
+    doc.setDrawColor(220, 220, 220); // Lighter grey for grid
     doc.setLineWidth(0.2);
-    const gridLevels = 4; // for scores 7, 8, 9, 10
+
+    // --- Draw Grid Levels (from 6 to 10) ---
+    const gridLevels = 5; // for scores 6, 7, 8, 9, 10
     for (let i = 1; i <= gridLevels; i++) {
+        // The radius for score 6 is 0, for 10 is `size`
         const radius = (i / gridLevels) * size;
         const gridPoints: [number, number][] = [];
         for (let j = 0; j < numAxes; j++) {
@@ -27,27 +29,43 @@ const drawRadarChart = (doc: jsPDF, centerX: number, centerY: number, size: numb
             const y = centerY + radius * Math.sin(angle);
             gridPoints.push([x, y]);
         }
-        doc.lines(gridPoints, 0, 0, [1, 1], 'S', true); // Draw closed polygon
+        doc.lines(gridPoints, 0, 0, [1,1], 'S', true);
     }
-
-    // --- Draw Axes ---
+    
+    // --- Draw Axes and Labels ---
     for (let i = 0; i < numAxes; i++) {
         const angle = angleSlice * i - Math.PI / 2;
         const x = centerX + size * Math.cos(angle);
         const y = centerY + size * Math.sin(angle);
         doc.line(centerX, centerY, x, y);
 
-        // --- Draw Labels ---
-        const labelX = centerX + (size + 10) * Math.cos(angle);
-        const labelY = centerY + (size + 10) * Math.sin(angle);
-        doc.setFontSize(8);
+        const labelX = centerX + (size + 5) * Math.cos(angle);
+        const labelY = centerY + (size + 5) * Math.sin(angle);
+        doc.setFontSize(7);
         doc.text(t(attributes[i]), labelX, labelY, { align: 'center', baseline: 'middle' });
     }
+    
+    // --- Draw Score Labels (6, 7, 8, 9, 10) on one axis ---
+    doc.setFontSize(6);
+    doc.setTextColor(150, 150, 150);
+    const labelAxisIndex = 0; // Draw on the first axis (top one)
+    const angle = angleSlice * labelAxisIndex - Math.PI / 2;
+    for(let i=1; i <= gridLevels; i++) {
+      const radius = (i / gridLevels) * size;
+      const score = 6 + i;
+      const labelX = centerX + radius * Math.cos(angle + 0.1); // slight offset
+      const labelY = centerY + radius * Math.sin(angle + 0.1);
+      doc.text(String(score), labelX, labelY, {align: 'center'});
+    }
+    doc.setTextColor(0, 0, 0);
 
-    // --- Calculate Data Points ---
+
+    // --- Calculate and Draw Data Points ---
     const dataPoints: [number, number][] = attributes.map((attr, i) => {
         const value = data[attr] || 6.0;
-        const radius = ((value - 6.0) / 4.0) * size; // Scale from 6-10 range to 0-size range
+        // Scale from 6-10 range to 0-size range
+        // A score of 6 should be on the first ring (radius > 0), not at the center.
+        const radius = ((value - 6.0) / 4.0) * size;
         const angle = angleSlice * i - Math.PI / 2;
         const x = centerX + radius * Math.cos(angle);
         const y = centerY + radius * Math.sin(angle);
@@ -170,9 +188,9 @@ export const generatePdf = async (reportJson: any, t: (key: string) => string) =
     doc.setFont('helvetica', 'bold');
     doc.text(t('flavorProfile'), doc.internal.pageSize.getWidth() / 2, secondTableFinalY + 15, { align: 'center'});
 
-    const chartSize = 25; // Predetermined size (radius) for the chart
-    const chartY = secondTableFinalY + 55; // Y position for the charts
-    const chartSpacing = 60; // Space between the center of each chart
+    const chartSize = 25;
+    const chartY = secondTableFinalY + 55;
+    const chartSpacing = 65; 
     const totalChartsWidth = chartSpacing * 2;
     const startX = (doc.internal.pageSize.getWidth() - totalChartsWidth) / 2;
 
