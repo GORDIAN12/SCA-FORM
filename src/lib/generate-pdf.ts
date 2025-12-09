@@ -60,8 +60,8 @@ const drawRadarChart = (doc: jsPDF, centerX: number, centerY: number, size: numb
         return [x, y];
     });
 
-    doc.setFillColor(139, 69, 19, 0.35);
-    doc.setDrawColor(90, 40, 10);
+    doc.setFillColor(139, 69, 19, 0.40);
+    doc.setDrawColor(90, 40, 10, 0.9);
     doc.setLineWidth(0.5);
     doc.lines(dataPoints, centerX, centerY, [1,1], 'FD', true);
 };
