@@ -13,36 +13,26 @@ const drawRadarChart = (doc: jsPDF, centerX: number, centerY: number, size: numb
     const attributes = ['aroma', 'flavor', 'aftertaste', 'acidity', 'body', 'balance', 'sweetness'];
     const numAxes = attributes.length;
     const angleSlice = (2 * Math.PI) / numAxes;
-
-    // --- Draw Axis Labels ---
-    doc.setFontSize(8);
-    doc.setTextColor(100, 100, 100);
-
-    attributes.forEach((attr, i) => {
-        const angle = angleSlice * i - Math.PI / 2;
-        const labelX = centerX + (size * 1.1) * Math.cos(angle);
-        const labelY = centerY + (size * 1.1) * Math.sin(angle);
-        doc.text(t(attr), labelX, labelY, { align: 'center', baseline: 'middle' });
-    });
+    const maxRadius = size;
 
     // --- Draw Data Polygon ---
     const dataPoints: [number, number][] = attributes.map((attr, i) => {
-        const value = data[attr];
-        // Ensure even the minimum score of 6 is visible by adding a base radius
-        const baseRadius = size * 0.1; // 10% of size for score 6
-        const scoreRadius = ((Math.max(6, value) - 6) / 4) * (size * 0.9); // Remaining 90% of size for 6-10 range
-        const radius = baseRadius + scoreRadius;
-        const angle = angleSlice * i - Math.PI / 2;
+        const value = data[attr] || 6.0; // Default to 6 if value is missing
+        // Formula: radio = ((valor - 6.0) / (10.0 - 6.0)) * maxRadius
+        // Added a base radius to prevent collapse if all values are 6
+        const radius = (((value - 6.0) / 4.0) * (maxRadius * 0.9)) + (maxRadius * 0.1); 
+        const angle = angleSlice * i - Math.PI / 2; // Start from the top
         const x = centerX + radius * Math.cos(angle);
         const y = centerY + radius * Math.sin(angle);
         return [x, y];
     });
     
-    // Draw red dots
-    doc.setFillColor(255, 0, 0); // Red
-    dataPoints.forEach(point => {
-        doc.circle(point[0], point[1], 1, 'F');
-    });
+    doc.setFillColor(139, 69, 19, 0.35);
+    doc.setDrawColor(90, 40, 10, 0.9);
+    doc.setLineWidth(0.5);
+
+    // Draw the filled polygon with its border
+    doc.path(dataPoints.flat()).fillAndStroke();
 };
 
 
@@ -167,7 +157,7 @@ export const generatePdf = async (reportJson: any, t: (key: string) => string) =
             doc.setFontSize(12);
             doc.setFont('helvetica', 'normal');
             doc.text(t(phase), chartX, chartY - chartSize - 10, { align: 'center' });
-            drawRadarChart(doc, chartX, chartY, chartSize, chartData, t);
+            drawRadarChart(doc, chartX, chartY, 80, chartData, t); // Use 80px max radius as requested
         }
     });
   });
