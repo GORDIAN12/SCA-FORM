@@ -1,6 +1,12 @@
 
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import { toPng } from 'html-to-image';
+import { ReportRadarChart } from '@/components/history/report-radar-chart';
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import type { RadarChartData } from '@/lib/types';
+
 
 // Extend the jsPDF interface to include autoTable
 declare module 'jspdf' {
@@ -9,73 +15,28 @@ declare module 'jspdf' {
   }
 }
 
-const drawRadarChart = (doc: jsPDF, centerX: number, centerY: number, size: number, data: any, t: (key: string) => string) => {
-    const attributes = ['aroma', 'flavor', 'aftertaste', 'acidity', 'body', 'balance', 'sweetness'];
-    const numAxes = attributes.length;
-    const angleSlice = (2 * Math.PI) / numAxes;
+const renderChartToImage = async (data: RadarChartData, t: (key: string) => string): Promise<string> => {
+    const chartContainer = document.createElement('div');
+    chartContainer.style.position = 'absolute';
+    chartContainer.style.left = '-9999px';
+    chartContainer.style.width = '300px';
+    chartContainer.style.height = '300px';
+    chartContainer.style.backgroundColor = 'white';
+    document.body.appendChild(chartContainer);
 
-    doc.setDrawColor(220, 220, 220); // Lighter grey for grid
-    doc.setLineWidth(0.2);
-
-    // --- Draw Grid Levels (from 6 to 10) ---
-    const gridLevels = 5; // for scores 6, 7, 8, 9, 10
-    for (let i = 1; i <= gridLevels; i++) {
-        // The radius for score 6 is 0, for 10 is `size`
-        const radius = (i / gridLevels) * size;
-        const gridPoints: [number, number][] = [];
-        for (let j = 0; j < numAxes; j++) {
-            const angle = angleSlice * j - Math.PI / 2;
-            const x = centerX + radius * Math.cos(angle);
-            const y = centerY + radius * Math.sin(angle);
-            gridPoints.push([x, y]);
-        }
-        doc.lines(gridPoints, 0, 0, [1,1], 'S', true);
-    }
+    const root = createRoot(chartContainer);
     
-    // --- Draw Axes and Labels ---
-    for (let i = 0; i < numAxes; i++) {
-        const angle = angleSlice * i - Math.PI / 2;
-        const x = centerX + size * Math.cos(angle);
-        const y = centerY + size * Math.sin(angle);
-        doc.line(centerX, centerY, x, y);
+    return new Promise(async (resolve) => {
+        root.render(React.createElement(ReportRadarChart, { scores: data, t: t }));
 
-        const labelX = centerX + (size + 5) * Math.cos(angle);
-        const labelY = centerY + (size + 5) * Math.sin(angle);
-        doc.setFontSize(7);
-        doc.text(t(attributes[i]), labelX, labelY, { align: 'center', baseline: 'middle' });
-    }
-    
-    // --- Draw Score Labels (6, 7, 8, 9, 10) on one axis ---
-    doc.setFontSize(6);
-    doc.setTextColor(150, 150, 150);
-    const labelAxisIndex = 0; // Draw on the first axis (top one)
-    const angle = angleSlice * labelAxisIndex - Math.PI / 2;
-    for(let i=1; i <= gridLevels; i++) {
-      const radius = (i / gridLevels) * size;
-      const score = 6 + i;
-      const labelX = centerX + radius * Math.cos(angle + 0.1); // slight offset
-      const labelY = centerY + radius * Math.sin(angle + 0.1);
-      doc.text(String(score), labelX, labelY, {align: 'center'});
-    }
-    doc.setTextColor(0, 0, 0);
+        // Short delay to ensure the chart is fully rendered before capturing
+        await new Promise(r => setTimeout(r, 500));
 
-
-    // --- Calculate and Draw Data Points ---
-    const dataPoints: [number, number][] = attributes.map((attr, i) => {
-        const value = data[attr] || 6.0;
-        // Scale from 6-10 range to 0-size range
-        // A score of 6 should be on the first ring (radius > 0), not at the center.
-        const radius = ((value - 6.0) / 4.0) * size;
-        const angle = angleSlice * i - Math.PI / 2;
-        const x = centerX + radius * Math.cos(angle);
-        const y = centerY + radius * Math.sin(angle);
-        return [x, y];
-    });
-
-    // --- Draw Red Dots ---
-    doc.setFillColor(255, 0, 0); // Red color
-    dataPoints.forEach(point => {
-        doc.circle(point[0], point[1], 1, 'F'); // Draw a filled circle of radius 1
+        const dataUrl = await toPng(chartContainer, { quality: 1.0, pixelRatio: 2 });
+        
+        root.unmount();
+        document.body.removeChild(chartContainer);
+        resolve(dataUrl);
     });
 };
 
@@ -125,7 +86,7 @@ export const generatePdf = async (reportJson: any, t: (key: string) => string) =
   doc.text(`${t('generatedOn')}: ${new Date().toLocaleDateString()}`, 20, doc.internal.pageSize.getHeight() - 10);
 
   // --- PAGES PER CUP ---
-  tazas.forEach((taza: any) => {
+  for (const taza of tazas) {
     doc.addPage();
     
     // Header
@@ -188,24 +149,27 @@ export const generatePdf = async (reportJson: any, t: (key: string) => string) =
     doc.setFont('helvetica', 'bold');
     doc.text(t('flavorProfile'), doc.internal.pageSize.getWidth() / 2, secondTableFinalY + 15, { align: 'center'});
 
-    const chartSize = 25;
-    const chartY = secondTableFinalY + 55;
-    const chartSpacing = 65; 
-    const totalChartsWidth = chartSpacing * 2;
+    const chartImageSize = 60; 
+    const chartY = secondTableFinalY + 20;
+    const chartSpacing = chartImageSize + 5;
+    const totalChartsWidth = chartSpacing * 3 - 5;
     const startX = (doc.internal.pageSize.getWidth() - totalChartsWidth) / 2;
 
-    const phases = ['hot', 'warm', 'cold'];
-    phases.forEach((phase, index) => {
+    const phases: ('hot' | 'warm' | 'cold')[] = ['hot', 'warm', 'cold'];
+    for (let i = 0; i < phases.length; i++) {
+        const phase = phases[i];
         const chartData = taza.radar_charts[phase];
         if (chartData) {
-            const chartX = startX + (chartSpacing * index);
+            const chartX = startX + (chartSpacing * i);
             doc.setFontSize(12);
             doc.setFont('helvetica', 'normal');
-            doc.text(t(phase), chartX, chartY - chartSize - 15, { align: 'center' });
-            drawRadarChart(doc, chartX, chartY, chartSize, chartData, t);
+            doc.text(t(phase), chartX + chartImageSize / 2, chartY, { align: 'center' });
+
+            const imageUrl = await renderChartToImage(chartData, t);
+            doc.addImage(imageUrl, 'PNG', chartX, chartY + 5, chartImageSize, chartImageSize);
         }
-    });
-  });
+    }
+  }
 
   doc.save(`${cafe.nombre.replace(/ /g, '_')}_Evaluation.pdf`);
 };
