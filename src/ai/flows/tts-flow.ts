@@ -72,5 +72,8 @@ export const textToSpeechFlow = ai.defineFlow(
 );
 
 export async function textToSpeech(text: string) {
+    if (!text) {
+        return { media: 'https://www.soundjay.com/button/sounds/button-1.mp3' };
+    }
     return textToSpeechFlow(text);
 }

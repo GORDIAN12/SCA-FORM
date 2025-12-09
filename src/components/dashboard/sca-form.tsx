@@ -375,22 +375,9 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
       onSubmit(evaluationData);
     }
 
-    const handleTextToSpeech = async () => {
-      const coffeeName = form.getValues('coffeeName');
-      if (!coffeeName) return;
-
-      setIsAudioLoading(true);
-      try {
-        const { media } = await textToSpeech(coffeeName);
-        if (media) {
-          const audio = new Audio(media);
-          audio.play();
-        }
-      } catch (error) {
-        console.error('Failed to generate speech', error);
-      } finally {
-        setIsAudioLoading(false);
-      }
+    const handleSoundEffect = () => {
+      const audio = new Audio('https://www.soundjay.com/button/sounds/button-1.mp3');
+      audio.play();
     };
     
     const capitalize = (s: string) =>
@@ -427,15 +414,15 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                           type="button"
                           variant="outline"
                           size="icon"
-                          onClick={handleTextToSpeech}
-                          disabled={isAudioLoading || !watchedValues.coffeeName}
+                          onClick={handleSoundEffect}
+                          disabled={isAudioLoading}
                         >
                           {isAudioLoading ? (
                             <LoaderCircle className="animate-spin" />
                           ) : (
                             <Volume2 />
                           )}
-                          <span className="sr-only">Read coffee name</span>
+                          <span className="sr-only">Play Sound</span>
                         </Button>
                       </div>
                       <FormMessage />
