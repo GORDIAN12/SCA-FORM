@@ -28,19 +28,16 @@ const drawRadarChart = (doc: jsPDF, centerX: number, centerY: number, size: numb
     // --- Draw Data Polygon ---
     const dataPoints: [number, number][] = attributes.map((attr, i) => {
         const value = data[attr];
-        const radius = ((Math.max(6, value) - 6) / 4) * size;
+        // Ensure even the minimum score of 6 is visible by adding a base radius
+        const baseRadius = size * 0.1; // 10% of size for score 6
+        const scoreRadius = ((Math.max(6, value) - 6) / 4) * (size * 0.9); // Remaining 90% of size for 6-10 range
+        const radius = baseRadius + scoreRadius;
         const angle = angleSlice * i - Math.PI / 2;
         const x = centerX + radius * Math.cos(angle);
         const y = centerY + radius * Math.sin(angle);
         return [x, y];
     });
     
-    // Connect points with black lines
-    doc.setDrawColor('#000000'); // Black
-    doc.setLineWidth(0.5);
-    doc.lines(dataPoints, 0, 0, [1, 1], 'S', true);
-
-
     // Draw red dots
     doc.setFillColor(255, 0, 0); // Red
     dataPoints.forEach(point => {
