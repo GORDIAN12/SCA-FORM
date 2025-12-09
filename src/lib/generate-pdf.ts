@@ -25,7 +25,6 @@ const drawRadarChart = (doc: jsPDF, centerX: number, centerY: number, size: numb
         doc.text(t(attr), labelX, labelY, { align: 'center', baseline: 'middle' });
     });
 
-
     // --- Draw Data Polygon ---
     const dataPoints: [number, number][] = attributes.map((attr, i) => {
         const value = data[attr];
@@ -35,6 +34,12 @@ const drawRadarChart = (doc: jsPDF, centerX: number, centerY: number, size: numb
         const y = centerY + radius * Math.sin(angle);
         return [x, y];
     });
+    
+    // Connect points with black lines
+    doc.setDrawColor('#000000'); // Black
+    doc.setLineWidth(0.5);
+    doc.lines(dataPoints, 0, 0, [1, 1], 'S', true);
+
 
     // Draw red dots
     doc.setFillColor(255, 0, 0); // Red
