@@ -14,11 +14,9 @@ const drawRadarChart = (doc: jsPDF, centerX: number, centerY: number, size: numb
     const numAxes = attributes.length;
     const angleSlice = (2 * Math.PI) / numAxes;
 
-    // --- Draw Data Polygon ---
+    // --- Calculate Data Points ---
     const dataPoints: [number, number][] = attributes.map((attr, i) => {
         const value = data[attr] || 6.0; // Default to 6 if value is missing
-        // Formula: radio = ((valor - 6.0) / (10.0 - 6.0)) * maxRadius
-        // Added a base radius to prevent collapse if all values are 6
         const radius = (((value - 6.0) / 4.0) * (size * 0.9)) + (size * 0.1); 
         const angle = angleSlice * i - Math.PI / 2; // Start from the top
         const x = centerX + radius * Math.cos(angle);
@@ -26,15 +24,11 @@ const drawRadarChart = (doc: jsPDF, centerX: number, centerY: number, size: numb
         return [x, y];
     });
     
-    // Set fill and stroke colors
-    doc.setFillColor(139, 69, 19, 0.35);
-    doc.setDrawColor(90, 40, 10, 0.9);
-    doc.setLineWidth(0.5);
-
-    // Draw the filled polygon first
-    doc.lines(dataPoints, 0, 0, [1, 1], 'F');
-    // Then draw the stroke (border) on top
-    doc.lines(dataPoints, 0, 0, [1, 1], 'S');
+    // --- Draw only the red dots ---
+    doc.setFillColor(255, 0, 0); // Red color for the dots
+    dataPoints.forEach(point => {
+        doc.circle(point[0], point[1], 1, 'F'); // Draw a filled circle of radius 1
+    });
 };
 
 
