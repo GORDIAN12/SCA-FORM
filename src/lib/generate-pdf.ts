@@ -29,7 +29,9 @@ const drawRadarChart = (doc: jsPDF, centerX: number, centerY: number, size: numb
                 const angle = angleSlice * j - Math.PI / 2;
                 points.push([centerX + radius * Math.cos(angle), centerY + radius * Math.sin(angle)]);
             }
-            doc.lines(points, centerX, centerY, [1,1], 'S', true);
+             // Draw the polygon for the grid ring
+            doc.lines(points, 0, 0, [1,1], 'S', true);
+
             // Draw score label on one of the axes
             const labelAngle = angleSlice * 0 - Math.PI / 2; // on the 'aroma' axis
             doc.text(level.toString(), centerX + radius * Math.cos(labelAngle), centerY + radius * Math.sin(labelAngle) - 1, { align: 'center'});
