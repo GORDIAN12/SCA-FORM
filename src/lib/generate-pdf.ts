@@ -66,6 +66,13 @@ const drawRadarChart = (doc: jsPDF, centerX: number, centerY: number, size: numb
         return [x, y];
     });
 
+    // Draw green connecting lines
+    doc.setDrawColor('#00FF00'); // Green
+    doc.setLineWidth(0.5);
+    doc.lines(dataPoints, 0, 0, [1,1], 'S', true);
+
+
+    // Draw red dots
     doc.setFillColor(255, 0, 0); // Red
     dataPoints.forEach(point => {
         doc.circle(point[0], point[1], 1, 'F');
