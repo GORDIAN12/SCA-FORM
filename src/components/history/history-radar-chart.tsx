@@ -81,9 +81,8 @@ export function HistoryRadarChart({ scores, comparisonScores }: HistoryRadarChar
         <Radar
           name="Phase Score"
           dataKey="score"
-          fill="var(--color-accent)"
-          fillOpacity={0.6}
-          stroke="var(--color-accent)"
+          fill="rgba(139, 69, 19, 0.45)"
+          stroke="rgba(90, 40, 10, 0.9)"
           strokeWidth={2}
           dot={{
             r: 4,
