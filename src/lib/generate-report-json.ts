@@ -22,7 +22,7 @@ const getAverageCupperScore = (cups: CupEvaluation[]) => {
 
 const validateScore = (score: number | null | undefined): number => {
     const num = Number(score);
-    if (isNaN(num) || !num || num < 6) return 6.00;
+    if (isNaN(num) || !num || num < 6) return 8.00;
     if (num > 10) return 10.00;
     return parseFloat(num.toFixed(2));
 }
