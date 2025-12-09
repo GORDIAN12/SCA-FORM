@@ -1,6 +1,6 @@
 'use client';
 
-import type { Evaluation, CupEvaluation, RadarChartData } from './types';
+import type { Evaluation, CupEvaluation, RadarChartData, ScoreSet } from './types';
 
 const getAverageSimple = (cups: CupEvaluation[], key: 'uniformity' | 'cleanCup' | 'sweetness') => {
     if (!cups || cups.length === 0) return 0;
@@ -22,10 +22,16 @@ const getAverageCupperScore = (cups: CupEvaluation[]) => {
 
 const validateScore = (score: number | null | undefined): number => {
     const num = Number(score);
-    if (!num || num < 6) return 6.00;
+    if (isNaN(num) || !num || num < 6) return 6.00;
     if (num > 10) return 10.00;
     return parseFloat(num.toFixed(2));
 }
+
+const getAverageScore = (scores: (number | null | undefined)[]): number => {
+    const validScores = scores.map(validateScore);
+    const total = validScores.reduce((acc, score) => acc + score, 0);
+    return parseFloat((total / validScores.length).toFixed(2));
+};
 
 export const generateReportJson = (evaluation: Evaluation, t: (key: string) => string) => {
   if (!evaluation) {
@@ -61,6 +67,16 @@ export const generateReportJson = (evaluation: Evaluation, t: (key: string) => s
           sweetness: validateScore(cup.sweetness ? 10 : 6),
         });
 
+        const combinedRadarData: RadarChartData = {
+          aroma: validateScore(cup.aroma),
+          flavor: getAverageScore([cup.scores.hot.flavor, cup.scores.warm.flavor, cup.scores.cold.flavor]),
+          aftertaste: getAverageScore([cup.scores.hot.aftertaste, cup.scores.warm.aftertaste, cup.scores.cold.aftertaste]),
+          acidity: getAverageScore([cup.scores.hot.acidity, cup.scores.warm.acidity, cup.scores.cold.acidity]),
+          body: getAverageScore([cup.scores.hot.body, cup.scores.warm.body, cup.scores.cold.body]),
+          balance: getAverageScore([cup.scores.hot.balance, cup.scores.warm.balance, cup.scores.cold.balance]),
+          sweetness: validateScore(cup.sweetness ? 10 : 6),
+        };
+
         return {
             numero_taza: index + 1,
             puntuacion_total: cup.totalScore || 0,
@@ -84,6 +100,7 @@ export const generateReportJson = (evaluation: Evaluation, t: (key: string) => s
               hot: createRadarData('hot'),
               warm: createRadarData('warm'),
               cold: createRadarData('cold'),
+              combined: combinedRadarData,
             },
         }
     }),

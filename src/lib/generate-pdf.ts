@@ -10,9 +10,9 @@ declare module 'jspdf' {
   }
 }
 
-export const generatePdf = async (reportJson: any, chartNodes: HTMLElement[], t: (key: string) => string) => {
-  if (!reportJson || chartNodes.length === 0) {
-    console.error('Missing report data or chart nodes for PDF generation.');
+export const generatePdf = async (reportJson: any, chartNodes: { [key: string]: HTMLElement }, t: (key: string) => string) => {
+  if (!reportJson) {
+    console.error('Missing report data for PDF generation.');
     return;
   }
 
@@ -20,13 +20,18 @@ export const generatePdf = async (reportJson: any, chartNodes: HTMLElement[], t:
   const { cafe, resumen_general, tazas } = reportJson;
 
   // --- CHART IMAGE GENERATION ---
-  const chartImagePromises = chartNodes.map(node => 
+  const chartImagePromises = Object.entries(chartNodes).map(([key, node]) => 
     toPng(node, { 
       backgroundColor: 'white',
       fontEmbedCSS: '' 
-    })
+    }).then(dataUrl => ({ key, dataUrl }))
   );
-  const chartImages = await Promise.all(chartImagePromises);
+  
+  const chartImagesArray = await Promise.all(chartImagePromises);
+  const chartImages = chartImagesArray.reduce((acc, { key, dataUrl }) => {
+    acc[key] = dataUrl;
+    return acc;
+  }, {} as { [key: string]: string });
 
   // --- PAGE 1: SUMMARY ---
   doc.setFontSize(22);
@@ -64,14 +69,13 @@ export const generatePdf = async (reportJson: any, chartNodes: HTMLElement[], t:
   doc.text(`${t('generatedOn')}: ${new Date().toLocaleDateString()}`, 20, doc.internal.pageSize.getHeight() - 10);
 
   // --- PAGES PER CUP ---
-  let chartImageIndex = 0;
-  tazas.forEach((taza: any) => {
+  tazas.forEach((taza: any, tazaIndex: number) => {
     doc.addPage();
     
     // Header
     doc.setFontSize(18);
     doc.setFont('helvetica', 'bold');
-    doc.text(`${t('cup')} #${taza.numero_taza} - ${t('overallScore')}: ${taza.puntuacion_total.toFixed(2)}`, doc.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
+    doc.text(`${t('cup')} #${taza.numero_taza} - ${t('score')}: ${taza.puntuacion_total.toFixed(2)}`, doc.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
 
     // Phases Table
     doc.setFontSize(14);
@@ -79,11 +83,11 @@ export const generatePdf = async (reportJson: any, chartNodes: HTMLElement[], t:
     doc.text(t('scores'), 14, 40);
 
     const phasesBody = [
-        [t('flavor'), taza.fases.sabor.caliente, taza.fases.sabor.tibio, taza.fases.sabor.frio],
-        [t('aftertaste'), taza.fases.postgusto.caliente, taza.fases.postgusto.tibio, taza.fases.postgusto.frio],
-        [t('acidity'), taza.fases.acidez.caliente, taza.fases.acidez.tibio, taza.fases.acidez.frio],
-        [t('body'), taza.fases.cuerpo.caliente, taza.fases.cuerpo.tibio, taza.fases.cuerpo.frio],
-        [t('balance'), taza.fases.balance.caliente, taza.fases.balance.tibio, taza.fases.balance.frio],
+        [t('flavor'), taza.fases.sabor.caliente.toFixed(2), taza.fases.sabor.tibio.toFixed(2), taza.fases.sabor.frio.toFixed(2)],
+        [t('aftertaste'), taza.fases.postgusto.caliente.toFixed(2), taza.fases.postgusto.tibio.toFixed(2), taza.fases.postgusto.frio.toFixed(2)],
+        [t('acidity'), taza.fases.acidez.caliente.toFixed(2), taza.fases.acidez.tibio.toFixed(2), taza.fases.acidez.frio.toFixed(2)],
+        [t('body'), taza.fases.cuerpo.caliente.toFixed(2), taza.fases.cuerpo.tibio.toFixed(2), taza.fases.cuerpo.frio.toFixed(2)],
+        [t('balance'), taza.fases.balance.caliente.toFixed(2), taza.fases.balance.tibio.toFixed(2), taza.fases.balance.frio.toFixed(2)],
     ];
 
     doc.autoTable({
@@ -134,12 +138,15 @@ export const generatePdf = async (reportJson: any, chartNodes: HTMLElement[], t:
 
     const phases = ['hot', 'warm', 'cold'];
     phases.forEach((phase, index) => {
-        const chartX = chartSpacing * (index + 1) + chartSize * index;
-        doc.setFontSize(12);
-        doc.setFont('helvetica', 'normal');
-        doc.text(t(phase), chartX + chartSize / 2, chartY, { align: 'center' });
-        doc.addImage(chartImages[chartImageIndex], 'PNG', chartX, chartY + 5, chartSize, chartSize);
-        chartImageIndex++;
+        const chartKey = `cup-${tazaIndex}-${phase}`;
+        const chartImage = chartImages[chartKey];
+        if (chartImage) {
+            const chartX = chartSpacing * (index + 1) + chartSize * index;
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'normal');
+            doc.text(t(phase), chartX + chartSize / 2, chartY, { align: 'center' });
+            doc.addImage(chartImage, 'PNG', chartX, chartY + 5, chartSize, chartSize);
+        }
     });
   });
 

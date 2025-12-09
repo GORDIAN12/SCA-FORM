@@ -22,6 +22,12 @@ import { generateReportJson } from '@/lib/generate-report-json';
 import { generatePdf } from '@/lib/generate-pdf';
 import { HistoryRadarChart } from '@/components/history/history-radar-chart';
 
+type PdfChartRequest = {
+  name: string;
+  data: RadarChartData;
+  comparisonData: RadarChartData;
+};
+
 export default function HistoryPage() {
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
@@ -36,10 +42,11 @@ export default function HistoryPage() {
   
   const [pdfGenerationRequest, setPdfGenerationRequest] = useState<{
     json: any;
-    charts: { name: string; data: RadarChartData }[];
+    charts: PdfChartRequest[];
   } | null>(null);
 
-  const chartRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const chartRefs = useRef<{ [key: string]: HTMLElement | null }>({});
+
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -76,8 +83,9 @@ export default function HistoryPage() {
   
    useEffect(() => {
     const createPdf = async () => {
-      if (pdfGenerationRequest && chartRefs.current.every(ref => ref)) {
-        await generatePdf(pdfGenerationRequest.json, chartRefs.current as HTMLElement[], t);
+      const allRefsReady = pdfGenerationRequest?.charts.every(chart => chartRefs.current[chart.name]);
+      if (pdfGenerationRequest && allRefsReady) {
+        await generatePdf(pdfGenerationRequest.json, chartRefs.current as { [key: string]: HTMLElement }, t);
         setPdfGenerationRequest(null); // Reset after generation
       }
     };
@@ -119,11 +127,11 @@ export default function HistoryPage() {
     const reportJson = generateReportJson(evaluation, t);
     if (!reportJson) return;
 
-    const chartsToRender: { name: string; data: RadarChartData }[] = [];
+    const chartsToRender: PdfChartRequest[] = [];
     reportJson.tazas.forEach((taza: any, index: number) => {
-      chartsToRender.push({ name: `cup-${index}-hot`, data: taza.radar_charts.hot });
-      chartsToRender.push({ name: `cup-${index}-warm`, data: taza.radar_charts.warm });
-      chartsToRender.push({ name: `cup-${index}-cold`, data: taza.radar_charts.cold });
+      chartsToRender.push({ name: `cup-${index}-hot`, data: taza.radar_charts.hot, comparisonData: taza.radar_charts.combined });
+      chartsToRender.push({ name: `cup-${index}-warm`, data: taza.radar_charts.warm, comparisonData: taza.radar_charts.combined });
+      chartsToRender.push({ name: `cup-${index}-cold`, data: taza.radar_charts.cold, comparisonData: taza.radar_charts.combined });
     });
     
     setPdfGenerationRequest({ json: reportJson, charts: chartsToRender });
@@ -243,13 +251,13 @@ export default function HistoryPage() {
       </main>
       <div className="absolute top-[-9999px] left-[-9999px]">
         {pdfGenerationRequest &&
-          pdfGenerationRequest.charts.map((chart, index) => (
+          pdfGenerationRequest.charts.map((chart) => (
             <div
               key={chart.name}
-              ref={(el) => (chartRefs.current[index] = el)}
+              ref={(el) => (chartRefs.current[chart.name] = el)}
               style={{ width: '300px', height: '300px', backgroundColor: 'white' }}
             >
-              <HistoryRadarChart scores={chart.data} />
+              <HistoryRadarChart scores={chart.data} comparisonScores={chart.comparisonData}/>
             </div>
           ))}
       </div>
