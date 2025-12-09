@@ -13,14 +13,13 @@ const drawRadarChart = (doc: jsPDF, centerX: number, centerY: number, size: numb
     const attributes = ['aroma', 'flavor', 'aftertaste', 'acidity', 'body', 'balance', 'sweetness'];
     const numAxes = attributes.length;
     const angleSlice = (2 * Math.PI) / numAxes;
-    const maxRadius = size;
 
     // --- Draw Data Polygon ---
     const dataPoints: [number, number][] = attributes.map((attr, i) => {
         const value = data[attr] || 6.0; // Default to 6 if value is missing
         // Formula: radio = ((valor - 6.0) / (10.0 - 6.0)) * maxRadius
         // Added a base radius to prevent collapse if all values are 6
-        const radius = (((value - 6.0) / 4.0) * (maxRadius * 0.9)) + (maxRadius * 0.1); 
+        const radius = (((value - 6.0) / 4.0) * (size * 0.9)) + (size * 0.1); 
         const angle = angleSlice * i - Math.PI / 2; // Start from the top
         const x = centerX + radius * Math.cos(angle);
         const y = centerY + radius * Math.sin(angle);
@@ -147,20 +146,21 @@ export const generatePdf = async (reportJson: any, t: (key: string) => string) =
     doc.setFont('helvetica', 'bold');
     doc.text(t('flavorProfile'), doc.internal.pageSize.getWidth() / 2, secondTableFinalY + 15, { align: 'center'});
 
-    const chartSize = 25;
-    const chartY = secondTableFinalY + 50;
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const chartSpacing = (pageWidth - (chartSize * 2 * 3)) / 4;
+    const chartSize = 35; // Predetermined size (radius) for the chart
+    const chartY = secondTableFinalY + 60; // Y position for the charts
+    const chartSpacing = 65; // Space between the center of each chart
+    const totalChartsWidth = chartSpacing * 2;
+    const startX = (doc.internal.pageSize.getWidth() - totalChartsWidth) / 2;
 
     const phases = ['hot', 'warm', 'cold'];
     phases.forEach((phase, index) => {
         const chartData = taza.radar_charts[phase];
         if (chartData) {
-            const chartX = chartSpacing * (index + 1) + (chartSize * 2 * index) + chartSize;
+            const chartX = startX + (chartSpacing * index);
             doc.setFontSize(12);
             doc.setFont('helvetica', 'normal');
-            doc.text(t(phase), chartX, chartY - chartSize - 10, { align: 'center' });
-            drawRadarChart(doc, chartX, chartY, 80, chartData, t); // Use 80px max radius as requested
+            doc.text(t(phase), chartX, chartY - chartSize - 5, { align: 'center' });
+            drawRadarChart(doc, chartX, chartY, chartSize, chartData, t);
         }
     });
   });
