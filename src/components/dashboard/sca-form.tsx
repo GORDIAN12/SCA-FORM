@@ -30,10 +30,12 @@ import {
   useImperativeHandle,
 } from 'react';
 import { cn } from '@/lib/utils';
-import { Coffee } from 'lucide-react';
+import { Coffee, Volume2, LoaderCircle } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FlavorProfileChart } from './flavor-profile-chart';
 import { useLanguage } from '@/context/language-context';
+import { Button } from '@/components/ui/button';
+import { textToSpeech } from '@/ai/flows/tts-flow';
 
 const scoreSchema = z.coerce.number().min(6).max(10);
 const intensitySchema = z.enum(['low', 'medium', 'high'], {
@@ -233,6 +235,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
   ({ initialData, onSubmit, onValuesChange, onActiveCupChange, isSubmitting }, ref) => {
     const [activeCupTab, setActiveCupTab] = useState('cup-1');
     const [activeTempTab, setActiveTempTab] = useState<'hot' | 'warm' | 'cold'>('hot');
+    const [isAudioLoading, setIsAudioLoading] = useState(false);
     const isReadOnly = !!initialData;
     const { t } = useLanguage();
 
@@ -372,6 +375,24 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
       onSubmit(evaluationData);
     }
 
+    const handleTextToSpeech = async () => {
+      const coffeeName = form.getValues('coffeeName');
+      if (!coffeeName) return;
+
+      setIsAudioLoading(true);
+      try {
+        const { media } = await textToSpeech(coffeeName);
+        if (media) {
+          const audio = new Audio(media);
+          audio.play();
+        }
+      } catch (error) {
+        console.error('Failed to generate speech', error);
+      } finally {
+        setIsAudioLoading(false);
+      }
+    };
+    
     const capitalize = (s: string) =>
       s.charAt(0).toUpperCase() + s.slice(1).replace(/([A-Z])/g, ' $1');
 
@@ -394,13 +415,29 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>{t('coffeeName')}</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder={t('coffeeNamePlaceholder')}
-                          {...field}
-                          disabled={isReadOnly || isSubmitting}
-                        />
-                      </FormControl>
+                      <div className="flex items-center gap-2">
+                        <FormControl>
+                          <Input
+                            placeholder={t('coffeeNamePlaceholder')}
+                            {...field}
+                            disabled={isReadOnly || isSubmitting}
+                          />
+                        </FormControl>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          onClick={handleTextToSpeech}
+                          disabled={isAudioLoading || !watchedValues.coffeeName}
+                        >
+                          {isAudioLoading ? (
+                            <LoaderCircle className="animate-spin" />
+                          ) : (
+                            <Volume2 />
+                          )}
+                          <span className="sr-only">Read coffee name</span>
+                        </Button>
+                      </div>
                       <FormMessage />
                     </FormItem>
                   )}
