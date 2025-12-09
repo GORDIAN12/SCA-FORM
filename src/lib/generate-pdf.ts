@@ -16,18 +16,25 @@ const drawRadarChart = (doc: jsPDF, centerX: number, centerY: number, size: numb
     // --- Draw Grid & Axes ---
     doc.setDrawColor(200, 200, 200); // Light grey for grid
     doc.setLineWidth(0.2);
+    doc.setFontSize(6);
+    doc.setTextColor(150, 150, 150);
 
-    for (let i = 1; i <= 5; i++) {
-        const radius = (size / 5) * i;
-        const points = [];
-        for (let j = 0; j < numAxes; j++) {
-            const angle = angleSlice * j - Math.PI / 2;
-            const x = centerX + radius * Math.cos(angle);
-            const y = centerY + radius * Math.sin(angle);
-            points.push([x, y]);
+    const gridLevels = [7, 8, 9, 10]; // Scores to draw rings for
+    gridLevels.forEach(level => {
+        const radius = ((level - 6) / 4) * size;
+        if (radius > 0) { // Only draw if radius is positive
+            const points: [number, number][] = [];
+            for (let j = 0; j < numAxes; j++) {
+                const angle = angleSlice * j - Math.PI / 2;
+                points.push([centerX + radius * Math.cos(angle), centerY + radius * Math.sin(angle)]);
+            }
+            doc.lines(points, centerX, centerY, [1,1], 'S', true);
+            // Draw score label on one of the axes
+            const labelAngle = angleSlice * 0 - Math.PI / 2; // on the 'aroma' axis
+            doc.text(level.toString(), centerX + radius * Math.cos(labelAngle), centerY + radius * Math.sin(labelAngle) - 1, { align: 'center'});
         }
-        doc.lines(points, centerX, centerY, [1,1], 'S', true);
-    }
+    });
+
     
     // --- Draw Axis Lines and Labels ---
     doc.setDrawColor(200, 200, 200);
@@ -50,7 +57,7 @@ const drawRadarChart = (doc: jsPDF, centerX: number, centerY: number, size: numb
 
 
     // --- Draw Data Polygon ---
-    const dataPoints = attributes.map((attr, i) => {
+    const dataPoints: [number, number][] = attributes.map((attr, i) => {
         const value = data[attr];
         // Scale: value 6 -> radius 0, value 10 -> radius 'size'
         const radius = ((value - 6) / 4) * size;
