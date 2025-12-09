@@ -2,7 +2,6 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import type { jsPDF as jsPDFType } from 'jspdf';
 import { toPng } from 'html-to-image';
-import { useLanguage } from '@/context/language-context';
 
 // Extend the jsPDF interface to include autoTable
 declare module 'jspdf' {
@@ -21,7 +20,11 @@ export const generatePdf = async (reportJson: any, chartNode: HTMLElement, t: (k
   const { cafe, resumen_general, tazas } = reportJson;
 
   // --- CHART GENERATION ---
-  const dataUrl = await toPng(chartNode, { backgroundColor: 'white' });
+  const dataUrl = await toPng(chartNode, { 
+    backgroundColor: 'white',
+    fontEmbedCSS: '' 
+  });
+
 
   // --- PAGE 1: SUMMARY / COVER PAGE ---
   doc.setFontSize(22);
@@ -37,11 +40,19 @@ export const generatePdf = async (reportJson: any, chartNode: HTMLElement, t: (k
   doc.setFont('helvetica', 'bold');
   doc.text(`${t('overallScore')}: ${resumen_general.puntuacion_general.toFixed(2)}`, 20, 55);
 
+  const chartWidth = 120;
+  const chartHeight = 120;
+  const chartX = (doc.internal.pageSize.getWidth() - chartWidth) / 2;
+  
+  if (dataUrl) {
+    doc.addImage(dataUrl, 'PNG', chartX, 65, chartWidth, chartHeight);
+  }
+
   doc.setFontSize(14);
-  doc.text(t('averageAttributeScores'), 20, 68);
+  doc.text(t('averageAttributeScores'), doc.internal.pageSize.getWidth() / 2, 195, { align: 'center'});
 
   const summaryData = [
-      [t('aroma'), resumen_general.fragrancia_aroma.toFixed(2)],
+      [t('fragranceAroma'), resumen_general.fragrancia_aroma.toFixed(2)],
       [t('uniformity'), resumen_general.uniformidad.toFixed(2)],
       [t('cleanCup'), resumen_general.taza_limpia.toFixed(2)],
       [t('sweetness'), resumen_general.dulzura.toFixed(2)],
@@ -49,7 +60,7 @@ export const generatePdf = async (reportJson: any, chartNode: HTMLElement, t: (k
   ];
 
   doc.autoTable({
-      startY: 75,
+      startY: 200,
       head: [[t('attribute'), t('score')]],
       body: summaryData,
       theme: 'grid',
@@ -57,14 +68,6 @@ export const generatePdf = async (reportJson: any, chartNode: HTMLElement, t: (k
       headStyles: { fillColor: [74, 44, 42] },
   });
 
-  const chartWidth = 120;
-  const chartHeight = 120;
-  const chartX = (doc.internal.pageSize.getWidth() - chartWidth) / 2;
-  const chartY = doc.autoTable.previous.finalY + 15;
-
-  if (dataUrl) {
-    doc.addImage(dataUrl, 'PNG', chartX, chartY, chartWidth, chartHeight);
-  }
 
   doc.setFontSize(10);
   doc.text(`${t('generatedOn')}: ${new Date().toLocaleDateString()}`, 20, doc.internal.pageSize.getHeight() - 10);
