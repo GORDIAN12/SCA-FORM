@@ -376,7 +376,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
     }
 
     const handleSoundEffect = () => {
-      const audio = new Audio('/sounds/button-1.mp3');
+      const audio = new Audio('/sounds/olor.mp3');
       audio.play();
     };
     
@@ -1050,5 +1050,3 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
 
 ScaForm.displayName = 'ScaForm';
 export { DRAFTS_KEY };
-
-    
