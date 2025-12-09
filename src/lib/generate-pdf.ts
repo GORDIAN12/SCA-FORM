@@ -14,42 +14,12 @@ const drawRadarChart = (doc: jsPDF, centerX: number, centerY: number, size: numb
     const numAxes = attributes.length;
     const angleSlice = (2 * Math.PI) / numAxes;
 
-    // --- Draw Grid & Axes ---
-    doc.setDrawColor(200, 200, 200); // Light grey for grid
-    doc.setLineWidth(0.2);
-    doc.setFontSize(6);
-    doc.setTextColor(150, 150, 150);
-
-    const gridLevels = [7, 8, 9, 10]; // Scores to draw rings for
-    gridLevels.forEach(level => {
-        const radius = ((level - 6) / 4) * size;
-        if (radius > 0) {
-            const points: [number, number][] = [];
-            for (let j = 0; j < numAxes; j++) {
-                const angle = angleSlice * j - Math.PI / 2;
-                points.push([centerX + radius * Math.cos(angle), centerY + radius * Math.sin(angle)]);
-            }
-            doc.lines(points, 0, 0, [1,1], 'S', true);
-
-            const labelAngle = angleSlice * 0 - Math.PI / 2;
-            doc.text(level.toString(), centerX + radius * Math.cos(labelAngle), centerY + radius * Math.sin(labelAngle) - 1, { align: 'center'});
-        }
-    });
-
-    
-    // --- Draw Axis Lines and Labels ---
-    doc.setDrawColor(200, 200, 200);
+    // --- Draw Axis Labels ---
     doc.setFontSize(8);
     doc.setTextColor(100, 100, 100);
 
     attributes.forEach((attr, i) => {
         const angle = angleSlice * i - Math.PI / 2;
-        const x1 = centerX;
-        const y1 = centerY;
-        const x2 = centerX + size * Math.cos(angle);
-        const y2 = centerY + size * Math.sin(angle);
-        doc.line(x1, y1, x2, y2);
-
         const labelX = centerX + (size * 1.1) * Math.cos(angle);
         const labelY = centerY + (size * 1.1) * Math.sin(angle);
         doc.text(t(attr), labelX, labelY, { align: 'center', baseline: 'middle' });
@@ -65,12 +35,6 @@ const drawRadarChart = (doc: jsPDF, centerX: number, centerY: number, size: numb
         const y = centerY + radius * Math.sin(angle);
         return [x, y];
     });
-
-    // Draw green connecting lines
-    doc.setDrawColor('#00FF00'); // Green
-    doc.setLineWidth(0.5);
-    doc.lines(dataPoints, 0, 0, [1,1], 'S', true);
-
 
     // Draw red dots
     doc.setFillColor(255, 0, 0); // Red
