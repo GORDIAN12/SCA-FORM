@@ -133,8 +133,6 @@ export default function LoginPage() {
     try {
       const provider = new GoogleAuthProvider();
       await signInWithRedirect(auth, provider);
-      // No need to show toast here, as the page will redirect.
-      // Auth state changes will be caught by the listener in the provider.
     } catch (error: any) {
       toast({
         title: t('signInFailed'),
@@ -142,7 +140,6 @@ export default function LoginPage() {
         variant: 'destructive',
       });
     } finally {
-      // This might not be reached if redirect is successful
       setIsLoading(false);
     }
   };
