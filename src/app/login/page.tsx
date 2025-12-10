@@ -74,6 +74,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     const checkRedirectResult = async () => {
+      if (!auth) return;
       try {
         const result = await getRedirectResult(auth);
         if (result) {
@@ -347,5 +348,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
-    
