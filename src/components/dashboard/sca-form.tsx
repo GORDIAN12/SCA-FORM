@@ -501,13 +501,26 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                 onValueChange={setActiveCupTab}
                 value={activeCupTab}
               >
-                <TabsList className="grid w-full grid-cols-5" >
-                  {fields.map((field, index) => (
-                    <TabsTrigger key={field.id} value={`cup-${index + 1}`} disabled={isSubmitting}>
-                      {t('cup')} {index + 1}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
+                <div className="flex items-center gap-2">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="h-10 w-10"
+                        onClick={handleSoundEffect}
+                        disabled={isAudioLoading}
+                    >
+                        {isAudioLoading ? <LoaderCircle className="animate-spin" /> : <Volume2 />}
+                        <span className="sr-only">Play Sound</span>
+                    </Button>
+                    <TabsList className="grid w-full grid-cols-5" >
+                      {fields.map((field, index) => (
+                        <TabsTrigger key={field.id} value={`cup-${index + 1}`} disabled={isSubmitting}>
+                          {t('cup')} {index + 1}
+                        </TabsTrigger>
+                      ))}
+                    </TabsList>
+                </div>
                 {fields.map((field, index) => {
                   const cupValues = watchedValues.cups?.[index];
 
@@ -868,44 +881,38 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                             </div>
 
                             <Tabs defaultValue="hot" className="w-full" onValueChange={(value) => setActiveTempTab(value as 'hot' | 'warm' | 'cold')} value={activeTempTab}>
-                              <TabsList className="grid w-full grid-cols-3">
                                 <div className="flex items-center">
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-6 w-6 p-0 mr-2"
-                                    onClick={handleSoundEffect}
-                                    disabled={isAudioLoading}
-                                  >
-                                    {isAudioLoading ? (
-                                      <LoaderCircle className="animate-spin" />
-                                    ) : (
-                                      <Volume2 className="h-4 w-4" />
-                                    )}
-                                    <span className="sr-only">Play Sound</span>
-                                  </Button>
-                                  <TabsTrigger
-                                    value="hot"
-                                    disabled={isSubmitting}
-                                    className="flex-1"
-                                  >
-                                    {t('hot')}
-                                  </TabsTrigger>
+                                    <TabsList className="grid w-full grid-cols-3">
+                                        {(['hot', 'warm', 'cold'] as const).map((temp) => (
+                                        <div key={temp} className="relative flex items-center">
+                                            <TabsTrigger
+                                                value={temp}
+                                                disabled={isSubmitting}
+                                                className="flex-1"
+                                            >
+                                                {t(temp)}
+                                            </TabsTrigger>
+                                            {temp === 'hot' && (
+                                                <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="icon"
+                                                className="absolute left-0 h-6 w-6 p-0 ml-1"
+                                                onClick={handleSoundEffect}
+                                                disabled={isAudioLoading}
+                                                >
+                                                {isAudioLoading ? (
+                                                    <LoaderCircle className="animate-spin" />
+                                                ) : (
+                                                    <Volume2 className="h-4 w-4" />
+                                                )}
+                                                <span className="sr-only">Play Sound</span>
+                                                </Button>
+                                            )}
+                                        </div>
+                                        ))}
+                                    </TabsList>
                                 </div>
-                                <TabsTrigger
-                                  value="warm"
-                                  disabled={isSubmitting}
-                                >
-                                  {t('warm')}
-                                </TabsTrigger>
-                                <TabsTrigger
-                                  value="cold"
-                                  disabled={isSubmitting}
-                                >
-                                  {t('cold')}
-                                </TabsTrigger>
-                              </TabsList>
                               {(['hot', 'warm', 'cold'] as const).map(
                                 (temp) => (
                                   <TabsContent key={temp} value={temp}>
