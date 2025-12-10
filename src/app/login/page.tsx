@@ -8,7 +8,7 @@ import { useAuth, useUser } from '@/firebase';
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  signInWithPopup,
+  signInWithRedirect,
   GoogleAuthProvider,
   OAuthProvider,
 } from 'firebase/auth';
@@ -132,15 +132,9 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       const provider = new GoogleAuthProvider();
-      // Required for some development environments to avoid domain authorization issues.
-      provider.addScope('profile');
-      provider.addScope('email');
-      await signInWithPopup(auth, provider);
-      toast({
-        title: t('signedIn'),
-        description: t('welcome'),
-      });
-      router.push('/');
+      await signInWithRedirect(auth, provider);
+      // No need to show toast here, as the page will redirect.
+      // Auth state changes will be caught by the listener in the provider.
     } catch (error: any) {
       toast({
         title: t('signInFailed'),
@@ -148,6 +142,7 @@ export default function LoginPage() {
         variant: 'destructive',
       });
     } finally {
+      // This might not be reached if redirect is successful
       setIsLoading(false);
     }
   };
@@ -156,12 +151,7 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       const provider = new OAuthProvider('microsoft.com');
-      await signInWithPopup(auth, provider);
-      toast({
-        title: t('signedIn'),
-        description: t('welcome'),
-      });
-      router.push('/');
+      await signInWithRedirect(auth, provider);
     } catch (error: any) {
       toast({
         title: t('signInFailed'),
