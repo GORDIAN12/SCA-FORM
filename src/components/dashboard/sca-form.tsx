@@ -563,7 +563,24 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                     <TabsContent key={field.id} value={`cup-${index + 1}`}>
                       <Card>
                         <CardHeader>
-                          <CardTitle>{t('cup')} {index + 1} {t('evaluation')}</CardTitle>
+                            <div className="flex items-center gap-2">
+                                <CardTitle>{t('cup')} {index + 1} {t('evaluation')}</CardTitle>
+                                 <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-6 w-6"
+                                    onClick={handleSoundEffect}
+                                    disabled={isAudioLoading}
+                                >
+                                    {isAudioLoading ? (
+                                    <LoaderCircle className="animate-spin" />
+                                    ) : (
+                                    <Volume2 className="h-4 w-4" />
+                                    )}
+                                    <span className="sr-only">Play Sound</span>
+                                </Button>
+                            </div>
                         </CardHeader>
                         <CardContent className="space-y-6 pt-6">
                           <div className="space-y-4">
@@ -851,7 +868,24 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
 
                             <Tabs defaultValue="hot" className="w-full" onValueChange={(value) => setActiveTempTab(value as 'hot' | 'warm' | 'cold')} value={activeTempTab}>
                               <TabsList className="grid w-full grid-cols-3" >
-                                <TabsTrigger value="hot" disabled={isSubmitting}>{t('hot')}</TabsTrigger>
+                                <TabsTrigger value="hot" disabled={isSubmitting} className="flex gap-2 items-center">
+                                     <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-6 w-6 p-0"
+                                        onClick={handleSoundEffect}
+                                        disabled={isAudioLoading}
+                                    >
+                                        {isAudioLoading ? (
+                                        <LoaderCircle className="animate-spin" />
+                                        ) : (
+                                        <Volume2 className="h-4 w-4" />
+                                        )}
+                                        <span className="sr-only">Play Sound</span>
+                                    </Button>
+                                    {t('hot')}
+                                    </TabsTrigger>
                                 <TabsTrigger value="warm" disabled={isSubmitting}>{t('warm')}</TabsTrigger>
                                 <TabsTrigger value="cold" disabled={isSubmitting}>{t('cold')}</TabsTrigger>
                               </TabsList>
