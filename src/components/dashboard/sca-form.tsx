@@ -375,7 +375,8 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
       onSubmit(evaluationData);
     }
 
-    const handleSoundEffect = () => {
+    const handleSoundEffect = (e: React.MouseEvent<HTMLButtonElement>) => {
+      e.stopPropagation();
       const audio = new Audio('/sounds/olor.mp3');
       audio.play();
     };
@@ -868,23 +869,25 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
 
                             <Tabs defaultValue="hot" className="w-full" onValueChange={(value) => setActiveTempTab(value as 'hot' | 'warm' | 'cold')} value={activeTempTab}>
                               <TabsList className="grid w-full grid-cols-3" >
-                                <TabsTrigger value="hot" disabled={isSubmitting} className="flex gap-2 items-center">
-                                     <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-6 w-6 p-0"
-                                        onClick={handleSoundEffect}
-                                        disabled={isAudioLoading}
-                                    >
-                                        {isAudioLoading ? (
-                                        <LoaderCircle className="animate-spin" />
-                                        ) : (
-                                        <Volume2 className="h-4 w-4" />
-                                        )}
-                                        <span className="sr-only">Play Sound</span>
-                                    </Button>
-                                    {t('hot')}
+                                <TabsTrigger value="hot" disabled={isSubmitting}>
+                                    <div className="flex gap-2 items-center">
+                                         <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-6 w-6 p-0"
+                                            onClick={handleSoundEffect}
+                                            disabled={isAudioLoading}
+                                        >
+                                            {isAudioLoading ? (
+                                            <LoaderCircle className="animate-spin" />
+                                            ) : (
+                                            <Volume2 className="h-4 w-4" />
+                                            )}
+                                            <span className="sr-only">Play Sound</span>
+                                        </Button>
+                                        {t('hot')}
+                                    </div>
                                     </TabsTrigger>
                                 <TabsTrigger value="warm" disabled={isSubmitting}>{t('warm')}</TabsTrigger>
                                 <TabsTrigger value="cold" disabled={isSubmitting}>{t('cold')}</TabsTrigger>
