@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -11,6 +11,7 @@ import {
   signInWithRedirect,
   GoogleAuthProvider,
   OAuthProvider,
+  getRedirectResult,
 } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
@@ -68,8 +69,36 @@ export default function LoginPage() {
   const auth = useAuth();
   const router = useRouter();
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // Start as true to handle redirect
   const { t } = useLanguage();
+
+  useEffect(() => {
+    const checkRedirectResult = async () => {
+      try {
+        const result = await getRedirectResult(auth);
+        if (result) {
+          // User has successfully signed in via redirect.
+          // The onAuthStateChanged listener in FirebaseProvider will handle the user state update
+          // and the redirect to the main page, so we just need to show a toast.
+          toast({
+            title: t('signedIn'),
+            description: t('welcomeBack'),
+          });
+          router.push('/');
+        }
+      } catch (error: any) {
+        toast({
+          title: t('signInFailed'),
+          description: error.message,
+          variant: 'destructive',
+        });
+      } finally {
+        setIsLoading(false); // Stop loading once the check is complete
+      }
+    };
+
+    checkRedirectResult();
+  }, [auth, router, t, toast]);
 
   const signUpForm = useForm<SignUpFormValues>({
     resolver: zodResolver(signUpSchema),
@@ -139,8 +168,7 @@ export default function LoginPage() {
         description: error.message,
         variant: 'destructive',
       });
-    } finally {
-      setIsLoading(false);
+      setIsLoading(false); // Only set loading to false on error, otherwise redirect will happen
     }
   };
   
@@ -155,8 +183,7 @@ export default function LoginPage() {
         description: error.message,
         variant: 'destructive',
       });
-    } finally {
-      setIsLoading(false);
+       setIsLoading(false); // Only set loading to false on error, otherwise redirect will happen
     }
   };
 
@@ -320,3 +347,5 @@ export default function LoginPage() {
     </div>
   );
 }
+
+    
