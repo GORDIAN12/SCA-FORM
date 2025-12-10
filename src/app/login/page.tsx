@@ -132,6 +132,9 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       const provider = new GoogleAuthProvider();
+      // Required for some development environments to avoid domain authorization issues.
+      provider.addScope('profile');
+      provider.addScope('email');
       await signInWithPopup(auth, provider);
       toast({
         title: t('signedIn'),
