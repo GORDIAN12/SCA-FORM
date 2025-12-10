@@ -434,7 +434,24 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                   name="roastLevel"
                   render={({ field }) => (
                     <FormItem className="space-y-3">
-                      <FormLabel>{t('roastLevel')}</FormLabel>
+                      <div className="flex items-center gap-2">
+                        <FormLabel>{t('roastLevel')}</FormLabel>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          className="h-6 w-6"
+                          onClick={handleSoundEffect}
+                          disabled={isAudioLoading}
+                        >
+                          {isAudioLoading ? (
+                            <LoaderCircle className="animate-spin" />
+                          ) : (
+                            <Volume2 className="h-4 w-4" />
+                          )}
+                          <span className="sr-only">Play Sound</span>
+                        </Button>
+                      </div>
                       <FormControl>
                         <RadioGroup
                           onValueChange={field.onChange}
@@ -550,9 +567,26 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                         </CardHeader>
                         <CardContent className="space-y-6 pt-6">
                           <div className="space-y-4">
-                            <h3 className="text-lg font-semibold">
-                              {t('cupQuality')}
-                            </h3>
+                            <div className="flex items-center gap-2">
+                                <h3 className="text-lg font-semibold">
+                                {t('cupQuality')}
+                                </h3>
+                                <Button
+                                type="button"
+                                variant="outline"
+                                size="icon"
+                                className="h-6 w-6"
+                                onClick={handleSoundEffect}
+                                disabled={isAudioLoading}
+                                >
+                                {isAudioLoading ? (
+                                    <LoaderCircle className="animate-spin" />
+                                ) : (
+                                    <Volume2 className="h-4 w-4" />
+                                )}
+                                <span className="sr-only">Play Sound</span>
+                                </Button>
+                            </div>
                             {(
                               ['uniformity', 'cleanCup', 'sweetness'] as const
                             ).map((quality) => (
@@ -590,7 +624,24 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                               name={`cups.${index}.aromaCategory`}
                               render={({ field: aromaField }) => (
                                 <FormItem className="space-y-3">
-                                  <FormLabel>{t('aromaCategory')}</FormLabel>
+                                   <div className="flex items-center gap-2">
+                                    <FormLabel>{t('aromaCategory')}</FormLabel>
+                                     <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="icon"
+                                        className="h-6 w-6"
+                                        onClick={handleSoundEffect}
+                                        disabled={isAudioLoading}
+                                    >
+                                        {isAudioLoading ? (
+                                        <LoaderCircle className="animate-spin" />
+                                        ) : (
+                                        <Volume2 className="h-4 w-4" />
+                                        )}
+                                        <span className="sr-only">Play Sound</span>
+                                    </Button>
+                                  </div>
                                   <FormControl>
                                     <RadioGroup
                                       onValueChange={aromaField.onChange}
@@ -628,9 +679,26 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                             />
 
                             <div className="p-4 border rounded-md">
-                              <h4 className="text-md font-medium mb-2">
-                                {t('fragranceAroma')}
-                              </h4>
+                               <div className="flex items-center gap-2 mb-2">
+                                <h4 className="text-md font-medium">
+                                    {t('fragranceAroma')}
+                                </h4>
+                                 <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-6 w-6"
+                                    onClick={handleSoundEffect}
+                                    disabled={isAudioLoading}
+                                >
+                                    {isAudioLoading ? (
+                                    <LoaderCircle className="animate-spin" />
+                                    ) : (
+                                    <Volume2 className="h-4 w-4" />
+                                    )}
+                                    <span className="sr-only">Play Sound</span>
+                                </Button>
+                              </div>
                               <div className="space-y-4">
                                 <FormField
                                   control={form.control}
@@ -658,7 +726,24 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                     name={`cups.${index}.dryFragrance`}
                                     render={({ field: intensityField }) => (
                                       <FormItem className="space-y-3">
-                                        <FormLabel>{t('dryFragrance')}</FormLabel>
+                                        <div className="flex items-center gap-2">
+                                            <FormLabel>{t('dryFragrance')}</FormLabel>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="icon"
+                                                className="h-6 w-6"
+                                                onClick={handleSoundEffect}
+                                                disabled={isAudioLoading}
+                                            >
+                                                {isAudioLoading ? (
+                                                <LoaderCircle className="animate-spin" />
+                                                ) : (
+                                                <Volume2 className="h-4 w-4" />
+                                                )}
+                                                <span className="sr-only">Play Sound</span>
+                                            </Button>
+                                        </div>
                                         <FormControl>
                                           <RadioGroup
                                             onValueChange={
@@ -703,7 +788,24 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                     name={`cups.${index}.wetAroma`}
                                     render={({ field: intensityField }) => (
                                       <FormItem className="space-y-3">
-                                        <FormLabel>{t('wetAroma')}</FormLabel>
+                                        <div className="flex items-center gap-2">
+                                            <FormLabel>{t('wetAroma')}</FormLabel>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="icon"
+                                                className="h-6 w-6"
+                                                onClick={handleSoundEffect}
+                                                disabled={isAudioLoading}
+                                            >
+                                                {isAudioLoading ? (
+                                                <LoaderCircle className="animate-spin" />
+                                                ) : (
+                                                <Volume2 className="h-4 w-4" />
+                                                )}
+                                                <span className="sr-only">Play Sound</span>
+                                            </Button>
+                                        </div>
                                         <FormControl>
                                           <RadioGroup
                                             onValueChange={
@@ -764,7 +866,24 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                           render={({ field: scoreField }) => (
                                             <FormItem>
                                               <FormLabel className="flex justify-between">
-                                                <span>{t('flavor')}</span>
+                                                <div className="flex items-center gap-2">
+                                                    <span>{t('flavor')}</span>
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="icon"
+                                                        className="h-6 w-6"
+                                                        onClick={handleSoundEffect}
+                                                        disabled={isAudioLoading}
+                                                    >
+                                                        {isAudioLoading ? (
+                                                        <LoaderCircle className="animate-spin" />
+                                                        ) : (
+                                                        <Volume2 className="h-4 w-4" />
+                                                        )}
+                                                        <span className="sr-only">Play Sound</span>
+                                                    </Button>
+                                                </div>
                                                 <span>
                                                   {scoreField.value.toFixed(2)}
                                                 </span>
@@ -1050,3 +1169,5 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
 
 ScaForm.displayName = 'ScaForm';
 export { DRAFTS_KEY };
+
+    
