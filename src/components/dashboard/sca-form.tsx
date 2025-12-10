@@ -442,7 +442,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                           variant="outline"
                           size="icon"
                           className="h-6 w-6"
-                          onClick={handleSoundEffect('/sounds/nivel_tueste.mp3')}
+                          onClick={handleSoundEffect('/sounds/number_taza.mp3')}
                           disabled={isAudioLoading}
                         >
                           {isAudioLoading ? (
@@ -880,31 +880,38 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                               </div>
                             </div>
 
-                            <Tabs defaultValue="hot" className="w-full" onValueChange={(value) => setActiveTempTab(value as 'hot' | 'warm' | 'cold')} value={activeTempTab}>
-                                <div className="flex items-center gap-2">
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="icon"
-                                        className="h-10 w-10"
-                                        onClick={handleSoundEffect('/sounds/olor.mp3')}
-                                        disabled={isAudioLoading}
+                            <div className="flex items-center gap-2">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-10 w-10"
+                                    onClick={handleSoundEffect('/sounds/olor.mp3')}
+                                    disabled={isAudioLoading}
+                                >
+                                    {isAudioLoading ? <LoaderCircle className="animate-spin" /> : <Volume2 />}
+                                    <span className="sr-only">Play Sound</span>
+                                </Button>
+                                <TabsList className="grid w-full grid-cols-3">
+                                    {(['hot', 'warm', 'cold'] as const).map((temp) => (
+                                    <TabsTrigger
+                                        key={temp}
+                                        value={temp}
+                                        disabled={isSubmitting}
                                     >
-                                        {isAudioLoading ? <LoaderCircle className="animate-spin" /> : <Volume2 />}
-                                        <span className="sr-only">Play Sound</span>
-                                    </Button>
-                                    <TabsList className="grid w-full grid-cols-3">
-                                        {(['hot', 'warm', 'cold'] as const).map((temp) => (
-                                            <TabsTrigger
-                                                key={temp}
-                                                value={temp}
-                                                disabled={isSubmitting}
-                                            >
-                                                {t(temp)}
-                                            </TabsTrigger>
-                                        ))}
-                                    </TabsList>
-                                </div>
+                                        {t(temp)}
+                                    </TabsTrigger>
+                                    ))}
+                                </TabsList>
+                            </div>
+                            <Tabs
+                                defaultValue="hot"
+                                className="w-full"
+                                onValueChange={(value) =>
+                                setActiveTempTab(value as 'hot' | 'warm' | 'cold')
+                                }
+                                value={activeTempTab}
+                            >
                               {(['hot', 'warm', 'cold'] as const).map(
                                 (temp) => (
                                   <TabsContent key={temp} value={temp}>
