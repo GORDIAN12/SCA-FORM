@@ -8,10 +8,6 @@ import { useAuth, useUser } from '@/firebase';
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  signInWithRedirect,
-  GoogleAuthProvider,
-  OAuthProvider,
-  getRedirectResult,
 } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
@@ -40,8 +36,6 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { CuppingCompassLogo } from '@/components/cupping-compass-logo';
-import { GoogleLogo } from '@/components/google-logo';
-import { MicrosoftLogo } from '@/components/microsoft-logo';
 import { useLanguage } from '@/context/language-context';
 
 const signUpSchema = z
@@ -69,37 +63,16 @@ export default function LoginPage() {
   const auth = useAuth();
   const router = useRouter();
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(true); // Start as true to handle redirect
+  const [isLoading, setIsLoading] = useState(false);
   const { t } = useLanguage();
 
-  useEffect(() => {
-    const checkRedirectResult = async () => {
-      if (!auth) return;
-      try {
-        const result = await getRedirectResult(auth);
-        if (result) {
-          // User has successfully signed in via redirect.
-          // The onAuthStateChanged listener in FirebaseProvider will handle the user state update
-          // and the redirect to the main page, so we just need to show a toast.
-          toast({
-            title: t('signedIn'),
-            description: t('welcomeBack'),
-          });
-          router.push('/');
-        }
-      } catch (error: any) {
-        toast({
-          title: t('signInFailed'),
-          description: error.message,
-          variant: 'destructive',
-        });
-      } finally {
-        setIsLoading(false); // Stop loading once the check is complete
-      }
-    };
+  const { user, isUserLoading } = useUser();
 
-    checkRedirectResult();
-  }, [auth, router, t, toast]);
+  useEffect(() => {
+    if (!isUserLoading && user) {
+        router.push('/');
+    }
+  }, [user, isUserLoading, router]);
 
   const signUpForm = useForm<SignUpFormValues>({
     resolver: zodResolver(signUpSchema),
@@ -157,61 +130,6 @@ export default function LoginPage() {
       setIsLoading(false);
     }
   };
-
-  const handleGoogleSignIn = async () => {
-    setIsLoading(true);
-    try {
-      const provider = new GoogleAuthProvider();
-      await signInWithRedirect(auth, provider);
-    } catch (error: any) {
-      toast({
-        title: t('signInFailed'),
-        description: error.message,
-        variant: 'destructive',
-      });
-      setIsLoading(false); // Only set loading to false on error, otherwise redirect will happen
-    }
-  };
-  
-  const handleMicrosoftSignIn = async () => {
-    setIsLoading(true);
-    try {
-      const provider = new OAuthProvider('microsoft.com');
-      await signInWithRedirect(auth, provider);
-    } catch (error: any) {
-      toast({
-        title: t('signInFailed'),
-        description: error.message,
-        variant: 'destructive',
-      });
-       setIsLoading(false); // Only set loading to false on error, otherwise redirect will happen
-    }
-  };
-
-  const socialButtons = (
-    <>
-        <div className="relative my-4">
-            <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">
-                {t('orContinueWith')}
-                </span>
-            </div>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-            <Button variant="outline" onClick={handleGoogleSignIn} disabled={isLoading}>
-                <GoogleLogo className="mr-2 h-4 w-4" />
-                Google
-            </Button>
-            <Button variant="outline" onClick={handleMicrosoftSignIn} disabled={isLoading}>
-                <MicrosoftLogo className="mr-2 h-4 w-4" />
-                Microsoft
-            </Button>
-        </div>
-    </>
-  );
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
@@ -273,7 +191,6 @@ export default function LoginPage() {
                     </Button>
                   </form>
                 </Form>
-                {socialButtons}
               </CardContent>
             </Card>
           </TabsContent>
@@ -339,7 +256,6 @@ export default function LoginPage() {
                     </Button>
                   </form>
                 </Form>
-                {socialButtons}
               </CardContent>
             </Card>
           </TabsContent>

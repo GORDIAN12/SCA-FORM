@@ -57,7 +57,7 @@
     }
   },
   "auth": {
-    "providers": ["password", "google.com", "microsoft.com"]
+    "providers": ["password"]
   },
   "firestore": {
     "/users/{userId}": {
