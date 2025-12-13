@@ -1061,7 +1061,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                                         variant="outline"
                                                         size="icon"
                                                         className="h-6 w-6"
-                                                        onClick={handleSoundEffect('/sounds/olor.mp3')}
+                                                        onClick={handleSoundEffect('/sounds/acido.mp3')}
                                                         disabled={isAudioLoading}
                                                     >
                                                         {isAudioLoading ? (
@@ -1153,7 +1153,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                                         variant="outline"
                                                         size="icon"
                                                         className="h-6 w-6"
-                                                        onClick={handleSoundEffect('/sounds/olor.mp3')}
+                                                        onClick={handleSoundEffect('/sounds/sabor_fuerte-cuerpo.mp3')}
                                                         disabled={isAudioLoading}
                                                     >
                                                         {isAudioLoading ? (
@@ -1244,7 +1244,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                                         variant="outline"
                                                         size="icon"
                                                         className="h-6 w-6"
-                                                        onClick={handleSoundEffect('/sounds/olor.mp3')}
+                                                        onClick={handleSoundEffect('/sounds/balance.mp3')}
                                                         disabled={isAudioLoading}
                                                     >
                                                         {isAudioLoading ? (
@@ -1289,7 +1289,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                             variant="outline"
                                             size="icon"
                                             className="h-6 w-6"
-                                            onClick={handleSoundEffect('/sounds/olor.mp3')}
+                                            onClick={handleSoundEffect('/sounds/catador.mp3')}
                                             disabled={isAudioLoading}
                                         >
                                             {isAudioLoading ? (
