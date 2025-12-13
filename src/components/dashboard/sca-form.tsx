@@ -357,8 +357,10 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                     }
                 }
                 
-                handleScoreSync(currentScaValues);
-                previousValuesRef.current = currentScaValues;
+                if (JSON.stringify(currentScaValues) !== JSON.stringify(previousValuesRef.current)) {
+                    handleScoreSync(currentScaValues);
+                    previousValuesRef.current = currentScaValues;
+                }
             }
         });
         return () => subscription.unsubscribe();
@@ -929,31 +931,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                 </div>
                               </div>
                             </div>
-
-                            <div className="flex items-center gap-2">
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="icon"
-                                    className="h-10 w-10"
-                                    onClick={handleSoundEffect('/sounds/temperaturas.mp3')}
-                                    disabled={isAudioLoading}
-                                >
-                                    {isAudioLoading ? <LoaderCircle className="animate-spin" /> : <Volume2 />}
-                                    <span className="sr-only">Play Sound</span>
-                                </Button>
-                                <TabsList className="grid w-full grid-cols-3">
-                                    {(['hot', 'warm', 'cold'] as const).map((temp) => (
-                                    <TabsTrigger
-                                        key={temp}
-                                        value={temp}
-                                        disabled={isSubmitting}
-                                    >
-                                        {t(temp)}
-                                    </TabsTrigger>
-                                    ))}
-                                </TabsList>
-                            </div>
+                            
                             <Tabs
                                 defaultValue="hot"
                                 className="w-full"
@@ -962,6 +940,30 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                 }
                                 value={activeTempTab}
                             >
+                                <div className="flex items-center gap-2">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="icon"
+                                        className="h-10 w-10"
+                                        onClick={handleSoundEffect('/sounds/temperaturas.mp3')}
+                                        disabled={isAudioLoading}
+                                    >
+                                        {isAudioLoading ? <LoaderCircle className="animate-spin" /> : <Volume2 />}
+                                        <span className="sr-only">Play Sound</span>
+                                    </Button>
+                                    <TabsList className="grid w-full grid-cols-3">
+                                        {(['hot', 'warm', 'cold'] as const).map((temp) => (
+                                        <TabsTrigger
+                                            key={temp}
+                                            value={temp}
+                                            disabled={isSubmitting}
+                                        >
+                                            {t(temp)}
+                                        </TabsTrigger>
+                                        ))}
+                                    </TabsList>
+                                </div>
                               {(['hot', 'warm', 'cold'] as const).map(
                                 (temp) => (
                                   <TabsContent key={temp} value={temp}>
