@@ -99,7 +99,7 @@ export default function LoginPage() {
         title: t('accountCreated'),
         description: t('youHaveBeenRegistered'),
       });
-      router.push('/');
+      router.push('/?new_user=true');
     } catch (error: any) {
       toast({
         title: t('registrationFailed'),

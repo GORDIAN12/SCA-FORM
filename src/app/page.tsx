@@ -1,7 +1,7 @@
 'use client';
 
 import { useUser } from '@/firebase';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScaForm, ScaFormRef } from '@/components/dashboard/sca-form';
@@ -29,6 +29,7 @@ import { useLanguage } from '@/context/language-context';
 export default function Home() {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const firestore = useFirestore();
   const { toast } = useToast();
   const formRef = useRef<ScaFormRef>(null);
@@ -74,6 +75,15 @@ export default function Home() {
       setDraftToLoad(null); // Reset after loading
     }
   }, [draftToLoad]);
+  
+  useEffect(() => {
+    const isNewUser = searchParams.get('new_user');
+    if (isNewUser === 'true') {
+      setIsSettingsOpen(true);
+      // Clean up the URL
+      router.replace('/', { scroll: false });
+    }
+  }, [searchParams, router]);
 
   const handleAddEvaluation = async (
     evaluationData: Omit<Evaluation, 'id' | 'createdAt' | 'userId'>
