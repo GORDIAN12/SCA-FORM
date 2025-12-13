@@ -381,14 +381,14 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
         if (!tempScores) return null;
 
         return {
-            [t('aroma').toLowerCase()]: aroma,
-            [t('flavor').toLowerCase()]: tempScores.flavor,
-            [t('aftertaste').toLowerCase()]: tempScores.aftertaste,
-            [t('acidity').toLowerCase()]: tempScores.acidity,
-            [t('body').toLowerCase()]: tempScores.body,
-            [t('balance').toLowerCase()]: tempScores.balance,
+            aroma: aroma,
+            flavor: tempScores.flavor,
+            aftertaste: tempScores.aftertaste,
+            acidity: tempScores.acidity,
+            body: tempScores.body,
+            balance: tempScores.balance,
         };
-    }, [activeCupData, activeTempTab, t]);
+    }, [activeCupData, activeTempTab]);
 
     useEffect(() => {
       if (onActiveCupChange && activeCupData) {
@@ -1014,7 +1014,24 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                           render={({ field: scoreField }) => (
                                             <FormItem>
                                               <FormLabel className="flex justify-between">
-                                                <span>{t('aftertaste')}</span>
+                                                <div className="flex items-center gap-2">
+                                                    <span>{t('aftertaste')}</span>
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="icon"
+                                                        className="h-6 w-6"
+                                                        onClick={handleSoundEffect('/sounds/olor.mp3')}
+                                                        disabled={isAudioLoading}
+                                                    >
+                                                        {isAudioLoading ? (
+                                                        <LoaderCircle className="animate-spin" />
+                                                        ) : (
+                                                        <Volume2 className="h-4 w-4" />
+                                                        )}
+                                                        <span className="sr-only">Play Sound</span>
+                                                    </Button>
+                                                </div>
                                                 <span>
                                                   {scoreField.value.toFixed(2)}
                                                 </span>
@@ -1037,7 +1054,24 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                             render={({ field: scoreField }) => (
                                               <FormItem>
                                                 <FormLabel className="flex justify-between">
-                                                  <span>{t('acidityScore')}</span>
+                                                  <div className="flex items-center gap-2">
+                                                    <span>{t('acidityScore')}</span>
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="icon"
+                                                        className="h-6 w-6"
+                                                        onClick={handleSoundEffect('/sounds/olor.mp3')}
+                                                        disabled={isAudioLoading}
+                                                    >
+                                                        {isAudioLoading ? (
+                                                        <LoaderCircle className="animate-spin" />
+                                                        ) : (
+                                                        <Volume2 className="h-4 w-4" />
+                                                        )}
+                                                        <span className="sr-only">Play Sound</span>
+                                                    </Button>
+                                                  </div>
                                                   <span>
                                                     {scoreField.value.toFixed(
                                                       2
@@ -1112,7 +1146,24 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                             render={({ field: scoreField }) => (
                                               <FormItem>
                                                 <FormLabel className="flex justify-between">
-                                                  <span>{t('bodyScore')}</span>
+                                                  <div className="flex items-center gap-2">
+                                                    <span>{t('bodyScore')}</span>
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="icon"
+                                                        className="h-6 w-6"
+                                                        onClick={handleSoundEffect('/sounds/olor.mp3')}
+                                                        disabled={isAudioLoading}
+                                                    >
+                                                        {isAudioLoading ? (
+                                                        <LoaderCircle className="animate-spin" />
+                                                        ) : (
+                                                        <Volume2 className="h-4 w-4" />
+                                                        )}
+                                                        <span className="sr-only">Play Sound</span>
+                                                    </Button>
+                                                  </div>
                                                   <span>
                                                     {scoreField.value.toFixed(
                                                       2
@@ -1186,7 +1237,24 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                           render={({ field: scoreField }) => (
                                             <FormItem>
                                               <FormLabel className="flex justify-between">
-                                                <span>{t('balance')}</span>
+                                                <div className="flex items-center gap-2">
+                                                    <span>{t('balance')}</span>
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="icon"
+                                                        className="h-6 w-6"
+                                                        onClick={handleSoundEffect('/sounds/olor.mp3')}
+                                                        disabled={isAudioLoading}
+                                                    >
+                                                        {isAudioLoading ? (
+                                                        <LoaderCircle className="animate-spin" />
+                                                        ) : (
+                                                        <Volume2 className="h-4 w-4" />
+                                                        )}
+                                                        <span className="sr-only">Play Sound</span>
+                                                    </Button>
+                                                </div>
                                                 <span>
                                                   {scoreField.value.toFixed(2)}
                                                 </span>
@@ -1214,7 +1282,24 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                 render={({ field: scoreField }) => (
                                   <FormItem>
                                     <FormLabel className="flex justify-between">
-                                      <span>{t('cupperScore')}</span>
+                                      <div className="flex items-center gap-2">
+                                        <span>{t('cupperScore')}</span>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="icon"
+                                            className="h-6 w-6"
+                                            onClick={handleSoundEffect('/sounds/olor.mp3')}
+                                            disabled={isAudioLoading}
+                                        >
+                                            {isAudioLoading ? (
+                                            <LoaderCircle className="animate-spin" />
+                                            ) : (
+                                            <Volume2 className="h-4 w-4" />
+                                            )}
+                                            <span className="sr-only">Play Sound</span>
+                                        </Button>
+                                      </div>
                                       <span>
                                         {scoreField.value.toFixed(2)}
                                       </span>
