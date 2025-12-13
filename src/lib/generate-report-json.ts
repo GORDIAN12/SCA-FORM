@@ -64,7 +64,6 @@ export const generateReportJson = (evaluation: Evaluation, t: (key: string) => s
           acidity: validateScore(cup.scores[phase].acidity),
           body: validateScore(cup.scores[phase].body),
           balance: validateScore(cup.scores[phase].balance),
-          sweetness: validateScore(cup.sweetness ? 10 : 6),
         });
 
         const combinedRadarData: RadarChartData = {
@@ -74,7 +73,6 @@ export const generateReportJson = (evaluation: Evaluation, t: (key: string) => s
           acidity: getAverageScore([cup.scores.hot.acidity, cup.scores.warm.acidity, cup.scores.cold.acidity]),
           body: getAverageScore([cup.scores.hot.body, cup.scores.warm.body, cup.scores.cold.body]),
           balance: getAverageScore([cup.scores.hot.balance, cup.scores.warm.balance, cup.scores.cold.balance]),
-          sweetness: validateScore(cup.sweetness ? 10 : 6),
         };
 
         return {

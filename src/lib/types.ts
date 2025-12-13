@@ -60,5 +60,4 @@ export interface RadarChartData {
   acidity: number;
   body: number;
   balance: number;
-  sweetness: number;
 }

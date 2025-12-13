@@ -1,6 +1,6 @@
 import type { RadarChartData } from './types';
 
-const ATTRIBUTES: (keyof RadarChartData)[] = ['aroma', 'flavor', 'aftertaste', 'acidity', 'body', 'balance', 'sweetness'];
+const ATTRIBUTES: (keyof RadarChartData)[] = ['aroma', 'flavor', 'aftertaste', 'acidity', 'body', 'balance'];
 const NUM_ATTRIBUTES = ATTRIBUTES.length;
 
 const getPoint = (value: number, index: number, centerX: number, centerY: number, radius: number) => {
