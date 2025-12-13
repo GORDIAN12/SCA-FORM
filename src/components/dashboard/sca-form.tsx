@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Slider } from '@/components/ui/slider';
-import type { Evaluation, CupEvaluation, ScaFormValues as ScaFormValuesType } from '@/lib/types';
+import type { Evaluation, CupEvaluation, ScaFormValues as ScaFormValuesType, ScoreSet } from '@/lib/types';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
   useEffect,
@@ -28,6 +28,7 @@ import {
   useState,
   forwardRef,
   useImperativeHandle,
+  useRef,
 } from 'react';
 import { cn } from '@/lib/utils';
 import { Coffee, Volume2, LoaderCircle } from 'lucide-react';
@@ -238,6 +239,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
     const [isAudioLoading, setIsAudioLoading] = useState(false);
     const isReadOnly = !!initialData;
     const { t } = useLanguage();
+    const previousValues = useRef<ScaFormValues | null>(null);
 
     const roastLevels = [
       { id: 'light', label: t('roastLight'), color: 'bg-[#966F33]' },
@@ -259,11 +261,17 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
 
     useEffect(() => {
       if (initialData) {
-        form.reset({
+        const resetData = {
           coffeeName: initialData.coffeeName,
           roastLevel: initialData.roastLevel,
           cups: initialData.cups,
-        });
+        };
+        form.reset(resetData);
+        previousValues.current = resetData as ScaFormValues;
+      } else {
+        const defaultValues = createDefaultFormValues();
+        form.reset(defaultValues);
+        previousValues.current = defaultValues;
       }
     }, [initialData, form]);
 
@@ -278,11 +286,14 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                 localStorage.setItem(DRAFTS_KEY, JSON.stringify(drafts));
             }
         }
-        form.reset(createDefaultFormValues());
+        const newValues = createDefaultFormValues();
+        form.reset(newValues);
+        previousValues.current = newValues;
       },
       loadDraft: (data) => {
         if (!isReadOnly) {
             form.reset(data);
+            previousValues.current = data;
         }
       }
     }));
@@ -298,22 +309,59 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
         if (onValuesChange) {
             onValuesChange(watchedValues as ScaFormValues);
         }
-        if (!isReadOnly && watchedValues.coffeeName && watchedValues.draftId) {
-            try {
-                const drafts = JSON.parse(localStorage.getItem(DRAFTS_KEY) || '{}');
-                const updatedDraft = {
-                    ...watchedValues,
-                    lastModified: new Date().toISOString(),
-                };
-                
-                drafts[watchedValues.draftId] = updatedDraft;
-                localStorage.setItem(DRAFTS_KEY, JSON.stringify(drafts));
-            } catch (error) {
-                console.error("Failed to save draft to localStorage", error);
+
+        if (!isReadOnly) {
+            // Debounce or check for meaningful changes before saving to localStorage
+            const currentDraft = { ...watchedValues, lastModified: new Date().toISOString() } as ScaFormValues;
+
+            if (watchedValues.coffeeName && watchedValues.draftId) {
+                try {
+                    const drafts = JSON.parse(localStorage.getItem(DRAFTS_KEY) || '{}');
+                    drafts[watchedValues.draftId] = currentDraft;
+                    localStorage.setItem(DRAFTS_KEY, JSON.stringify(drafts));
+                } catch (error) {
+                    console.error("Failed to save draft to localStorage", error);
+                }
             }
+
+            if (previousValues.current) {
+                handleScoreSync(watchedValues as ScaFormValues, previousValues.current);
+            }
+            previousValues.current = currentDraft;
         }
     }, [watchedValues, onValuesChange, isReadOnly]);
     
+     const handleScoreSync = (currentValues: ScaFormValues, prevValues: ScaFormValues) => {
+        const cupIndex = parseInt(activeCupTab.split('-')[1], 10) - 1;
+        const currentCup = currentValues.cups?.[cupIndex];
+        const prevCup = prevValues.cups?.[cupIndex];
+    
+        if (!currentCup || !prevCup) return;
+    
+        const scoreKeys: (keyof ScoreSet)[] = ['flavor', 'aftertaste', 'acidity', 'body', 'balance'];
+        const tempKeys: ('hot' | 'warm' | 'cold')[] = ['hot', 'warm', 'cold'];
+    
+        for (const temp of tempKeys) {
+            for (const scoreKey of scoreKeys) {
+                if (currentCup.scores[temp][scoreKey] !== prevCup.scores[temp][scoreKey]) {
+                    const newValue = currentCup.scores[temp][scoreKey];
+                    // Found the changed value, now update other temps
+                    tempKeys.forEach(otherTemp => {
+                        if (otherTemp !== temp) {
+                            // Prevent re-triggering useEffect by checking if the value is already the same
+                            if (form.getValues(`cups.${cupIndex}.scores.${otherTemp}.${scoreKey}`) !== newValue) {
+                                form.setValue(`cups.${cupIndex}.scores.${otherTemp}.${scoreKey}`, newValue as any);
+                            }
+                        }
+                    });
+                    // Once we find and sync a change, we can exit to avoid multiple syncs in one render cycle
+                    return;
+                }
+            }
+        }
+    };
+
+
     const activeCupIndex = useMemo(() => {
       return parseInt(activeCupTab.split('-')[1], 10) - 1;
     }, [activeCupTab]);
