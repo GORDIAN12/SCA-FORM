@@ -62,7 +62,7 @@ export function InteractiveTutorial({ onFinish }: InteractiveTutorialProps) {
         
         let topAdjustment = -8;
         if (stepIndex === 3) {
-            topAdjustment -= 600;
+            topAdjustment -= 400;
         }
 
         // Style for the highlight box
