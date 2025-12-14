@@ -60,10 +60,15 @@ export function InteractiveTutorial({ onFinish }: InteractiveTutorialProps) {
       const handlePositionUpdate = () => {
         const rect = element.getBoundingClientRect();
         
+        let topAdjustment = -8;
+        if (stepIndex === 3) {
+            topAdjustment -= 200;
+        }
+
         // Style for the highlight box
         setHighlightStyle({
           position: 'fixed',
-          top: `${rect.top - 8}px`,
+          top: `${rect.top + topAdjustment}px`,
           left: `${rect.left - 4}px`,
           width: `${rect.width + 8}px`,
           height: `${rect.height + 8}px`,
