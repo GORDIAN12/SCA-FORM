@@ -99,5 +99,20 @@
     "aromaTierra": "Terroso",
     "aromaOtros": "Outros",
     "additionalEvaluations": "Avaliações Adicionais",
-    "attribute": "Atributo"
+    "attribute": "Atributo",
+    "startTutorial": "Iniciar Tutorial",
+    "tutorialStep1Title": "1. Nome do Café",
+    "tutorialStep1Desc": "Comece inserindo o nome do café que você está avaliando. Isso ajudará a identificá-lo mais tarde.",
+    "tutorialStep2Title": "2. Nível de Torra",
+    "tutorialStep2Desc": "Selecione o nível de torra do café. Isso afeta seu perfil de sabor.",
+    "tutorialStep3Title": "3. Seleção de Xícara",
+    "tutorialStep3Desc": "Você pode avaliar até 5 xícaras. Clique em cada aba para inserir as pontuações para essa xícara específica.",
+    "tutorialStep4Title": "4. Pontuação",
+    "tutorialStep4Desc": "Use os controles deslizantes para pontuar cada atributo de 6 a 10. A pontuação será refletida acima do controle deslizante.",
+    "tutorialStep5Title": "5. Fases de Temperatura",
+    "tutorialStep5Desc": "Avalie o café em diferentes temperaturas: quente, morno e frio. As pontuações que você inserir para uma temperatura serão sincronizadas com as outras.",
+    "tutorialNext": "Próximo",
+    "tutorialPrevious": "Anterior",
+    "tutorialFinish": "Finalizar",
+    "tutorialSkip": "Pular"
 }

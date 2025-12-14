@@ -149,14 +149,16 @@ const CupSelector = ({
 const ScoreSlider = ({
   field,
   disabled,
+  id
 }: {
   field: {
     value: number;
     onChange: (value: number) => void;
   };
   disabled?: boolean;
+  id?: string;
 }) => (
-  <div className="relative pt-2">
+  <div className="relative pt-2" id={id}>
     <Slider
       min={6}
       max={10}
@@ -448,7 +450,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)}>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 gap-4">
+              <div className="grid grid-cols-1 gap-4" id="coffeeName-section">
                 <FormField
                   control={form.control}
                   name="coffeeName"
@@ -486,7 +488,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                   control={form.control}
                   name="roastLevel"
                   render={({ field }) => (
-                    <FormItem className="space-y-3">
+                    <FormItem className="space-y-3" id="roastLevel-section">
                       <div className="flex items-center gap-2">
                         <FormLabel>{t('roastLevel')}</FormLabel>
                         <Button
@@ -553,7 +555,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                 onValueChange={setActiveCupTab}
                 value={activeCupTab}
               >
-                 <div className="flex items-center gap-2">
+                 <div className="flex items-center gap-2" id="cup-tabs-section">
                     <Button
                         type="button"
                         variant="outline"
@@ -796,6 +798,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                       </FormLabel>
                                       <FormControl>
                                         <ScoreSlider
+                                          id="aroma-score-slider"
                                           field={scoreField}
                                           disabled={isReadOnly || isSubmitting}
                                         />
@@ -932,7 +935,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                               </div>
                             </div>
                             
-                            <Tabs
+                             <Tabs
                                 defaultValue="hot"
                                 className="w-full"
                                 onValueChange={(value) =>
@@ -940,7 +943,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                 }
                                 value={activeTempTab}
                             >
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2" id="temperature-tabs-section">
                                     <Button
                                         type="button"
                                         variant="outline"
@@ -966,8 +969,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                 </div>
                               {(['hot', 'warm', 'cold'] as const).map(
                                 (temp) => (
-                                  <TabsContent key={temp} value={temp}>
-                                    <div className="space-y-4 pt-4">
+                                  <TabsContent key={temp} value={temp} forceMount className={cn('space-y-4 pt-4 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2', activeTempTab !== temp && "hidden")}>
                                       <div className="p-4 border rounded-md">
                                         <FormField
                                           control={form.control}
@@ -1269,7 +1271,6 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                           )}
                                         />
                                       </div>
-                                    </div>
                                   </TabsContent>
                                 )
                               )}

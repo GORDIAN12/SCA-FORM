@@ -6,6 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogFooter,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -16,15 +17,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
 import { useTheme } from 'next-themes';
 import { useLanguage } from '@/context/language-context';
 
 interface SettingsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onStartTutorial: () => void;
 }
 
-export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
+export function SettingsDialog({ open, onOpenChange, onStartTutorial }: SettingsDialogProps) {
   const { setTheme, theme } = useTheme();
   const { language, setLanguage, t } = useLanguage();
 
@@ -60,6 +63,11 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
             </Select>
           </div>
         </div>
+        <DialogFooter>
+            <Button variant="outline" onClick={onStartTutorial}>
+                {t('startTutorial')}
+            </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

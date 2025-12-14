@@ -25,6 +25,7 @@ import { SettingsDialog } from '@/components/settings-dialog';
 import { DraftsDialog } from '@/components/dashboard/drafts-dialog';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/context/language-context';
+import { InteractiveTutorial } from '@/components/tutorial/interactive-tutorial';
 
 export default function Home() {
   const { user, isUserLoading } = useUser();
@@ -38,6 +39,7 @@ export default function Home() {
   const [isDraftsOpen, setIsDraftsOpen] = useState(false);
   const [draftToLoad, setDraftToLoad] = useState<ScaFormValues | null>(null);
   const { t } = useLanguage();
+  const [showTutorial, setShowTutorial] = useState(false);
 
   const [showScrollTop, setShowScrollTop] = useState(false);
 
@@ -79,7 +81,8 @@ export default function Home() {
   useEffect(() => {
     const isNewUser = searchParams.get('new_user');
     if (isNewUser === 'true') {
-      setIsSettingsOpen(true);
+      window.scrollTo(0, 0);
+      setShowTutorial(true);
       // Clean up the URL
       router.replace('/', { scroll: false });
     }
@@ -144,8 +147,16 @@ export default function Home() {
     setDraftToLoad(draft);
     setIsDraftsOpen(false);
   };
+  
+  const startTutorial = () => {
+    window.scrollTo(0, 0);
+    setShowTutorial(true);
+    setIsSettingsOpen(false);
+  };
 
   return (
+    <>
+    {showTutorial && <InteractiveTutorial onFinish={() => setShowTutorial(false)} />}
     <SidebarProvider>
       <Sidebar>
         <SidebarContent className="p-0">
@@ -202,8 +213,9 @@ export default function Home() {
           </button>
         </div>
       </SidebarInset>
-      <SettingsDialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
+      <SettingsDialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen} onStartTutorial={startTutorial} />
       <DraftsDialog open={isDraftsOpen} onOpenChange={setIsDraftsOpen} onLoadDraft={handleLoadDraft} />
     </SidebarProvider>
+    </>
   );
 }
