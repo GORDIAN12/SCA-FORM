@@ -63,7 +63,7 @@ export function InteractiveTutorial({ onFinish }: InteractiveTutorialProps) {
         // Style for the highlight box
         setHighlightStyle({
           position: 'fixed',
-          top: `${rect.top - 4}px`,
+          top: `${rect.top - 8}px`,
           left: `${rect.left - 4}px`,
           width: `${rect.width + 8}px`,
           height: `${rect.height + 8}px`,
@@ -144,14 +144,6 @@ export function InteractiveTutorial({ onFinish }: InteractiveTutorialProps) {
 
   return (
     <>
-      {/* Transparent overlay */}
-      <div
-        className="fixed inset-0 z-50"
-        style={{
-          pointerEvents: 'none',
-        }}
-      />
-      
       {/* Highlight box */}
       <div style={highlightStyle} />
       
