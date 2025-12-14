@@ -68,6 +68,7 @@ export function InteractiveTutorial({ onFinish }: InteractiveTutorialProps) {
         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
         const handlePositionUpdate = () => {
+          requestAnimationFrame(() => {
             const rect = element.getBoundingClientRect();
             
             // Style for the highlight box
@@ -122,16 +123,19 @@ export function InteractiveTutorial({ onFinish }: InteractiveTutorialProps) {
             });
 
             setDialogOpen(true);
+          });
         };
         
         // Delay to allow for scroll to complete before positioning
         const scrollTimeout = setTimeout(handlePositionUpdate, 300); 
         
         window.addEventListener('resize', handlePositionUpdate);
+        window.addEventListener('scroll', handlePositionUpdate);
 
         return () => {
             clearTimeout(scrollTimeout);
             window.removeEventListener('resize', handlePositionUpdate);
+            window.removeEventListener('scroll', handlePositionUpdate);
         }
         }
     };
