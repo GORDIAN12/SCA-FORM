@@ -970,7 +970,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                               {(['hot', 'warm', 'cold'] as const).map(
                                 (temp) => (
                                   <TabsContent key={temp} value={temp} forceMount className={cn('space-y-4 pt-4 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2', activeTempTab !== temp && "hidden")}>
-                                      <div className="p-4 border rounded-md">
+                                      <div className="p-4 border rounded-md" id="flavor-score-section">
                                         <FormField
                                           control={form.control}
                                           name={`cups.${index}.scores.${temp}.flavor`}
