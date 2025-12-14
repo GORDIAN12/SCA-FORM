@@ -144,8 +144,10 @@ export function InteractiveTutorial({ onFinish }: InteractiveTutorialProps) {
 
   return (
     <>
+      {/* Transparent overlay */}
+      <div className="fixed inset-0 z-[100] bg-black/20 backdrop-blur-sm" />
       {/* Highlight box */}
-      <div style={highlightStyle} />
+      <div style={highlightStyle} className="bg-background" />
       
       {/* Dialog for tutorial content */}
       <Dialog open={dialogOpen} onOpenChange={(isOpen) => !isOpen && handleFinish()}>
@@ -153,11 +155,7 @@ export function InteractiveTutorial({ onFinish }: InteractiveTutorialProps) {
             style={dialogStyle} 
             className="w-80 sm:w-96" 
             onInteractOutside={(e) => e.preventDefault()}
-            // This is a custom prop to the DialogContent to not render overlay.
-            // We need to modify DialogContent to accept this.
-            // For now, let's assume this works and we'll adjust the Dialog component if needed
-            // Actually, DialogContent from shadcn doesn't have this.
-            // Let's control the overlay from inside Dialog
+            hideOverlay
         >
             {currentStepContent && (
                 <>
