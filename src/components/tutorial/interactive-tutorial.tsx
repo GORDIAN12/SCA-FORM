@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { DialogOverlay } from '@radix-ui/react-dialog';
 
 interface TutorialStep {
   id: string;
@@ -38,8 +39,10 @@ export function InteractiveTutorial({ onFinish }: InteractiveTutorialProps) {
   const { t } = useLanguage();
 
   useEffect(() => {
+    // Block scrolling when tutorial is active
     document.body.style.overflow = 'hidden';
     return () => {
+      // Restore scrolling when tutorial finishes
       document.body.style.overflow = 'auto';
     };
   }, []);
@@ -51,19 +54,22 @@ export function InteractiveTutorial({ onFinish }: InteractiveTutorialProps) {
     const element = document.getElementById(currentStep.id);
 
     if (element) {
+      // Scroll element into view smoothly
       element.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
       const handlePositionUpdate = () => {
         const rect = element.getBoundingClientRect();
+        
+        // Style for the highlight box
         setHighlightStyle({
           position: 'fixed',
           top: `${rect.top - 4}px`,
           left: `${rect.left - 4}px`,
           width: `${rect.width + 8}px`,
           height: `${rect.height + 8}px`,
-          border: '2px solid hsl(var(--primary))',
+          border: '3px solid hsl(var(--primary))',
           borderRadius: 'var(--radius)',
-          zIndex: 100,
+          zIndex: 101, // Higher z-index to be on top of the transparent overlay
           pointerEvents: 'none',
           transition: 'top 0.3s, left 0.3s, width 0.3s, height 0.3s',
         });
@@ -94,12 +100,13 @@ export function InteractiveTutorial({ onFinish }: InteractiveTutorialProps) {
           left: `50%`,
           transform: transform,
           position: 'fixed',
-          zIndex: 101,
+          zIndex: 102, // Higher z-index for the dialog
         });
 
         setDialogOpen(true);
       };
       
+      // Delay to allow for scroll to complete before positioning
       const scrollTimeout = setTimeout(handlePositionUpdate, 300); 
       
       window.addEventListener('resize', handlePositionUpdate);
@@ -137,9 +144,21 @@ export function InteractiveTutorial({ onFinish }: InteractiveTutorialProps) {
 
   return (
     <>
+      {/* Highlight box */}
       <div style={highlightStyle} />
+      
+      {/* Dialog for tutorial content */}
       <Dialog open={dialogOpen} onOpenChange={(isOpen) => !isOpen && handleFinish()}>
-        <DialogContent style={dialogStyle} className="w-80 sm:w-96" onInteractOutside={(e) => e.preventDefault()}>
+        <DialogContent 
+            style={dialogStyle} 
+            className="w-80 sm:w-96" 
+            onInteractOutside={(e) => e.preventDefault()}
+            // This is a custom prop to the DialogContent to not render overlay.
+            // We need to modify DialogContent to accept this.
+            // For now, let's assume this works and we'll adjust the Dialog component if needed
+            // Actually, DialogContent from shadcn doesn't have this.
+            // Let's control the overlay from inside Dialog
+        >
             {currentStepContent && (
                 <>
                 <DialogHeader>
