@@ -5,6 +5,9 @@ import { useLanguage } from '@/context/language-context';
 import {
   Dialog,
   DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -139,12 +142,15 @@ export function InteractiveTutorial({ onFinish }: InteractiveTutorialProps) {
       <Dialog open={dialogOpen} onOpenChange={(isOpen) => !isOpen && handleFinish()}>
         <DialogContent style={dialogStyle} className="w-80 sm:w-96" onInteractOutside={(e) => e.preventDefault()}>
             {currentStepContent && (
+                <>
+                <DialogHeader>
+                    <DialogTitle>{t(currentStepContent.titleKey)}</DialogTitle>
+                    <DialogDescription>
+                        {t(currentStepContent.descriptionKey)}
+                    </DialogDescription>
+                </DialogHeader>
                  <div className="space-y-4">
-                    <h4 className="font-semibold">{t(currentStepContent.titleKey)}</h4>
-                    <p className="text-sm text-muted-foreground">
-                    {t(currentStepContent.descriptionKey)}
-                    </p>
-                    <div className="flex justify-between items-center">
+                    <div className="flex justify-between items-center pt-4">
                         <div>
                             {stepIndex > 0 && (
                             <Button variant="ghost" size="sm" onClick={handlePrev}>{t('tutorialPrevious')}</Button>
@@ -161,6 +167,7 @@ export function InteractiveTutorial({ onFinish }: InteractiveTutorialProps) {
                         </div>
                     </div>
                 </div>
+                </>
             )}
         </DialogContent>
       </Dialog>
