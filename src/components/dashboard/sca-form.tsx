@@ -764,24 +764,24 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                             />
 
                             <div className="p-4 border rounded-md" id="fragrance-aroma-section">
-                               <div className="flex items-center gap-2 mb-2">
+                              <div className="flex items-center gap-2 mb-2">
                                 <h4 className="text-md font-medium">
-                                    {t('fragranceAroma')}
+                                  {t('fragranceAroma')}
                                 </h4>
-                                 <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="icon"
-                                    className="h-6 w-6"
-                                    onClick={handleSoundEffect('/sounds/olor.mp3')}
-                                    disabled={isAudioLoading}
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="icon"
+                                  className="h-6 w-6"
+                                  onClick={handleSoundEffect('/sounds/olor.mp3')}
+                                  disabled={isAudioLoading}
                                 >
-                                    {isAudioLoading ? (
+                                  {isAudioLoading ? (
                                     <LoaderCircle className="animate-spin" />
-                                    ) : (
+                                  ) : (
                                     <Volume2 className="h-4 w-4" />
-                                    )}
-                                    <span className="sr-only">Play Sound</span>
+                                  )}
+                                  <span className="sr-only">Play Sound</span>
                                 </Button>
                               </div>
                               <div className="space-y-4">
@@ -812,28 +812,26 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                     render={({ field: intensityField }) => (
                                       <FormItem className="space-y-3">
                                         <div className="flex items-center gap-2">
-                                            <FormLabel>{t('dryFragrance')}</FormLabel>
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                size="icon"
-                                                className="h-6 w-6"
-                                                onClick={handleSoundEffect('/sounds/olor.mp3')}
-                                                disabled={isAudioLoading}
-                                            >
-                                                {isAudioLoading ? (
-                                                <LoaderCircle className="animate-spin" />
-                                                ) : (
-                                                <Volume2 className="h-4 w-4" />
-                                                )}
-                                                <span className="sr-only">Play Sound</span>
-                                            </Button>
+                                          <FormLabel>{t('dryFragrance')}</FormLabel>
+                                          <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="icon"
+                                            className="h-6 w-6"
+                                            onClick={handleSoundEffect('/sounds/olor.mp3')}
+                                            disabled={isAudioLoading}
+                                          >
+                                            {isAudioLoading ? (
+                                              <LoaderCircle className="animate-spin" />
+                                            ) : (
+                                              <Volume2 className="h-4 w-4" />
+                                            )}
+                                            <span className="sr-only">Play Sound</span>
+                                          </Button>
                                         </div>
                                         <FormControl>
                                           <RadioGroup
-                                            onValueChange={
-                                              intensityField.onChange
-                                            }
+                                            onValueChange={intensityField.onChange}
                                             value={intensityField.value}
                                             className="flex space-x-4"
                                             disabled={isReadOnly || isSubmitting}
@@ -874,28 +872,26 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                     render={({ field: intensityField }) => (
                                       <FormItem className="space-y-3">
                                         <div className="flex items-center gap-2">
-                                            <FormLabel>{t('wetAroma')}</FormLabel>
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                size="icon"
-                                                className="h-6 w-6"
-                                                onClick={handleSoundEffect('/sounds/olor.mp3')}
-                                                disabled={isAudioLoading}
-                                            >
-                                                {isAudioLoading ? (
-                                                <LoaderCircle className="animate-spin" />
-                                                ) : (
-                                                <Volume2 className="h-4 w-4" />
-                                                )}
-                                                <span className="sr-only">Play Sound</span>
-                                            </Button>
+                                          <FormLabel>{t('wetAroma')}</FormLabel>
+                                          <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="icon"
+                                            className="h-6 w-6"
+                                            onClick={handleSoundEffect('/sounds/olor.mp3')}
+                                            disabled={isAudioLoading}
+                                          >
+                                            {isAudioLoading ? (
+                                              <LoaderCircle className="animate-spin" />
+                                            ) : (
+                                              <Volume2 className="h-4 w-4" />
+                                            )}
+                                            <span className="sr-only">Play Sound</span>
+                                          </Button>
                                         </div>
                                         <FormControl>
                                           <RadioGroup
-                                            onValueChange={
-                                              intensityField.onChange
-                                            }
+                                            onValueChange={intensityField.onChange}
                                             value={intensityField.value}
                                             className="flex space-x-4"
                                             disabled={isReadOnly || isSubmitting}
@@ -934,7 +930,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                               </div>
                             </div>
                             
-                            <div id="flavor-score-section">
+                            <div id="temperature-tabs-section">
                                 <Tabs
                                     defaultValue="hot"
                                     className="w-full"
@@ -943,7 +939,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                     }
                                     value={activeTempTab}
                                 >
-                                    <div className="flex items-center gap-2" id="temperature-tabs-section">
+                                    <div className="flex items-center gap-2">
                                         <Button
                                             type="button"
                                             variant="outline"

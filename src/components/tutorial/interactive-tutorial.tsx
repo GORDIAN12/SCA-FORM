@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { DialogOverlay } from '@radix-ui/react-dialog';
+import { DialogOverlay, DialogPortal } from '@radix-ui/react-dialog';
 
 interface TutorialStep {
   id: string;
@@ -60,15 +60,10 @@ export function InteractiveTutorial({ onFinish }: InteractiveTutorialProps) {
       const handlePositionUpdate = () => {
         const rect = element.getBoundingClientRect();
         
-        let topAdjustment = -8;
-        if (stepIndex === 3) {
-            topAdjustment -= 390;
-        }
-
         // Style for the highlight box
         setHighlightStyle({
           position: 'fixed',
-          top: `${rect.top + topAdjustment}px`,
+          top: `${rect.top - 8}px`,
           left: `${rect.left - 4}px`,
           width: `${rect.width + 8}px`,
           height: `${rect.height + 8}px`,
@@ -149,8 +144,9 @@ export function InteractiveTutorial({ onFinish }: InteractiveTutorialProps) {
 
   return (
     <>
-      {/* Highlight box */}
-      <div style={highlightStyle} />
+      <DialogPortal>
+          <div style={highlightStyle} />
+      </DialogPortal>
       
       {/* Dialog for tutorial content */}
       <Dialog open={dialogOpen} onOpenChange={(isOpen) => !isOpen && handleFinish()}>
