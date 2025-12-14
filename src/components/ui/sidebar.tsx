@@ -47,6 +47,18 @@ function useSidebar() {
   return context
 }
 
+const Home = ({
+  children,
+}: {
+  children: React.ReactNode
+}) => {
+  return (
+    <SidebarProvider>
+      {children}
+    </SidebarProvider>
+  )
+}
+
 const SidebarProvider = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div"> & {

@@ -18,6 +18,7 @@ import {
   SidebarContent,
   SidebarHeader,
   SidebarInset,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import { EvaluationHistory } from '@/components/dashboard/evaluation-history';
 import { Menu, ArrowUpCircle } from 'lucide-react';
@@ -27,7 +28,7 @@ import { cn } from '@/lib/utils';
 import { useLanguage } from '@/context/language-context';
 import { InteractiveTutorial } from '@/components/tutorial/interactive-tutorial';
 
-export default function Home() {
+function MainContent() {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -40,6 +41,7 @@ export default function Home() {
   const [draftToLoad, setDraftToLoad] = useState<ScaFormValues | null>(null);
   const { t } = useLanguage();
   const [showTutorial, setShowTutorial] = useState(false);
+  const { setOpenMobile } = useSidebar();
 
   const [showScrollTop, setShowScrollTop] = useState(false);
 
@@ -82,11 +84,12 @@ export default function Home() {
     const isNewUser = searchParams.get('new_user');
     if (isNewUser === 'true') {
       window.scrollTo(0, 0);
-      setShowTutorial(true);
+      setOpenMobile(false); // Close mobile sidebar if open
+      setTimeout(() => setShowTutorial(true), 300); // Give time for sidebar to close
       // Clean up the URL
       router.replace('/', { scroll: false });
     }
-  }, [searchParams, router]);
+  }, [searchParams, router, setOpenMobile]);
 
   const handleAddEvaluation = async (
     evaluationData: Omit<Evaluation, 'id' | 'createdAt' | 'userId'>
@@ -150,14 +153,15 @@ export default function Home() {
   
   const startTutorial = () => {
     window.scrollTo(0, 0);
-    setShowTutorial(true);
     setIsSettingsOpen(false);
+    setOpenMobile(false); // Close mobile sidebar if open
+    // Delay starting the tutorial to allow sidebar to close
+    setTimeout(() => setShowTutorial(true), 300);
   };
 
   return (
     <>
-    {showTutorial && <InteractiveTutorial onFinish={() => setShowTutorial(false)} />}
-    <SidebarProvider>
+      {showTutorial && <InteractiveTutorial onFinish={() => setShowTutorial(false)} />}
       <Sidebar>
         <SidebarContent className="p-0">
           <SidebarHeader className="p-4">
@@ -215,7 +219,14 @@ export default function Home() {
       </SidebarInset>
       <SettingsDialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen} onStartTutorial={startTutorial} />
       <DraftsDialog open={isDraftsOpen} onOpenChange={setIsDraftsOpen} onLoadDraft={handleLoadDraft} />
-    </SidebarProvider>
     </>
+  );
+}
+
+export default function Home() {
+  return (
+    <SidebarProvider>
+      <MainContent />
+    </SidebarProvider>
   );
 }

@@ -8,10 +8,11 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogPortal,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { DialogPortal } from '@radix-ui/react-dialog';
+import { useSidebar } from '@/components/ui/sidebar';
 
 interface TutorialStep {
   id: string;
@@ -37,6 +38,8 @@ export function InteractiveTutorial({ onFinish }: InteractiveTutorialProps) {
   const [dialogStyle, setDialogStyle] = useState<React.CSSProperties>({});
   const [dialogOpen, setDialogOpen] = useState(false);
   const { t } = useLanguage();
+  const { isMobile, openMobile, setOpenMobile } = useSidebar();
+
 
   useEffect(() => {
     // Block scrolling when tutorial is active
@@ -48,75 +51,93 @@ export function InteractiveTutorial({ onFinish }: InteractiveTutorialProps) {
   }, []);
 
   useEffect(() => {
-    const currentStep = tutorialSteps[stepIndex];
-    if (!currentStep) return;
-
-    const element = document.getElementById(currentStep.id);
-
-    if (element) {
-      // Scroll element into view smoothly
-      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-      const handlePositionUpdate = () => {
-        const rect = element.getBoundingClientRect();
-        
-        // Style for the highlight box
-        setHighlightStyle({
-          position: 'fixed',
-          top: `${rect.top}px`,
-          left: `${rect.left}px`,
-          width: `${rect.width}px`,
-          height: `${rect.height}px`,
-          border: '3px solid hsl(var(--primary))',
-          borderRadius: 'var(--radius)',
-          zIndex: 101, // Higher z-index to be on top of the transparent overlay
-          pointerEvents: 'none',
-          transition: 'top 0.3s, left 0.3s, width 0.3s, height 0.3s',
-        });
-        
-        // --- Dialog Positioning Logic ---
-        const dialogHeight = 200; // Approximate height of the dialog
-        const spaceAbove = rect.top;
-        const spaceBelow = window.innerHeight - rect.bottom;
-
-        let top, transform;
-        
-        if (spaceBelow > dialogHeight + 20) {
-            // Position below the element
-            top = rect.bottom + 10;
-            transform = 'translateX(-50%)';
-        } else if (spaceAbove > dialogHeight + 20) {
-            // Position above the element
-            top = rect.top - dialogHeight - 10;
-            transform = 'translateX(-50%)';
-        } else {
-            // Fallback to center if no space
-            top = '50%';
-            transform = 'translate(-50%, -50%)';
+    const startStep = async () => {
+        if (isMobile && openMobile) {
+            setOpenMobile(false);
+            // Wait for sidebar to close
+            await new Promise(resolve => setTimeout(resolve, 300));
         }
 
-        setDialogStyle({
-          top: `${typeof top === 'string' ? top : `${top}px`}`,
-          left: `50%`,
-          transform: transform,
-          position: 'fixed',
-          zIndex: 102, // Higher z-index for the dialog
-        });
+        const currentStep = tutorialSteps[stepIndex];
+        if (!currentStep) return;
 
-        setDialogOpen(true);
-      };
-      
-      // Delay to allow for scroll to complete before positioning
-      const scrollTimeout = setTimeout(handlePositionUpdate, 300); 
-      
-      window.addEventListener('resize', handlePositionUpdate);
+        const element = document.getElementById(currentStep.id);
 
-      return () => {
-        clearTimeout(scrollTimeout);
-        window.removeEventListener('resize', handlePositionUpdate);
-      }
-    }
-  }, [stepIndex]);
+        if (element) {
+        // Scroll element into view smoothly
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        const handlePositionUpdate = () => {
+            const rect = element.getBoundingClientRect();
+            
+            // Style for the highlight box
+            setHighlightStyle({
+            position: 'fixed',
+            top: `${rect.top}px`,
+            left: `${rect.left}px`,
+            width: `${rect.width}px`,
+            height: `${rect.height}px`,
+            border: '3px solid hsl(var(--primary))',
+            borderRadius: 'var(--radius)',
+            zIndex: 101, // Higher z-index to be on top
+            pointerEvents: 'none',
+            transition: 'top 0.3s, left 0.3s, width 0.3s, height 0.3s',
+            });
+            
+            // --- Dialog Positioning Logic ---
+            const dialogHeight = 200; // Approximate height of the dialog
+            const spaceAbove = rect.top;
+            const spaceBelow = window.innerHeight - rect.bottom;
+
+            let top, transform, left;
+
+            if (isMobile) {
+                // Center on mobile
+                top = '50%';
+                left = '50%';
+                transform = 'translate(-50%, -50%)';
+            } else if (spaceBelow > dialogHeight + 20) {
+                // Position below the element
+                top = rect.bottom + 10;
+                left = '50%';
+                transform = 'translateX(-50%)';
+            } else if (spaceAbove > dialogHeight + 20) {
+                // Position above the element
+                top = rect.top - dialogHeight - 10;
+                left = '50%';
+                transform = 'translateX(-50%)';
+            } else {
+                // Fallback to center if no space
+                top = '50%';
+                left = '50%';
+                transform = 'translate(-50%, -50%)';
+            }
+
+            setDialogStyle({
+            top: `${typeof top === 'string' ? top : `${top}px`}`,
+            left: `${typeof left === 'string' ? left : `${left}px`}`,
+            transform: transform,
+            position: 'fixed',
+            zIndex: 102, // Higher z-index for the dialog
+            });
+
+            setDialogOpen(true);
+        };
+        
+        // Delay to allow for scroll to complete before positioning
+        const scrollTimeout = setTimeout(handlePositionUpdate, 300); 
+        
+        window.addEventListener('resize', handlePositionUpdate);
+
+        return () => {
+            clearTimeout(scrollTimeout);
+            window.removeEventListener('resize', handlePositionUpdate);
+        }
+        }
+    };
+
+    startStep();
+  }, [stepIndex, isMobile, openMobile, setOpenMobile]);
 
   const handleNext = () => {
     if (stepIndex < tutorialSteps.length - 1) {
