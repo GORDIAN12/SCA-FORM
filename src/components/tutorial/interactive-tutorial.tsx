@@ -27,7 +27,7 @@ const tutorialSteps: TutorialStep[] = [
   { id: 'coffeeName-section', titleKey: 'tutorialStep1Title', descriptionKey: 'tutorialStep1Desc' },
   { id: 'roastLevel-section', titleKey: 'tutorialStep2Title', descriptionKey: 'tutorialStep2Desc' },
   { id: 'cup-tabs-section', titleKey: 'tutorialStep3Title', descriptionKey: 'tutorialStep3Desc' },
-  { id: 'flavor-score-section', titleKey: 'tutorialStep4Title', descriptionKey: 'tutorialStep4Desc' },
+  { id: 'fragrance-aroma-section', titleKey: 'tutorialStep4Title', descriptionKey: 'tutorialStep4Desc' },
   { id: 'temperature-tabs-section', titleKey: 'tutorialStep5Title', descriptionKey: 'tutorialStep5Desc' },
 ];
 
@@ -144,6 +144,14 @@ export function InteractiveTutorial({ onFinish }: InteractiveTutorialProps) {
 
   return (
     <>
+      {/* Transparent overlay */}
+      <div
+        className="fixed inset-0 z-50"
+        style={{
+          pointerEvents: 'none',
+        }}
+      />
+      
       {/* Highlight box */}
       <div style={highlightStyle} />
       

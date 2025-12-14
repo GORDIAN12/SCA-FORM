@@ -763,7 +763,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                               )}
                             />
 
-                            <div className="p-4 border rounded-md">
+                            <div className="p-4 border rounded-md" id="fragrance-aroma-section">
                                <div className="flex items-center gap-2 mb-2">
                                 <h4 className="text-md font-medium">
                                     {t('fragranceAroma')}
@@ -934,7 +934,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                               </div>
                             </div>
                             
-                             <div id="flavor-score-section">
+                            <div id="flavor-score-section">
                                 <Tabs
                                     defaultValue="hot"
                                     className="w-full"
