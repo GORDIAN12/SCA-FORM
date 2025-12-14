@@ -61,7 +61,7 @@ export function InteractiveTutorial({ onFinish }: InteractiveTutorialProps) {
           left: `${rect.left - 4}px`,
           width: `${rect.width + 8}px`,
           height: `${rect.height + 8}px`,
-          boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.7), 0 0 15px 5px hsl(var(--primary))',
+          boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.7)',
           border: '2px solid hsl(var(--primary))',
           borderRadius: 'var(--radius)',
           zIndex: 100,
