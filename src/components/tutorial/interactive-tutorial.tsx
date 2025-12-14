@@ -144,10 +144,8 @@ export function InteractiveTutorial({ onFinish }: InteractiveTutorialProps) {
 
   return (
     <>
-      {/* Transparent overlay */}
-      <div className="fixed inset-0 z-[100] bg-black/20 backdrop-blur-sm" />
       {/* Highlight box */}
-      <div style={highlightStyle} className="bg-background" />
+      <div style={highlightStyle} />
       
       {/* Dialog for tutorial content */}
       <Dialog open={dialogOpen} onOpenChange={(isOpen) => !isOpen && handleFinish()}>

@@ -798,7 +798,6 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                       </FormLabel>
                                       <FormControl>
                                         <ScoreSlider
-                                          id="aroma-score-slider"
                                           field={scoreField}
                                           disabled={isReadOnly || isSubmitting}
                                         />
@@ -935,346 +934,348 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                               </div>
                             </div>
                             
-                             <Tabs
-                                defaultValue="hot"
-                                className="w-full"
-                                onValueChange={(value) =>
-                                setActiveTempTab(value as 'hot' | 'warm' | 'cold')
-                                }
-                                value={activeTempTab}
-                            >
-                                <div className="flex items-center gap-2" id="temperature-tabs-section">
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="icon"
-                                        className="h-10 w-10"
-                                        onClick={handleSoundEffect('/sounds/temperaturas.mp3')}
-                                        disabled={isAudioLoading}
-                                    >
-                                        {isAudioLoading ? <LoaderCircle className="animate-spin" /> : <Volume2 />}
-                                        <span className="sr-only">Play Sound</span>
-                                    </Button>
-                                    <TabsList className="grid w-full grid-cols-3">
-                                        {(['hot', 'warm', 'cold'] as const).map((temp) => (
-                                        <TabsTrigger
-                                            key={temp}
-                                            value={temp}
-                                            disabled={isSubmitting}
+                             <div id="flavor-score-section">
+                                <Tabs
+                                    defaultValue="hot"
+                                    className="w-full"
+                                    onValueChange={(value) =>
+                                    setActiveTempTab(value as 'hot' | 'warm' | 'cold')
+                                    }
+                                    value={activeTempTab}
+                                >
+                                    <div className="flex items-center gap-2" id="temperature-tabs-section">
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="icon"
+                                            className="h-10 w-10"
+                                            onClick={handleSoundEffect('/sounds/temperaturas.mp3')}
+                                            disabled={isAudioLoading}
                                         >
-                                            {t(temp)}
-                                        </TabsTrigger>
-                                        ))}
-                                    </TabsList>
-                                </div>
-                              {(['hot', 'warm', 'cold'] as const).map(
-                                (temp) => (
-                                  <TabsContent key={temp} value={temp} forceMount className={cn('space-y-4 pt-4 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2', activeTempTab !== temp && "hidden")}>
-                                      <div className="p-4 border rounded-md" id="flavor-score-section">
-                                        <FormField
-                                          control={form.control}
-                                          name={`cups.${index}.scores.${temp}.flavor`}
-                                          render={({ field: scoreField }) => (
-                                            <FormItem>
-                                              <FormLabel className="flex justify-between">
-                                                <div className="flex items-center gap-2">
-                                                    <span>{t('flavor')}</span>
-                                                    <Button
-                                                        type="button"
-                                                        variant="outline"
-                                                        size="icon"
-                                                        className="h-6 w-6"
-                                                        onClick={handleSoundEffect('/sounds/olor.mp3')}
-                                                        disabled={isAudioLoading}
-                                                    >
-                                                        {isAudioLoading ? (
-                                                        <LoaderCircle className="animate-spin" />
-                                                        ) : (
-                                                        <Volume2 className="h-4 w-4" />
-                                                        )}
-                                                        <span className="sr-only">Play Sound</span>
-                                                    </Button>
-                                                </div>
-                                                <span>
-                                                  {scoreField.value.toFixed(2)}
-                                                </span>
-                                              </FormLabel>
-                                              <FormControl>
-                                                <ScoreSlider
-                                                  field={scoreField}
-                                                  disabled={isReadOnly || isSubmitting}
-                                                />
-                                              </FormControl>
-                                            </FormItem>
-                                          )}
-                                        />
-                                      </div>
-                                      <div className="p-4 border rounded-md">
-                                        <FormField
-                                          control={form.control}
-                                          name={`cups.${index}.scores.${temp}.aftertaste`}
-                                          render={({ field: scoreField }) => (
-                                            <FormItem>
-                                              <FormLabel className="flex justify-between">
-                                                <div className="flex items-center gap-2">
-                                                    <span>{t('aftertaste')}</span>
-                                                    <Button
-                                                        type="button"
-                                                        variant="outline"
-                                                        size="icon"
-                                                        className="h-6 w-6"
-                                                        onClick={handleSoundEffect('/sounds/sabor_despues.mp3')}
-                                                        disabled={isAudioLoading}
-                                                    >
-                                                        {isAudioLoading ? (
-                                                        <LoaderCircle className="animate-spin" />
-                                                        ) : (
-                                                        <Volume2 className="h-4 w-4" />
-                                                        )}
-                                                        <span className="sr-only">Play Sound</span>
-                                                    </Button>
-                                                </div>
-                                                <span>
-                                                  {scoreField.value.toFixed(2)}
-                                                </span>
-                                              </FormLabel>
-                                              <FormControl>
-                                                <ScoreSlider
-                                                  field={scoreField}
-                                                  disabled={isReadOnly || isSubmitting}
-                                                />
-                                              </FormControl>
-                                            </FormItem>
-                                          )}
-                                        />
-                                      </div>
-                                      <div className="p-4 border rounded-md">
-                                        <div className="space-y-4">
-                                          <FormField
+                                            {isAudioLoading ? <LoaderCircle className="animate-spin" /> : <Volume2 />}
+                                            <span className="sr-only">Play Sound</span>
+                                        </Button>
+                                        <TabsList className="grid w-full grid-cols-3">
+                                            {(['hot', 'warm', 'cold'] as const).map((temp) => (
+                                            <TabsTrigger
+                                                key={temp}
+                                                value={temp}
+                                                disabled={isSubmitting}
+                                            >
+                                                {t(temp)}
+                                            </TabsTrigger>
+                                            ))}
+                                        </TabsList>
+                                    </div>
+                                {(['hot', 'warm', 'cold'] as const).map(
+                                    (temp) => (
+                                    <TabsContent key={temp} value={temp} forceMount className={cn('space-y-4 pt-4 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2', activeTempTab !== temp && "hidden")}>
+                                        <div className="p-4 border rounded-md">
+                                            <FormField
                                             control={form.control}
-                                            name={`cups.${index}.scores.${temp}.acidity`}
+                                            name={`cups.${index}.scores.${temp}.flavor`}
                                             render={({ field: scoreField }) => (
-                                              <FormItem>
+                                                <FormItem>
                                                 <FormLabel className="flex justify-between">
-                                                  <div className="flex items-center gap-2">
-                                                    <span>{t('acidityScore')}</span>
-                                                    <Button
-                                                        type="button"
-                                                        variant="outline"
-                                                        size="icon"
-                                                        className="h-6 w-6"
-                                                        onClick={handleSoundEffect('/sounds/acido.mp3')}
-                                                        disabled={isAudioLoading}
-                                                    >
-                                                        {isAudioLoading ? (
-                                                        <LoaderCircle className="animate-spin" />
-                                                        ) : (
-                                                        <Volume2 className="h-4 w-4" />
-                                                        )}
-                                                        <span className="sr-only">Play Sound</span>
-                                                    </Button>
-                                                  </div>
-                                                  <span>
-                                                    {scoreField.value.toFixed(
-                                                      2
-                                                    )}
-                                                  </span>
+                                                    <div className="flex items-center gap-2">
+                                                        <span>{t('flavor')}</span>
+                                                        <Button
+                                                            type="button"
+                                                            variant="outline"
+                                                            size="icon"
+                                                            className="h-6 w-6"
+                                                            onClick={handleSoundEffect('/sounds/olor.mp3')}
+                                                            disabled={isAudioLoading}
+                                                        >
+                                                            {isAudioLoading ? (
+                                                            <LoaderCircle className="animate-spin" />
+                                                            ) : (
+                                                            <Volume2 className="h-4 w-4" />
+                                                            )}
+                                                            <span className="sr-only">Play Sound</span>
+                                                        </Button>
+                                                    </div>
+                                                    <span>
+                                                    {scoreField.value.toFixed(2)}
+                                                    </span>
                                                 </FormLabel>
                                                 <FormControl>
-                                                  <ScoreSlider
+                                                    <ScoreSlider
                                                     field={scoreField}
                                                     disabled={isReadOnly || isSubmitting}
-                                                  />
+                                                    />
                                                 </FormControl>
-                                              </FormItem>
+                                                </FormItem>
                                             )}
-                                          />
-                                          <FormField
-                                            control={form.control}
-                                            name={`cups.${index}.scores.${temp}.acidityIntensity`}
-                                            render={({
-                                              field: intensityField,
-                                            }) => (
-                                              <FormItem className="space-y-3">
-                                                <FormLabel>
-                                                  {t('acidityIntensity')}
-                                                </FormLabel>
-                                                <FormControl>
-                                                  <RadioGroup
-                                                    onValueChange={
-                                                      intensityField.onChange
-                                                    }
-                                                    value={intensityField.value}
-                                                    className="flex space-x-4"
-                                                    disabled={isReadOnly || isSubmitting}
-                                                  >
-                                                    <FormItem className="flex items-center space-x-2 space-y-0">
-                                                      <FormControl>
-                                                        <RadioGroupItem value="low" />
-                                                      </FormControl>
-                                                      <FormLabel className="font-normal">
-                                                        {t('low')}
-                                                      </FormLabel>
-                                                    </FormItem>
-                                                    <FormItem className="flex items-center space-x-2 space-y-0">
-                                                      <FormControl>
-                                                        <RadioGroupItem value="medium" />
-                                                      </FormControl>
-                                                      <FormLabel className="font-normal">
-                                                        {t('medium')}
-                                                      </FormLabel>
-                                                    </FormItem>
-                                                    <FormItem className="flex items-center space-x-2 space-y-0">
-                                                      <FormControl>
-                                                        <RadioGroupItem value="high" />
-                                                      </FormControl>
-                                                      <FormLabel className="font-normal">
-                                                        {t('high')}
-                                                      </FormLabel>
-                                                    </FormItem>
-                                                  </RadioGroup>
-                                                </FormControl>
-                                                <FormMessage />
-                                              </FormItem>
-                                            )}
-                                          />
+                                            />
                                         </div>
-                                      </div>
-                                      <div className="p-4 border rounded-md">
-                                        <div className="space-y-4">
-                                          <FormField
+                                        <div className="p-4 border rounded-md">
+                                            <FormField
                                             control={form.control}
-                                            name={`cups.${index}.scores.${temp}.body`}
+                                            name={`cups.${index}.scores.${temp}.aftertaste`}
                                             render={({ field: scoreField }) => (
-                                              <FormItem>
+                                                <FormItem>
                                                 <FormLabel className="flex justify-between">
-                                                  <div className="flex items-center gap-2">
-                                                    <span>{t('bodyScore')}</span>
-                                                    <Button
-                                                        type="button"
-                                                        variant="outline"
-                                                        size="icon"
-                                                        className="h-6 w-6"
-                                                        onClick={handleSoundEffect('/sounds/sabor_fuerte-cuerpo.mp3')}
-                                                        disabled={isAudioLoading}
-                                                    >
-                                                        {isAudioLoading ? (
-                                                        <LoaderCircle className="animate-spin" />
-                                                        ) : (
-                                                        <Volume2 className="h-4 w-4" />
-                                                        )}
-                                                        <span className="sr-only">Play Sound</span>
-                                                    </Button>
-                                                  </div>
-                                                  <span>
-                                                    {scoreField.value.toFixed(
-                                                      2
-                                                    )}
-                                                  </span>
+                                                    <div className="flex items-center gap-2">
+                                                        <span>{t('aftertaste')}</span>
+                                                        <Button
+                                                            type="button"
+                                                            variant="outline"
+                                                            size="icon"
+                                                            className="h-6 w-6"
+                                                            onClick={handleSoundEffect('/sounds/sabor_despues.mp3')}
+                                                            disabled={isAudioLoading}
+                                                        >
+                                                            {isAudioLoading ? (
+                                                            <LoaderCircle className="animate-spin" />
+                                                            ) : (
+                                                            <Volume2 className="h-4 w-4" />
+                                                            )}
+                                                            <span className="sr-only">Play Sound</span>
+                                                        </Button>
+                                                    </div>
+                                                    <span>
+                                                    {scoreField.value.toFixed(2)}
+                                                    </span>
                                                 </FormLabel>
                                                 <FormControl>
-                                                  <ScoreSlider
+                                                    <ScoreSlider
                                                     field={scoreField}
                                                     disabled={isReadOnly || isSubmitting}
-                                                  />
+                                                    />
                                                 </FormControl>
-                                              </FormItem>
+                                                </FormItem>
                                             )}
-                                          />
-                                          <FormField
+                                            />
+                                        </div>
+                                        <div className="p-4 border rounded-md">
+                                            <div className="space-y-4">
+                                            <FormField
+                                                control={form.control}
+                                                name={`cups.${index}.scores.${temp}.acidity`}
+                                                render={({ field: scoreField }) => (
+                                                <FormItem>
+                                                    <FormLabel className="flex justify-between">
+                                                    <div className="flex items-center gap-2">
+                                                        <span>{t('acidityScore')}</span>
+                                                        <Button
+                                                            type="button"
+                                                            variant="outline"
+                                                            size="icon"
+                                                            className="h-6 w-6"
+                                                            onClick={handleSoundEffect('/sounds/acido.mp3')}
+                                                            disabled={isAudioLoading}
+                                                        >
+                                                            {isAudioLoading ? (
+                                                            <LoaderCircle className="animate-spin" />
+                                                            ) : (
+                                                            <Volume2 className="h-4 w-4" />
+                                                            )}
+                                                            <span className="sr-only">Play Sound</span>
+                                                        </Button>
+                                                    </div>
+                                                    <span>
+                                                        {scoreField.value.toFixed(
+                                                        2
+                                                        )}
+                                                    </span>
+                                                    </FormLabel>
+                                                    <FormControl>
+                                                    <ScoreSlider
+                                                        field={scoreField}
+                                                        disabled={isReadOnly || isSubmitting}
+                                                    />
+                                                    </FormControl>
+                                                </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={form.control}
+                                                name={`cups.${index}.scores.${temp}.acidityIntensity`}
+                                                render={({
+                                                field: intensityField,
+                                                }) => (
+                                                <FormItem className="space-y-3">
+                                                    <FormLabel>
+                                                    {t('acidityIntensity')}
+                                                    </FormLabel>
+                                                    <FormControl>
+                                                    <RadioGroup
+                                                        onValueChange={
+                                                        intensityField.onChange
+                                                        }
+                                                        value={intensityField.value}
+                                                        className="flex space-x-4"
+                                                        disabled={isReadOnly || isSubmitting}
+                                                    >
+                                                        <FormItem className="flex items-center space-x-2 space-y-0">
+                                                        <FormControl>
+                                                            <RadioGroupItem value="low" />
+                                                        </FormControl>
+                                                        <FormLabel className="font-normal">
+                                                            {t('low')}
+                                                        </FormLabel>
+                                                        </FormItem>
+                                                        <FormItem className="flex items-center space-x-2 space-y-0">
+                                                        <FormControl>
+                                                            <RadioGroupItem value="medium" />
+                                                        </FormControl>
+                                                        <FormLabel className="font-normal">
+                                                            {t('medium')}
+                                                        </FormLabel>
+                                                        </FormItem>
+                                                        <FormItem className="flex items-center space-x-2 space-y-0">
+                                                        <FormControl>
+                                                            <RadioGroupItem value="high" />
+                                                        </FormControl>
+                                                        <FormLabel className="font-normal">
+                                                            {t('high')}
+                                                        </FormLabel>
+                                                        </FormItem>
+                                                    </RadioGroup>
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                                )}
+                                            />
+                                            </div>
+                                        </div>
+                                        <div className="p-4 border rounded-md">
+                                            <div className="space-y-4">
+                                            <FormField
+                                                control={form.control}
+                                                name={`cups.${index}.scores.${temp}.body`}
+                                                render={({ field: scoreField }) => (
+                                                <FormItem>
+                                                    <FormLabel className="flex justify-between">
+                                                    <div className="flex items-center gap-2">
+                                                        <span>{t('bodyScore')}</span>
+                                                        <Button
+                                                            type="button"
+                                                            variant="outline"
+                                                            size="icon"
+                                                            className="h-6 w-6"
+                                                            onClick={handleSoundEffect('/sounds/sabor_fuerte-cuerpo.mp3')}
+                                                            disabled={isAudioLoading}
+                                                        >
+                                                            {isAudioLoading ? (
+                                                            <LoaderCircle className="animate-spin" />
+                                                            ) : (
+                                                            <Volume2 className="h-4 w-4" />
+                                                            )}
+                                                            <span className="sr-only">Play Sound</span>
+                                                        </Button>
+                                                    </div>
+                                                    <span>
+                                                        {scoreField.value.toFixed(
+                                                        2
+                                                        )}
+                                                    </span>
+                                                    </FormLabel>
+                                                    <FormControl>
+                                                    <ScoreSlider
+                                                        field={scoreField}
+                                                        disabled={isReadOnly || isSubmitting}
+                                                    />
+                                                    </FormControl>
+                                                </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={form.control}
+                                                name={`cups.${index}.scores.${temp}.bodyIntensity`}
+                                                render={({
+                                                field: intensityField,
+                                                }) => (
+                                                <FormItem className="space-y-3">
+                                                    <FormLabel>
+                                                    {t('bodyIntensity')}
+                                                    </FormLabel>
+                                                    <FormControl>
+                                                    <RadioGroup
+                                                        onValueChange={
+                                                        intensityField.onChange
+                                                        }
+                                                        value={intensityField.value}
+                                                        className="flex space-x-4"
+                                                        disabled={isReadOnly || isSubmitting}
+                                                    >
+                                                        <FormItem className="flex items-center space-x-2 space-y-0">
+                                                        <FormControl>
+                                                            <RadioGroupItem value="low" />
+                                                        </FormControl>
+                                                        <FormLabel className="font-normal">
+                                                            {t('low')}
+                                                        </FormLabel>
+                                                        </FormItem>
+                                                        <FormItem className="flex items-center space-x-2 space-y-0">
+                                                        <FormControl>
+                                                            <RadioGroupItem value="medium" />
+                                                        </FormControl>
+                                                        <FormLabel className="font-normal">
+                                                            {t('medium')}
+                                                        </FormLabel>
+                                                        </FormItem>
+                                                        <FormItem className="flex items-center space-x-2 space-y-0">
+                                                        <FormControl>
+                                                            <RadioGroupItem value="high" />
+                                                        </FormControl>
+                                                        <FormLabel className="font-normal">
+                                                            {t('high')}
+                                                        </FormLabel>
+                                                        </FormItem>
+                                                    </RadioGroup>
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                                )}
+                                            />
+                                            </div>
+                                        </div>
+                                        <div className="p-4 border rounded-md">
+                                            <FormField
                                             control={form.control}
-                                            name={`cups.${index}.scores.${temp}.bodyIntensity`}
-                                            render={({
-                                              field: intensityField,
-                                            }) => (
-                                              <FormItem className="space-y-3">
-                                                <FormLabel>
-                                                  {t('bodyIntensity')}
+                                            name={`cups.${index}.scores.${temp}.balance`}
+                                            render={({ field: scoreField }) => (
+                                                <FormItem>
+                                                <FormLabel className="flex justify-between">
+                                                    <div className="flex items-center gap-2">
+                                                        <span>{t('balance')}</span>
+                                                        <Button
+                                                            type="button"
+                                                            variant="outline"
+                                                            size="icon"
+                                                            className="h-6 w-6"
+                                                            onClick={handleSoundEffect('/sounds/balance.mp3')}
+                                                            disabled={isAudioLoading}
+                                                        >
+                                                            {isAudioLoading ? (
+                                                            <LoaderCircle className="animate-spin" />
+                                                            ) : (
+                                                            <Volume2 className="h-4 w-4" />
+                                                            )}
+                                                            <span className="sr-only">Play Sound</span>
+                                                        </Button>
+                                                    </div>
+                                                    <span>
+                                                    {scoreField.value.toFixed(2)}
+                                                    </span>
                                                 </FormLabel>
                                                 <FormControl>
-                                                  <RadioGroup
-                                                    onValueChange={
-                                                      intensityField.onChange
-                                                    }
-                                                    value={intensityField.value}
-                                                    className="flex space-x-4"
+                                                    <ScoreSlider
+                                                    field={scoreField}
                                                     disabled={isReadOnly || isSubmitting}
-                                                  >
-                                                    <FormItem className="flex items-center space-x-2 space-y-0">
-                                                      <FormControl>
-                                                        <RadioGroupItem value="low" />
-                                                      </FormControl>
-                                                      <FormLabel className="font-normal">
-                                                        {t('low')}
-                                                      </FormLabel>
-                                                    </FormItem>
-                                                    <FormItem className="flex items-center space-x-2 space-y-0">
-                                                      <FormControl>
-                                                        <RadioGroupItem value="medium" />
-                                                      </FormControl>
-                                                      <FormLabel className="font-normal">
-                                                        {t('medium')}
-                                                      </FormLabel>
-                                                    </FormItem>
-                                                    <FormItem className="flex items-center space-x-2 space-y-0">
-                                                      <FormControl>
-                                                        <RadioGroupItem value="high" />
-                                                      </FormControl>
-                                                      <FormLabel className="font-normal">
-                                                        {t('high')}
-                                                      </FormLabel>
-                                                    </FormItem>
-                                                  </RadioGroup>
+                                                    />
                                                 </FormControl>
-                                                <FormMessage />
-                                              </FormItem>
+                                                </FormItem>
                                             )}
-                                          />
+                                            />
                                         </div>
-                                      </div>
-                                      <div className="p-4 border rounded-md">
-                                        <FormField
-                                          control={form.control}
-                                          name={`cups.${index}.scores.${temp}.balance`}
-                                          render={({ field: scoreField }) => (
-                                            <FormItem>
-                                              <FormLabel className="flex justify-between">
-                                                <div className="flex items-center gap-2">
-                                                    <span>{t('balance')}</span>
-                                                    <Button
-                                                        type="button"
-                                                        variant="outline"
-                                                        size="icon"
-                                                        className="h-6 w-6"
-                                                        onClick={handleSoundEffect('/sounds/balance.mp3')}
-                                                        disabled={isAudioLoading}
-                                                    >
-                                                        {isAudioLoading ? (
-                                                        <LoaderCircle className="animate-spin" />
-                                                        ) : (
-                                                        <Volume2 className="h-4 w-4" />
-                                                        )}
-                                                        <span className="sr-only">Play Sound</span>
-                                                    </Button>
-                                                </div>
-                                                <span>
-                                                  {scoreField.value.toFixed(2)}
-                                                </span>
-                                              </FormLabel>
-                                              <FormControl>
-                                                <ScoreSlider
-                                                  field={scoreField}
-                                                  disabled={isReadOnly || isSubmitting}
-                                                />
-                                              </FormControl>
-                                            </FormItem>
-                                          )}
-                                        />
-                                      </div>
-                                  </TabsContent>
-                                )
-                              )}
-                            </Tabs>
+                                    </TabsContent>
+                                    )
+                                )}
+                                </Tabs>
+                             </div>
 
                             <div className="p-4 border rounded-md">
                               <FormField
