@@ -61,12 +61,11 @@ export function InteractiveTutorial({ onFinish }: InteractiveTutorialProps) {
           left: `${rect.left - 4}px`,
           width: `${rect.width + 8}px`,
           height: `${rect.height + 8}px`,
-          boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.7)',
           border: '2px solid hsl(var(--primary))',
           borderRadius: 'var(--radius)',
           zIndex: 100,
           pointerEvents: 'none',
-          transition: 'top 0.3s, left 0.3s, width 0.3s, height 0.3s, box-shadow 0.3s',
+          transition: 'top 0.3s, left 0.3s, width 0.3s, height 0.3s',
         });
         
         // --- Dialog Positioning Logic ---
