@@ -2,7 +2,7 @@
 
 import { useUser } from '@/firebase';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScaForm, ScaFormRef } from '@/components/dashboard/sca-form';
 import type { Evaluation, ScaFormValues } from '@/lib/types';
@@ -223,10 +223,28 @@ function MainContent() {
   );
 }
 
+function SuspenseWrapper() {
+  return (
+    <Suspense fallback={
+      <div className="flex h-screen w-screen items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Skeleton className="h-12 w-12 rounded-full" />
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-[250px]" />
+            <Skeleton className="h-4 w-[200px]" />
+          </div>
+        </div>
+      </div>
+    }>
+      <MainContent />
+    </Suspense>
+  );
+}
+
 export default function Home() {
   return (
     <SidebarProvider>
-      <MainContent />
+      <SuspenseWrapper />
     </SidebarProvider>
   );
 }
