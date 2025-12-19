@@ -53,37 +53,12 @@ service cloud.firestore {
     }
 
     /**
-     * Validates relational integrity for a new CuppingSession on create.
-     * Ensures the document's internal ID matches its path ID.
+     * Validates that the userId in the document body matches the owner's UID.
+     * This ensures data integrity and prevents a user from creating data
+     * that appears to belong to someone else.
      */
-    function hasValidCuppingSessionData(cuppingSessionId) {
-      return request.resource.data.id == cuppingSessionId;
-    }
-
-    /**
-     * Enforces immutability for critical fields of a CuppingSession on update.
-     * Prevents the ownership link (ID) from being changed after creation.
-     */
-    function isImmutableCuppingSessionData() {
-      return request.resource.data.id == resource.data.id;
-    }
-
-    /**
-     * Validates relational integrity for a new CuppingEvaluation on create.
-     * Ensures the evaluation's ID and its parent session ID match the path.
-     */
-    function hasValidCuppingEvaluationData(cuppingSessionId, cuppingEvaluationId) {
-      return request.resource.data.id == cuppingEvaluationId
-          && request.resource.data.cuppingSessionId == cuppingSessionId;
-    }
-
-    /**
-     * Enforces immutability for critical fields of a CuppingEvaluation on update.
-     * Prevents relational links from being changed after creation.
-     */
-    function isImmutableCuppingEvaluationData() {
-      return request.resource.data.id == resource.data.id
-          && request.resource.data.cuppingSessionId == resource.data.cuppingSessionId;
+    function hasValidOwner(userId) {
+      return request.resource.data.userId == userId;
     }
 
     // ------------------------------------------------------------------------
@@ -106,38 +81,19 @@ service cloud.firestore {
       allow update: if isExistingOwner(userId);
       allow delete: if isExistingOwner(userId);
     }
-
+    
     /**
-     * @description Secures cupping session documents. Only the user who owns
-     *   the session (as determined by the path) can access or modify it.
-     * @path /users/{userId}/cuppingSessions/{cuppingSessionId}
-     * @allow (create) A user (auth.uid: 'user123') creates a session at `/users/user123/cuppingSessions/sessionABC`.
-     * @deny (update) Another user (auth.uid: 'user456') tries to update the session at `/users/user123/cuppingSessions/sessionABC`.
-     * @principle Restricts access to a user's own data tree and validates relational integrity.
+     * @description Secures a user's coffee evaluation documents. Only the user
+     *   who owns the evaluation (as determined by the path) can manage it.
+     * @path /users/{userId}/evaluations/{evaluationId}
+     * @allow (list) A user (auth.uid: 'user123') lists all evaluations at `/users/user123/evaluations`.
+     * @deny (get) Another user (auth.uid: 'user456') tries to read an evaluation at `/users/user123/evaluations/evalABC`.
+     * @principle Enforces strict ownership for the evaluations collection.
      */
-    match /users/{userId}/cuppingSessions/{cuppingSessionId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isOwner(userId) && hasValidCuppingSessionData(cuppingSessionId);
-      allow update: if isExistingOwner(userId) && isImmutableCuppingSessionData();
-      allow delete: if isExistingOwner(userId);
-    }
-
-    /**
-     * @description Secures cupping evaluation documents nested under a session.
-     *   Access is inherited from the parent session, meaning only the session
-     *   owner can manage these evaluations.
-     * @path /users/{userId}/cuppingSessions/{cuppingSessionId}/cuppingEvaluations/{cuppingEvaluationId}
-     * @allow (list) A user (auth.uid: 'user123') lists all evaluations for their session at `/users/user123/cuppingSessions/sessionABC`.
-     * @deny (create) Another user (auth.uid: 'user456') tries to add an evaluation to `/users/user123/cuppingSessions/sessionABC`.
-     * @principle Enforces inherited ownership from the parent document and validates relational integrity.
-     */
-    match /users/{userId}/cuppingSessions/{cuppingSessionId}/cuppingEvaluations/{cuppingEvaluationId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isOwner(userId) && hasValidCuppingEvaluationData(cuppingSessionId, cuppingEvaluationId);
-      allow update: if isExistingOwner(userId) && isImmutableCuppingEvaluationData();
-      allow delete: if isExistingOwner(userId);
+    match /users/{userId}/evaluations/{evaluationId} {
+        allow get, list, delete: if isOwner(userId);
+        allow create: if isOwner(userId) && hasValidOwner(userId);
+        allow update: if isOwner(userId);
     }
   }
 }
