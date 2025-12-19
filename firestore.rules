@@ -1,92 +1,142 @@
 /**
- * @file Firestore Security Rules for Cupping Compass.
+ * Core Philosophy: This ruleset enforces a strict user-ownership model where all
+ * data is private to the user who created it. Access control is based on the
+ * user's unique ID (`request.auth.uid`).
  *
- * Core Philosophy:
- * This ruleset enforces a strict user-ownership model. Each user can only
- * read and write their own profile data and their own evaluations.
- *
- * Data Structure:
- * - /users/{userId}: Stores public user profile information.
- * - /users/{userId}/evaluations/{evaluationId}: Stores individual coffee evaluations made by a specific user.
+ * Data Structure: The data is organized hierarchically under a top-level `users`
+ * collection. Each user's data, including their cupping sessions and evaluations,
+ * is stored under their own document path: `/users/{userId}/...`.
+ * This structure is designed to be highly performant and secure, as it avoids
+ * costly database lookups (`get()` calls) for authorization checks.
  *
  * Key Security Decisions:
- * - Users can only manage their own data; there are no admin roles.
- * - Listing of all users is disallowed.
- * - Evaluations are private to the user who created them.
- *
- * Denormalization for Authorization:
- * The 'Evaluation' documents contain the 'userId' field, which is used to
- * enforce ownership without requiring additional reads. This ensures that
- * evaluations can only be accessed by their creator.
+ * - Default Deny: All paths are closed by default. Access is explicitly granted.
+ * - Authentication Required: No anonymous or public access is permitted. A user
+ *   must be signed in to read or write any data.
+ * - Strict Ownership: Users can only read, write, or query data that exists
+ *   within their own `/users/{userId}` path. They cannot see or interact with
+ *   data belonging to other users.
+ * - Path-Based Security: Authorization is derived directly from the document path,
+ *   comparing the `{userId}` wildcard to the authenticated user's ID. This is a
+ *   simple, fast, and highly secure pattern.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // ------------------------------------------------------------------------
+    // Helper Functions
+    // ------------------------------------------------------------------------
+
     /**
-     * @description Controls access to user profile documents.
+     * Returns true if the user is authenticated.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * Returns true if the authenticated user's UID matches the provided userId.
+     * This is the primary function for enforcing the ownership model.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /**
+     * Returns true if the document exists and the user is the owner.
+     * CRITICAL: Used for all update and delete operations to prevent modifying
+     * or deleting non-existent data.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+
+    /**
+     * Validates relational integrity for a new CuppingSession on create.
+     * Ensures the document's internal ID matches its path ID.
+     */
+    function hasValidCuppingSessionData(cuppingSessionId) {
+      return request.resource.data.id == cuppingSessionId;
+    }
+
+    /**
+     * Enforces immutability for critical fields of a CuppingSession on update.
+     * Prevents the ownership link (ID) from being changed after creation.
+     */
+    function isImmutableCuppingSessionData() {
+      return request.resource.data.id == resource.data.id;
+    }
+
+    /**
+     * Validates relational integrity for a new CuppingEvaluation on create.
+     * Ensures the evaluation's ID and its parent session ID match the path.
+     */
+    function hasValidCuppingEvaluationData(cuppingSessionId, cuppingEvaluationId) {
+      return request.resource.data.id == cuppingEvaluationId
+          && request.resource.data.cuppingSessionId == cuppingSessionId;
+    }
+
+    /**
+     * Enforces immutability for critical fields of a CuppingEvaluation on update.
+     * Prevents relational links from being changed after creation.
+     */
+    function isImmutableCuppingEvaluationData() {
+      return request.resource.data.id == resource.data.id
+          && request.resource.data.cuppingSessionId == resource.data.cuppingSessionId;
+    }
+
+    // ------------------------------------------------------------------------
+    // Collection Rules
+    // ------------------------------------------------------------------------
+
+    /**
+     * @description Secures the user's root document. This allows a user to
+     *   create and manage their own user profile document, but prevents
+     *   access by others.
      * @path /users/{userId}
-     * @allow (create) - Authenticated user can create their own profile if the userId matches their auth UID.
-     * @allow (get) - Authenticated user can read their own profile.
-     * @allow (update) - Authenticated user can update their own profile.
-     * @allow (delete) - Authenticated user can delete their own profile.
-     * @deny (list) - Listing all users is not allowed.
-     * @deny (create) - Unauthenticated users cannot create user profiles.
-     * @deny (update) - Users cannot update other user's profiles.
-     * @deny (delete) - Users cannot delete other user's profiles.
-     * @principle Enforces document ownership and prevents unauthorized data access.
+     * @allow (create) A new user (auth.uid: 'user123') creates their profile at `/users/user123`.
+     * @deny (get) Another user (auth.uid: 'user456') tries to read the profile at `/users/user123`.
+     * @principle Establishes a secure, user-owned data root.
      */
     match /users/{userId} {
-      function isSignedIn() {
-        return request.auth != null;
-      }
-
-      function isOwner(userId) {
-        return request.auth.uid == userId;
-      }
-
-      function isExistingOwner(userId) {
-        return isOwner(userId) && resource != null;
-      }
-
       allow get: if isOwner(userId);
-      allow list: if false;
-
-      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+      allow list: if false; // Disallow listing all users.
+      allow create: if isOwner(userId);
+      allow update: if isExistingOwner(userId);
       allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Controls access to evaluation documents within a user's profile.
-     * @path /users/{userId}/evaluations/{evaluationId}
-     * @allow (create) - Authenticated user can create an evaluation under their own user ID.
-     * @allow (get) - Authenticated user can read an evaluation under their own user ID.
-     * @allow (update) - Authenticated user can update an evaluation under their own user ID.
-     * @allow (delete) - Authenticated user can delete an evaluation under their own user ID.
-     * @deny (create) - Users cannot create evaluations under other user's IDs.
-     * @deny (update) - Users cannot update evaluations under other user's IDs.
-     * @deny (delete) - Users cannot delete evaluations under other user's IDs.
-     * @principle Enforces document ownership and prevents unauthorized data access to evaluations.
+     * @description Secures cupping session documents. Only the user who owns
+     *   the session (as determined by the path) can access or modify it.
+     * @path /users/{userId}/cuppingSessions/{cuppingSessionId}
+     * @allow (create) A user (auth.uid: 'user123') creates a session at `/users/user123/cuppingSessions/sessionABC`.
+     * @deny (update) Another user (auth.uid: 'user456') tries to update the session at `/users/user123/cuppingSessions/sessionABC`.
+     * @principle Restricts access to a user's own data tree and validates relational integrity.
      */
-    match /users/{userId}/evaluations/{evaluationId} {
-      function isSignedIn() {
-        return request.auth != null;
-      }
-
-      function isOwner(userId) {
-        return request.auth.uid == userId;
-      }
-
-       function isExistingOwner(userId) {
-        return isOwner(userId) && resource != null;
-      }
-
+    match /users/{userId}/cuppingSessions/{cuppingSessionId} {
       allow get: if isOwner(userId);
       allow list: if isOwner(userId);
+      allow create: if isOwner(userId) && hasValidCuppingSessionData(cuppingSessionId);
+      allow update: if isExistingOwner(userId) && isImmutableCuppingSessionData();
+      allow delete: if isExistingOwner(userId);
+    }
 
-      allow create: if isSignedIn() && isOwner(userId);
-      allow update: if isExistingOwner(userId);
+    /**
+     * @description Secures cupping evaluation documents nested under a session.
+     *   Access is inherited from the parent session, meaning only the session
+     *   owner can manage these evaluations.
+     * @path /users/{userId}/cuppingSessions/{cuppingSessionId}/cuppingEvaluations/{cuppingEvaluationId}
+     * @allow (list) A user (auth.uid: 'user123') lists all evaluations for their session at `/users/user123/cuppingSessions/sessionABC`.
+     * @deny (create) Another user (auth.uid: 'user456') tries to add an evaluation to `/users/user123/cuppingSessions/sessionABC`.
+     * @principle Enforces inherited ownership from the parent document and validates relational integrity.
+     */
+    match /users/{userId}/cuppingSessions/{cuppingSessionId}/cuppingEvaluations/{cuppingEvaluationId} {
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId) && hasValidCuppingEvaluationData(cuppingSessionId, cuppingEvaluationId);
+      allow update: if isExistingOwner(userId) && isImmutableCuppingEvaluationData();
       allow delete: if isExistingOwner(userId);
     }
   }

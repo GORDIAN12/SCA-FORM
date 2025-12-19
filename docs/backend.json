@@ -1,76 +1,161 @@
 {
   "entities": {
-    "User": {
+    "CuppingSession": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "User",
+      "title": "CuppingSession",
       "type": "object",
-      "description": "Represents a user of the Cupping Compass application.",
+      "description": "Represents a cupping session, which is a collection of cupping evaluations.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the user."
-        },
-        "email": {
-          "type": "string",
-          "description": "Email address of the user.",
-          "format": "email"
+          "description": "Unique identifier for the CuppingSession entity."
         },
         "name": {
           "type": "string",
-          "description": "The user's display name."
+          "description": "Name of the cupping session."
         },
-        "createdAt": {
+        "description": {
           "type": "string",
-          "description": "Timestamp indicating when the user account was created.",
+          "description": "Description of the cupping session."
+        },
+        "date": {
+          "type": "string",
+          "description": "Date of the cupping session.",
           "format": "date-time"
         }
       },
-      "required": ["id", "email", "name", "createdAt"]
+      "required": [
+        "id",
+        "name",
+        "date"
+      ]
     },
-    "Evaluation": {
+    "CuppingEvaluation": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Evaluation",
+      "title": "CuppingEvaluation",
       "type": "object",
-      "description": "Represents a single coffee evaluation by a user.",
+      "description": "Represents a single cupping evaluation within a session.",
       "properties": {
-        "coffeeName": {
-          "type": "string"
-        },
-        "roastLevel": {
+        "id": {
           "type": "string",
-          "enum": ["light", "medium", "medium-dark", "dark"]
+          "description": "Unique identifier for the CuppingEvaluation entity."
         },
-        "overallScore": {
-          "type": "number"
-        },
-        "createdAt": {
+        "cuppingSessionId": {
           "type": "string",
-          "format": "date-time"
+          "description": "Reference to CuppingSession. (Relationship: CuppingSession 1:N CuppingEvaluation)"
         },
-        "userId": {
-          "type": "string"
+        "aroma": {
+          "type": "number",
+          "description": "Aroma score of the coffee."
         },
-        "isFavorite": {
-          "type": "boolean"
+        "flavor": {
+          "type": "number",
+          "description": "Flavor score of the coffee."
+        },
+        "aftertaste": {
+          "type": "number",
+          "description": "Aftertaste score of the coffee."
+        },
+        "acidity": {
+          "type": "number",
+          "description": "Acidity score of the coffee."
+        },
+        "body": {
+          "type": "number",
+          "description": "Body score of the coffee."
+        },
+        "balance": {
+          "type": "number",
+          "description": "Balance score of the coffee."
+        },
+        "overall": {
+          "type": "number",
+          "description": "Overall score of the coffee."
+        },
+        "taint": {
+          "type": "number",
+          "description": "Taint score of the coffee."
+        },
+        "fault": {
+          "type": "number",
+          "description": "Fault score of the coffee."
+        },
+        "finalScore": {
+          "type": "number",
+          "description": "Final score of the coffee."
+        },
+        "notes": {
+          "type": "string",
+          "description": "Cupping notes for the coffee."
         }
-      }
+      },
+      "required": [
+        "id",
+        "cuppingSessionId",
+        "aroma",
+        "flavor",
+        "aftertaste",
+        "acidity",
+        "body",
+        "balance",
+        "overall",
+        "finalScore"
+      ]
     }
   },
   "auth": {
-    "providers": ["password"]
+    "providers": [
+      "password",
+      "anonymous"
+    ]
   },
   "firestore": {
-    "/users/{userId}": {
-      "schema": {
-        "$ref": "#/entities/User"
+    "structure": [
+      {
+        "path": "/users/{userId}/cuppingSessions/{cuppingSessionId}",
+        "definition": {
+          "entityName": "CuppingSession",
+          "schema": {
+            "$ref": "#/backend/entities/CuppingSession"
+          },
+          "description": "Stores cupping session data, owned by the user. Authorization is based on the path `/users/{userId}`.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The ID of the user who owns the cupping session."
+            },
+            {
+              "name": "cuppingSessionId",
+              "description": "The ID of the cupping session."
+            }
+          ]
+        }
       },
-      "description": "Stores public profile information for each user."
-    },
-    "/users/{userId}/evaluations/{evaluationId}": {
-      "schema": {
-        "$ref": "#/entities/Evaluation"
-      },
-      "description": "Stores individual evaluations for a user."
-    }
+      {
+        "path": "/users/{userId}/cuppingSessions/{cuppingSessionId}/cuppingEvaluations/{cuppingEvaluationId}",
+        "definition": {
+          "entityName": "CuppingEvaluation",
+          "schema": {
+            "$ref": "#/backend/entities/CuppingEvaluation"
+          },
+          "description": "Stores cupping evaluation data associated with a specific cupping session, owned by the user. Authorization is based on the path `/users/{userId}/cuppingSessions/{cuppingSessionId}`.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The ID of the user who owns the cupping session."
+            },
+            {
+              "name": "cuppingSessionId",
+              "description": "The ID of the cupping session."
+            },
+            {
+              "name": "cuppingEvaluationId",
+              "description": "The ID of the cupping evaluation."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to manage cupping sessions and evaluations. Each user owns their cupping sessions, and each session contains multiple cupping evaluations. Authorization independence is achieved by structuring data around user-owned documents, eliminating the need for `get()` calls in security rules. List operations are secured via path-based ownership, ensuring users can only access resources they own.\n\nSpecifically, CuppingSessions are stored under `/users/{userId}/cuppingSessions/{cuppingSessionId}`, ensuring that only the owning user can access or modify these sessions. CuppingEvaluations are nested under their respective sessions at `/users/{userId}/cuppingSessions/{cuppingSessionId}/cuppingEvaluations/{cuppingEvaluationId}`, maintaining the ownership context. This hierarchical structure facilitates simple and secure security rules based on the `request.auth.uid` and prevents unauthorized data access."
   }
 }
