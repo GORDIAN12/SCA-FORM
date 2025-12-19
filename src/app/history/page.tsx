@@ -1,7 +1,7 @@
 'use client';
 
 import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, doc, deleteDoc, updateDoc } from 'firebase/firestore';
+import { collection, query, orderBy, doc, deleteDoc, updateDoc, where, Timestamp } from 'firebase/firestore';
 import type { Evaluation, RadarChartData } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRouter } from 'next/navigation';
@@ -15,7 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { format } from 'date-fns';
+import { format, startOfDay, endOfDay } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/context/language-context';
 import { generateReportJson } from '@/lib/generate-report-json';
@@ -41,30 +41,41 @@ export default function HistoryPage() {
 
   const evaluationsQuery = useMemoFirebase(() => {
     if (!firestore || !user) return null;
+
+    const constraints = [];
+
+    if (roastLevelFilter && roastLevelFilter !== 'all') {
+      constraints.push(where('roastLevel', '==', roastLevelFilter));
+    }
+    
+    if (dateFilter) {
+      const start = startOfDay(dateFilter);
+      const end = endOfDay(dateFilter);
+      constraints.push(where('createdAt', '>=', Timestamp.fromDate(start)));
+      constraints.push(where('createdAt', '<=', Timestamp.fromDate(end)));
+    }
+    
     return query(
       collection(firestore, 'users', user.uid, 'evaluations'),
+      ...constraints,
       orderBy('createdAt', 'desc')
     );
-  }, [firestore, user]);
+  }, [firestore, user, roastLevelFilter, dateFilter]);
 
-  const { data, isLoading } = useCollection<Evaluation>(evaluationsQuery);
+  const { data, isLoading, error } = useCollection<Evaluation>(evaluationsQuery);
 
   useEffect(() => {
     if (data) {
       setEvaluations(data);
     }
   }, [data]);
-
+  
   const filteredEvaluations = useMemo(() => {
     if (!evaluations) return [];
     return evaluations.filter(evaluation => {
-      const matchesSearchTerm = evaluation.coffeeName.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesRoastLevel = !roastLevelFilter || roastLevelFilter === 'all' ? true : evaluation.roastLevel === roastLevelFilter;
-      const matchesDate = dateFilter ? format(evaluation.createdAt?.toDate(), 'yyyy-MM-dd') === format(dateFilter, 'yyyy-MM-dd') : true;
-
-      return matchesSearchTerm && matchesRoastLevel && matchesDate;
+      return evaluation.coffeeName.toLowerCase().includes(searchTerm.toLowerCase());
     });
-  }, [evaluations, searchTerm, roastLevelFilter, dateFilter]);
+  }, [evaluations, searchTerm]);
   
 
   const handleDelete = async (evaluationId: string) => {
@@ -194,6 +205,7 @@ export default function HistoryPage() {
                       <Skeleton className="h-16 w-full" />
                     </div>
                   )}
+                   {error && <p className="text-destructive text-center py-8">Error: Could not load evaluations. You might need to create a composite index in Firestore. Check browser console for a link.</p>}
                   {filteredEvaluations && filteredEvaluations.length > 0 ? (
                     <ul className="space-y-2">
                       {filteredEvaluations.map((evaluation) => (
@@ -207,7 +219,7 @@ export default function HistoryPage() {
                       ))}
                     </ul>
                   ) : (
-                    !isLoading && <p className="text-center text-muted-foreground py-8">{t('noEvaluationsFound')}</p>
+                    !isLoading && !error && <p className="text-center text-muted-foreground py-8">{t('noEvaluationsFound')}</p>
                   )}
                 </div>
               </CardContent>
