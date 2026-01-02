@@ -10,7 +10,6 @@ import {
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
   GoogleAuthProvider,
-  OAuthProvider,
   signInWithPopup,
 } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
@@ -42,7 +41,6 @@ import { Input } from '@/components/ui/input';
 import { CuppingCompassLogo } from '@/components/cupping-compass-logo';
 import { useLanguage } from '@/context/language-context';
 import { GoogleLogo } from '@/components/google-logo';
-import { MicrosoftLogo } from '@/components/microsoft-logo';
 
 const signUpSchema = z
   .object({
@@ -185,27 +183,6 @@ export default function LoginPage() {
     }
   };
 
-  const handleMicrosoftSignIn = async () => {
-    setIsLoading(true);
-    try {
-      const provider = new OAuthProvider('microsoft.com');
-      await signInWithPopup(auth, provider);
-      toast({
-        title: t('signedIn'),
-        description: t('welcomeBack'),
-      });
-      router.push('/');
-    } catch (error: any) {
-      toast({
-        title: t('signInFailed'),
-        description: error.message,
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <div className="w-full max-w-md">
@@ -291,10 +268,6 @@ export default function LoginPage() {
                     <GoogleLogo className="mr-2 h-4 w-4" />
                     Sign in with Google
                   </Button>
-                  <Button variant="outline" className="w-full" onClick={handleMicrosoftSignIn} disabled={isLoading}>
-                    <MicrosoftLogo className="mr-2 h-4 w-4" />
-                    Sign in with Microsoft
-                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -375,10 +348,6 @@ export default function LoginPage() {
                    <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={isLoading}>
                     <GoogleLogo className="mr-2 h-4 w-4" />
                      Sign in with Google
-                  </Button>
-                  <Button variant="outline" className="w-full" onClick={handleMicrosoftSignIn} disabled={isLoading}>
-                    <MicrosoftLogo className="mr-2 h-4 w-4" />
-                    Sign in with Microsoft
                   </Button>
                 </div>
               </CardContent>
