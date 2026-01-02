@@ -119,5 +119,7 @@
     "emailForPasswordReset": "Please enter your email address to reset your password.",
     "passwordResetSent": "Password Reset Email Sent",
     "passwordResetSentDescription": "Check your inbox for a link to reset your password.",
-    "passwordResetFailed": "Password Reset Failed"
+    "passwordResetFailed": "Password Reset Failed",
+    "observations": "Observations",
+    "observationsPlaceholder": "Enter any additional notes here..."
 }

@@ -38,6 +38,7 @@ import { FlavorProfileChart } from './flavor-profile-chart';
 import { useLanguage } from '@/context/language-context';
 import { Button } from '@/components/ui/button';
 import { textToSpeech } from '@/ai/flows/tts-flow';
+import { Textarea } from '@/components/ui/textarea';
 
 const scoreSchema = z.coerce.number().min(6).max(10);
 const intensitySchema = z.enum(['low', 'medium', 'high'], {
@@ -90,6 +91,7 @@ const formSchema = z.object({
   coffeeName: z.string().min(1, 'Coffee name is required'),
   roastLevel: roastLevelSchema,
   cups: z.array(cupEvaluationSchema).min(1),
+  observations: z.string().optional(),
   lastModified: z.string().optional(),
 });
 
@@ -230,6 +232,7 @@ const createDefaultFormValues = (): ScaFormValues => ({
   coffeeName: '',
   roastLevel: 'medium',
   cups: [createDefaultCup(0)],
+  observations: '',
   lastModified: new Date().toISOString(),
 });
 
@@ -1012,6 +1015,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
             coffeeName: initialData.coffeeName,
             roastLevel: initialData.roastLevel,
             cups: initialData.cups,
+            observations: initialData.observations || '',
           }
         : createDefaultFormValues(),
     });
@@ -1022,6 +1026,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
           coffeeName: initialData.coffeeName,
           roastLevel: initialData.roastLevel,
           cups: initialData.cups,
+          observations: initialData.observations || '',
         };
         form.reset(resetData);
         previousValuesRef.current = resetData as ScaFormValues;
@@ -1200,6 +1205,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
         roastLevel: values.roastLevel,
         cups: values.cups,
         overallScore: parseFloat(overallScore.toFixed(2)),
+        observations: values.observations,
       };
       
       const draftId = values.draftId;
@@ -1439,6 +1445,42 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                      <span>{overallScore.toFixed(2)}</span>
                    </div>
                  </div>
+                 <Separator />
+                 <FormField
+                  control={form.control}
+                  name="observations"
+                  render={({ field }) => (
+                    <FormItem>
+                      <div className="flex items-center gap-2">
+                        <FormLabel className="text-xl font-bold">{t('observations')}</FormLabel>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          className="h-6 w-6"
+                          onClick={handleSoundEffect('/sounds/observaciones.mp3')}
+                          disabled={isAudioLoading}
+                        >
+                          {isAudioLoading ? (
+                            <LoaderCircle className="animate-spin" />
+                          ) : (
+                            <Volume2 className="h-4 w-4" />
+                          )}
+                          <span className="sr-only">Play Sound for Observations</span>
+                        </Button>
+                      </div>
+                      <FormControl>
+                        <Textarea
+                          placeholder={t('observationsPlaceholder')}
+                          className="min-h-[120px] resize-y"
+                          disabled={isReadOnly || isSubmitting}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                </div>
             </CardContent>
           </form>

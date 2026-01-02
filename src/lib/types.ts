@@ -40,6 +40,7 @@ export interface Evaluation {
   roastLevel: 'light' | 'medium' | 'medium-dark' | 'dark';
   cups: CupEvaluation[];
   overallScore: number;
+  observations?: string;
   createdAt: any; // Allow serverTimestamp
   userId: string;
   isFavorite?: boolean;
@@ -50,6 +51,7 @@ export interface ScaFormValues {
     coffeeName: string;
     roastLevel: 'light' | 'medium' | 'medium-dark' | 'dark';
     cups: CupEvaluation[];
+    observations?: string;
     lastModified?: string;
 }
 

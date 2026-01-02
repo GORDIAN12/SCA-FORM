@@ -119,5 +119,7 @@
     "emailForPasswordReset": "Por favor, introduce tu correo para restablecer tu contraseña.",
     "passwordResetSent": "Correo de restablecimiento enviado",
     "passwordResetSentDescription": "Revisa tu bandeja de entrada para ver el enlace de restablecimiento.",
-    "passwordResetFailed": "Fallo al restablecer la contraseña"
+    "passwordResetFailed": "Fallo al restablecer la contraseña",
+    "observations": "Observaciones",
+    "observationsPlaceholder": "Introduce cualquier nota adicional aquí..."
 }
