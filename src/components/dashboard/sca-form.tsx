@@ -236,7 +236,7 @@ const createDefaultFormValues = (): ScaFormValues => ({
 const DRAFTS_KEY = 'cupping-compass-drafts';
 
 // New component to hold the cup evaluation content
-const CupEvaluationContent = ({ form, index, isReadOnly, isSubmitting, isAudioLoading, activeTempTab, setActiveTempTab, fieldId }: {
+const CupEvaluationContent = ({ form, index, isReadOnly, isSubmitting, isAudioLoading, activeTempTab, setActiveTempTab, fieldId, isActive }: {
     form: any,
     index: number,
     isReadOnly: boolean,
@@ -244,7 +244,8 @@ const CupEvaluationContent = ({ form, index, isReadOnly, isSubmitting, isAudioLo
     isAudioLoading: boolean,
     activeTempTab: 'hot' | 'warm' | 'cold',
     setActiveTempTab: (temp: 'hot' | 'warm' | 'cold') => void,
-    fieldId: string
+    fieldId: string,
+    isActive: boolean
 }) => {
     const { t } = useLanguage();
     const watchedCup = useWatch({ control: form.control, name: `cups.${index}` });
@@ -297,7 +298,7 @@ const CupEvaluationContent = ({ form, index, isReadOnly, isSubmitting, isAudioLo
     };
 
     return (
-        <TabsContent key={fieldId} value={fieldId}>
+        <TabsContent key={fieldId} value={fieldId} forceMount className={cn(!isActive && 'hidden')}>
           <Card>
             <CardHeader>
                <div className="flex items-center gap-2">
@@ -1353,7 +1354,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                         <TabsList className="grid w-full" style={{gridTemplateColumns: `repeat(${fields.length}, minmax(0, 1fr))`}}>
                         {fields.map((field, index) => (
                            <div key={field.id} className="relative">
-                             <TabsTrigger  value={field.id} disabled={isSubmitting} className="w-full">
+                             <TabsTrigger  value={field.id} disabled={isSubmitting} className="w-full pr-6">
                                 <span>{t('cup')} {index + 1}</span>
                               </TabsTrigger>
                               {!isReadOnly && fields.length > 1 && (
@@ -1389,6 +1390,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                         isAudioLoading={isAudioLoading}
                         activeTempTab={activeTempTab}
                         setActiveTempTab={setActiveTempTab}
+                        isActive={activeCupTab === field.id}
                     />
                 ))}
               </Tabs>
