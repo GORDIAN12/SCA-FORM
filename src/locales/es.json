@@ -114,5 +114,10 @@
     "tutorialNext": "Siguiente",
     "tutorialPrevious": "Anterior",
     "tutorialFinish": "Finalizar",
-    "tutorialSkip": "Saltar"
+    "tutorialSkip": "Saltar",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "emailForPasswordReset": "Por favor, introduce tu correo para restablecer tu contraseña.",
+    "passwordResetSent": "Correo de restablecimiento enviado",
+    "passwordResetSentDescription": "Revisa tu bandeja de entrada para ver el enlace de restablecimiento.",
+    "passwordResetFailed": "Fallo al restablecer la contraseña"
 }

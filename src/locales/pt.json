@@ -114,5 +114,10 @@
     "tutorialNext": "Próximo",
     "tutorialPrevious": "Anterior",
     "tutorialFinish": "Finalizar",
-    "tutorialSkip": "Pular"
+    "tutorialSkip": "Pular",
+    "forgotPassword": "Esqueceu a senha?",
+    "emailForPasswordReset": "Por favor, insira seu e-mail para redefinir sua senha.",
+    "passwordResetSent": "E-mail de redefinição de senha enviado",
+    "passwordResetSentDescription": "Verifique sua caixa de entrada para o link de redefinição de senha.",
+    "passwordResetFailed": "Falha ao redefinir a senha"
 }

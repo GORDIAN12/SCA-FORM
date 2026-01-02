@@ -8,6 +8,7 @@ import { useAuth, useUser } from '@/firebase';
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  sendPasswordResetEmail,
 } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
@@ -131,6 +132,33 @@ export default function LoginPage() {
     }
   };
 
+  const handlePasswordReset = async () => {
+    const email = signInForm.getValues('email');
+    if (!email) {
+      signInForm.setError('email', {
+        type: 'manual',
+        message: t('emailForPasswordReset'),
+      });
+      return;
+    }
+    setIsLoading(true);
+    try {
+      await sendPasswordResetEmail(auth, email);
+      toast({
+        title: t('passwordResetSent'),
+        description: t('passwordResetSentDescription'),
+      });
+    } catch (error: any) {
+      toast({
+        title: t('passwordResetFailed'),
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <div className="w-full max-w-md">
@@ -182,6 +210,16 @@ export default function LoginPage() {
                           <FormControl>
                             <Input type="password" placeholder="••••••••" {...field} />
                           </FormControl>
+                           <div className="text-right">
+                            <Button
+                              type="button"
+                              variant="link"
+                              className="px-0 h-auto font-normal text-sm"
+                              onClick={handlePasswordReset}
+                            >
+                              {t('forgotPassword')}
+                            </Button>
+                          </div>
                           <FormMessage />
                         </FormItem>
                       )}
