@@ -18,7 +18,7 @@ export const generatePdf = async (reportJson: any, t: (key: string) => string) =
   }
 
   const doc = new jsPDF();
-  const { cafe, resumen_general, tazas } = reportJson;
+  const { cafe, resumen_general, tazas, observaciones } = reportJson;
 
   // --- PAGE 1: SUMMARY ---
   doc.setFontSize(22);
@@ -153,6 +153,20 @@ export const generatePdf = async (reportJson: any, t: (key: string) => string) =
             doc.addImage(dataUrl, 'PNG', chartX, chartY + 5, chartSize, chartSize);
         }
     }
+  }
+
+  // --- OBSERVATIONS PAGE ---
+  if (observaciones) {
+    doc.addPage();
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.text(t('observations'), doc.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
+
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    // Use splitTextToSize to handle wrapping
+    const splitText = doc.splitTextToSize(observaciones, doc.internal.pageSize.getWidth() - 40);
+    doc.text(splitText, 20, 35);
   }
 
   doc.save(`${cafe.nombre.replace(/ /g, '_')}_Evaluation.pdf`);

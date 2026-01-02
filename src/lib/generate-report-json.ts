@@ -38,7 +38,7 @@ export const generateReportJson = (evaluation: Evaluation, t: (key: string) => s
     return null;
   }
 
-  const { coffeeName, roastLevel, createdAt, overallScore, cups } = evaluation;
+  const { coffeeName, roastLevel, createdAt, overallScore, cups, observations } = evaluation;
   const roastLevelKey = `roast${roastLevel.charAt(0).toUpperCase() + roastLevel.slice(1).replace('-', '')}`;
 
 
@@ -102,6 +102,7 @@ export const generateReportJson = (evaluation: Evaluation, t: (key: string) => s
             },
         }
     }),
+    observaciones: observations || '',
   };
 
   return report;
