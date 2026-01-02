@@ -32,7 +32,7 @@ import {
   useCallback,
 } from 'react';
 import { cn } from '@/lib/utils';
-import { Coffee, Volume2, LoaderCircle, Plus, X } from 'lucide-react';
+import { Coffee, Volume2, LoaderCircle, Plus, X, Pointer } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FlavorProfileChart } from './flavor-profile-chart';
 import { useLanguage } from '@/context/language-context';
@@ -991,7 +991,7 @@ const CupEvaluationContent = ({ form, index, isReadOnly, isSubmitting, isAudioLo
 
 export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
   ({ initialData, onSubmit, onValuesChange, onActiveCupChange, isSubmitting }, ref) => {
-    const [activeCupTab, setActiveCupTab] = useState('cup-1');
+    const [activeCupTab, setActiveCupTab] = useState('');
     const [activeTempTab, setActiveTempTab] = useState<'hot' | 'warm' | 'cold'>('hot');
     const [isAudioLoading, setIsAudioLoading] = useState(false);
     const isReadOnly = !!initialData;
@@ -1032,7 +1032,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
         const defaultValues = createDefaultFormValues();
         form.reset(defaultValues);
         previousValuesRef.current = defaultValues;
-        setActiveCupTab(defaultValues.cups[0].id);
+        setActiveCupTab(''); // No active cup initially
       }
     }, [initialData, form]);
 
@@ -1049,13 +1049,13 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
         }
         const newValues = createDefaultFormValues();
         form.reset(newValues);
-        setActiveCupTab(newValues.cups[0].id);
+        setActiveCupTab('');
         previousValuesRef.current = newValues;
       },
       loadDraft: (data) => {
         if (!isReadOnly) {
             form.reset(data);
-            setActiveCupTab(data.cups[0]?.id || 'cup-1');
+            setActiveCupTab(data.cups[0]?.id || '');
             previousValuesRef.current = data;
         }
       }
@@ -1333,7 +1333,6 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
               <Separator />
 
               <Tabs
-                defaultValue={fields[0]?.id}
                 className="w-full"
                 onValueChange={setActiveCupTab}
                 value={activeCupTab}
@@ -1379,20 +1378,31 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                         </Button>
                     )}
                 </div>
-                {fields.map((field, index) => (
-                    <CupEvaluationContent
-                        key={field.id}
-                        fieldId={field.id}
-                        form={form}
-                        index={index}
-                        isReadOnly={isReadOnly}
-                        isSubmitting={!!isSubmitting}
-                        isAudioLoading={isAudioLoading}
-                        activeTempTab={activeTempTab}
-                        setActiveTempTab={setActiveTempTab}
-                        isActive={activeCupTab === field.id}
-                    />
-                ))}
+                {activeCupTab ? (
+                  fields.map((field, index) => (
+                      <CupEvaluationContent
+                          key={field.id}
+                          fieldId={field.id}
+                          form={form}
+                          index={index}
+                          isReadOnly={isReadOnly}
+                          isSubmitting={!!isSubmitting}
+                          isAudioLoading={isAudioLoading}
+                          activeTempTab={activeTempTab}
+                          setActiveTempTab={setActiveTempTab}
+                          isActive={activeCupTab === field.id}
+                      />
+                  ))
+                ) : (
+                  <Card className="mt-4">
+                    <CardContent className="pt-6">
+                      <div className="flex flex-col items-center justify-center h-48 text-center text-muted-foreground">
+                        <Pointer className="size-8 mb-2"/>
+                        <p>Selecciona una taza para comenzar la evaluación.</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
               </Tabs>
               <Card>
                   <CardHeader>
@@ -1413,7 +1423,11 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                       </Tabs>
                       
                       <div className="h-80 mt-4">
-                          {flavorProfileData && <FlavorProfileChart scores={flavorProfileData} />}
+                          {flavorProfileData ? <FlavorProfileChart scores={flavorProfileData} /> :
+                            <div className="flex items-center justify-center h-full text-muted-foreground">
+                              <p>Selecciona una taza para ver el perfil de sabor.</p>
+                            </div>
+                          }
                       </div>
                   </CardContent>
               </Card>
