@@ -9,6 +9,8 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
+  GoogleAuthProvider,
+  signInWithPopup,
 } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
@@ -38,6 +40,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { CuppingCompassLogo } from '@/components/cupping-compass-logo';
 import { useLanguage } from '@/context/language-context';
+import { GoogleLogo } from '@/components/google-logo';
 
 const signUpSchema = z
   .object({
@@ -159,6 +162,28 @@ export default function LoginPage() {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setIsLoading(true);
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+      toast({
+        title: t('signedIn'),
+        description: t('welcomeBack'),
+      });
+      router.push('/');
+    } catch (error: any) {
+      toast({
+        title: t('signInFailed'),
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <div className="w-full max-w-md">
@@ -229,6 +254,20 @@ export default function LoginPage() {
                     </Button>
                   </form>
                 </Form>
+                 <div className="relative my-6">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">
+                      {t('orContinueWith')}
+                    </span>
+                  </div>
+                </div>
+                <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={isLoading}>
+                  <GoogleLogo className="mr-2 h-4 w-4" />
+                  Sign in with Google
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>
@@ -294,6 +333,20 @@ export default function LoginPage() {
                     </Button>
                   </form>
                 </Form>
+                 <div className="relative my-6">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">
+                      {t('orContinueWith')}
+                    </span>
+                  </div>
+                </div>
+                 <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={isLoading}>
+                  <GoogleLogo className="mr-2 h-4 w-4" />
+                   Sign in with Google
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>
