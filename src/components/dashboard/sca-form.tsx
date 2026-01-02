@@ -208,7 +208,7 @@ const createDefaultScoreSet = (): ScoreSetFormValues => ({
 });
 
 const createDefaultCup = (index: number): CupFormValues => ({
-  id: `cup-${index + 1}`,
+  id: `cup-${Date.now()}-${index}`,
   aromaCategory: 'Frutal',
   dryFragrance: 'medium',
   wetAroma: 'medium',
@@ -1024,10 +1024,14 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
         };
         form.reset(resetData);
         previousValuesRef.current = resetData as ScaFormValues;
+        if(initialData.cups.length > 0) {
+            setActiveCupTab(initialData.cups[0].id)
+        }
       } else {
         const defaultValues = createDefaultFormValues();
         form.reset(defaultValues);
         previousValuesRef.current = defaultValues;
+        setActiveCupTab(defaultValues.cups[0].id);
       }
     }, [initialData, form]);
 
@@ -1044,7 +1048,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
         }
         const newValues = createDefaultFormValues();
         form.reset(newValues);
-        setActiveCupTab('cup-1');
+        setActiveCupTab(newValues.cups[0].id);
         previousValuesRef.current = newValues;
       },
       loadDraft: (data) => {
@@ -1328,7 +1332,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
               <Separator />
 
               <Tabs
-                defaultValue="cup-1"
+                defaultValue={fields[0]?.id}
                 className="w-full"
                 onValueChange={setActiveCupTab}
                 value={activeCupTab}
@@ -1348,21 +1352,23 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                         </Button>
                         <TabsList className="grid w-full" style={{gridTemplateColumns: `repeat(${fields.length}, minmax(0, 1fr))`}}>
                         {fields.map((field, index) => (
-                            <TabsTrigger key={field.id} value={field.id} disabled={isSubmitting} className="relative pr-6">
+                           <div key={field.id} className="relative">
+                             <TabsTrigger  value={field.id} disabled={isSubmitting} className="w-full">
                                 <span>{t('cup')} {index + 1}</span>
-                                {!isReadOnly && fields.length > 1 && (
-                                    <button
-                                        type="button"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleRemoveCup(index);
-                                        }}
-                                        className="absolute right-1 top-1/2 -translate-y-1/2 rounded-full p-0.5 hover:bg-muted-foreground/20"
-                                    >
-                                        <X className="size-3" />
-                                    </button>
-                                )}
-                            </TabsTrigger>
+                              </TabsTrigger>
+                              {!isReadOnly && fields.length > 1 && (
+                                  <button
+                                      type="button"
+                                      onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleRemoveCup(index);
+                                      }}
+                                      className="absolute right-1 top-1/2 -translate-y-1/2 rounded-full p-0.5 hover:bg-muted-foreground/20 z-10"
+                                  >
+                                      <X className="size-3" />
+                                  </button>
+                              )}
+                           </div>
                         ))}
                         </TabsList>
                     </div>
@@ -1428,3 +1434,5 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
 
 ScaForm.displayName = 'ScaForm';
 export { DRAFTS_KEY };
+
+    
