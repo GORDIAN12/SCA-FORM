@@ -32,7 +32,7 @@ import {
   useCallback,
 } from 'react';
 import { cn } from '@/lib/utils';
-import { Coffee, Volume2, LoaderCircle } from 'lucide-react';
+import { Coffee, Volume2, LoaderCircle, Plus, X } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FlavorProfileChart } from './flavor-profile-chart';
 import { useLanguage } from '@/context/language-context';
@@ -89,7 +89,7 @@ const formSchema = z.object({
   draftId: z.string().optional(),
   coffeeName: z.string().min(1, 'Coffee name is required'),
   roastLevel: roastLevelSchema,
-  cups: z.array(cupEvaluationSchema).length(5),
+  cups: z.array(cupEvaluationSchema).min(1),
   lastModified: z.string().optional(),
 });
 
@@ -229,7 +229,7 @@ const createDefaultFormValues = (): ScaFormValues => ({
   draftId: `draft-${Date.now()}`,
   coffeeName: '',
   roastLevel: 'medium',
-  cups: Array.from({ length: 5 }, (_, i) => createDefaultCup(i)),
+  cups: [createDefaultCup(0)],
   lastModified: new Date().toISOString(),
 });
 
@@ -291,20 +291,43 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
         }
         const newValues = createDefaultFormValues();
         form.reset(newValues);
+        setActiveCupTab('cup-1');
         previousValuesRef.current = newValues;
       },
       loadDraft: (data) => {
         if (!isReadOnly) {
             form.reset(data);
+            setActiveCupTab(data.cups[0]?.id || 'cup-1');
             previousValuesRef.current = data;
         }
       }
     }));
 
-    const { fields } = useFieldArray({
+    const { fields, append, remove } = useFieldArray({
       control: form.control,
       name: 'cups',
     });
+    
+    const handleAddCup = () => {
+        const newCup = createDefaultCup(fields.length);
+        append(newCup);
+        setActiveCupTab(newCup.id);
+    };
+
+    const handleRemoveCup = (index: number) => {
+        if (fields.length <= 1) return;
+        const cupToRemoveId = fields[index].id;
+        
+        // If the active tab is the one being removed, switch to a different tab
+        if (activeCupTab === cupToRemoveId) {
+            if (index > 0) {
+                setActiveCupTab(fields[index - 1].id);
+            } else {
+                setActiveCupTab(fields[1].id);
+            }
+        }
+        remove(index);
+    };
 
     const watchedValues = useWatch({ control: form.control });
     
@@ -312,7 +335,9 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
         const prevValues = previousValuesRef.current;
         if (!prevValues) return;
 
-        const cupIndex = parseInt(activeCupTab.split('-')[1], 10) - 1;
+        const cupIndex = fields.findIndex(f => f.id === activeCupTab);
+        if (cupIndex === -1) return;
+
         const currentCup = currentValues.cups?.[cupIndex];
         const prevCup = prevValues.cups?.[cupIndex];
 
@@ -336,7 +361,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                 }
             }
         }
-    }, [activeCupTab, form]);
+    }, [activeCupTab, form, fields]);
 
 
     useEffect(() => {
@@ -369,8 +394,8 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
     }, [form, onValuesChange, isReadOnly, handleScoreSync]);
 
     const activeCupIndex = useMemo(() => {
-      return parseInt(activeCupTab.split('-')[1], 10) - 1;
-    }, [activeCupTab]);
+      return fields.findIndex(f => f.id === activeCupTab);
+    }, [activeCupTab, fields]);
 
     const activeCupData = watchedValues.cups?.[activeCupIndex];
     
@@ -556,24 +581,43 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                 value={activeCupTab}
               >
                  <div className="flex items-center gap-2" id="cup-tabs-section">
-                    <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        className="h-10 w-10"
-                        onClick={handleSoundEffect('/sounds/number_taza.mp3')}
-                        disabled={isAudioLoading}
-                    >
-                        {isAudioLoading ? <LoaderCircle className="animate-spin" /> : <Volume2 />}
-                        <span className="sr-only">Play Sound</span>
-                    </Button>
-                    <TabsList className="grid w-full grid-cols-5" >
-                    {fields.map((field, index) => (
-                        <TabsTrigger key={field.id} value={`cup-${index + 1}`} disabled={isSubmitting}>
-                        {t('cup')} {index + 1}
-                        </TabsTrigger>
-                    ))}
-                    </TabsList>
+                    <div className="flex items-center gap-2 flex-grow">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            className="h-10 w-10 shrink-0"
+                            onClick={handleSoundEffect('/sounds/number_taza.mp3')}
+                            disabled={isAudioLoading}
+                        >
+                            {isAudioLoading ? <LoaderCircle className="animate-spin" /> : <Volume2 />}
+                            <span className="sr-only">Play Sound</span>
+                        </Button>
+                        <TabsList className="grid w-full" style={{gridTemplateColumns: `repeat(${fields.length}, minmax(0, 1fr))`}}>
+                        {fields.map((field, index) => (
+                            <TabsTrigger key={field.id} value={field.id} disabled={isSubmitting} className="relative pr-6">
+                                <span>{t('cup')} {index + 1}</span>
+                                {!isReadOnly && fields.length > 1 && (
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleRemoveCup(index);
+                                        }}
+                                        className="absolute right-1 top-1/2 -translate-y-1/2 rounded-full p-0.5 hover:bg-muted-foreground/20"
+                                    >
+                                        <X className="size-3" />
+                                    </button>
+                                )}
+                            </TabsTrigger>
+                        ))}
+                        </TabsList>
+                    </div>
+                     {!isReadOnly && (
+                        <Button type="button" size="icon" variant="ghost" onClick={handleAddCup} disabled={isSubmitting}>
+                            <Plus className="size-4" />
+                        </Button>
+                    )}
                 </div>
                 {fields.map((field, index) => {
                   const cupValues = watchedValues.cups?.[index];
@@ -628,7 +672,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                   }, [cupTotalScore, index, form, isReadOnly]);
 
                   return (
-                    <TabsContent key={field.id} value={`cup-${index + 1}`}>
+                    <TabsContent key={field.id} value={field.id}>
                       <Card>
                         <CardHeader>
                            <div className="flex items-center gap-2">
