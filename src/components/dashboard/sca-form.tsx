@@ -1151,9 +1151,13 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
     const activeCupData = watchedValues.cups?.[activeCupIndex];
     
     const flavorProfileData = useMemo(() => {
-        if (!activeCupData) return null;
+        const cupIndex = fields.findIndex(f => f.id === activeCupTab);
+        if (cupIndex === -1) return null;
 
-        const { aroma, scores } = activeCupData;
+        const cupData = watchedValues.cups?.[cupIndex];
+        if (!cupData) return null;
+
+        const { aroma, scores } = cupData;
         const tempScores = scores?.[activeTempTab];
 
         if (!tempScores) return null;
@@ -1166,7 +1170,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
             body: tempScores.body,
             balance: tempScores.balance,
         };
-    }, [activeCupData, activeTempTab]);
+    }, [watchedValues, activeCupTab, activeTempTab, fields]);
 
     useEffect(() => {
       if (onActiveCupChange && activeCupData) {
