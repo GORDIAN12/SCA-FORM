@@ -239,11 +239,12 @@ const createDefaultFormValues = (): ScaFormValues => ({
 const DRAFTS_KEY = 'cupping-compass-drafts';
 
 // New component to hold the cup evaluation content
-const CupEvaluationContent = ({ form, index, isReadOnly, isSubmitting }: {
+const CupEvaluationContent = ({ form, index, isReadOnly, isSubmitting, handleSoundEffect }: {
     form: any,
     index: number,
     isReadOnly: boolean,
-    isSubmitting: boolean
+    isSubmitting: boolean,
+    handleSoundEffect: (soundUrl: string) => (e: React.MouseEvent<HTMLButtonElement>) => void;
 }) => {
     const { t } = useLanguage();
     const [isAudioLoading, setIsAudioLoading] = useState(false);
@@ -290,12 +291,6 @@ const CupEvaluationContent = ({ form, index, isReadOnly, isSubmitting }: {
             );
         }
     }, [cupTotalScore, index, form, isReadOnly, watchedCup.totalScore]);
-
-    const handleSoundEffect = (soundUrl: string) => (e: React.MouseEvent<HTMLButtonElement>) => {
-      e.stopPropagation();
-      const audio = new Audio(soundUrl);
-      audio.play();
-    };
 
     return (
           <Card>
@@ -1028,7 +1023,6 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
         if (!activeTab && fields.length > 0) {
             setActiveTab(fields[0].id);
         } else if (activeTab && !fields.some(f => f.id === activeTab)) {
-            // If the active tab was deleted, select the last one
             setActiveTab(fields[fields.length - 1]?.id);
         }
     }, [fields, activeTab]);
@@ -1077,9 +1071,25 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
 
     const handleRemoveCup = (index: number) => {
         if (fields.length <= 1) return;
-        const newActiveIndex = index === fields.length -1 ? index - 1 : index;
+
+        const removedCupId = fields[index].id;
+        
+        let newActiveIndex = index;
+        if (activeTab === removedCupId) {
+            newActiveIndex = index === fields.length - 1 ? index - 1 : index;
+        } else {
+            const currentIndex = fields.findIndex(f => f.id === activeTab);
+            newActiveIndex = currentIndex > index ? currentIndex -1 : currentIndex;
+        }
+
         remove(index);
-        setActiveTab(fields[newActiveIndex]?.id);
+
+        if (fields[newActiveIndex]) {
+            setActiveTab(fields[newActiveIndex]?.id);
+        } else if (fields.length > 1) {
+            // Fallback if the newActiveIndex is out of bounds after removal
+            setActiveTab(fields[fields.length - 2]?.id);
+        }
     };
 
     const watchedValues = useWatch({ control: form.control });
@@ -1120,7 +1130,6 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
     useEffect(() => {
         const subscription = form.watch((currentValues, { name }) => {
             const currentScaValues = currentValues as ScaFormValues;
-            const activeCupId = name?.startsWith('cups.') ? name.split('.')[1] : undefined;
             
             if (onValuesChange) {
                 onValuesChange(currentScaValues);
@@ -1152,8 +1161,14 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
       const cupIndex = fields.findIndex(f => f.id === activeTab);
       if (cupIndex === -1 && !initialData) return null;
 
-      const finalCupIndex = initialData ? 0 : cupIndex;
-      const cupData = initialData ? initialData.cups[finalCupIndex] : watchedValues.cups?.[finalCupIndex];
+      let cupData;
+      if(initialData) {
+        // In read-only mode, we might not have `fields` but we have `initialData`
+        const activeCupInInitialData = initialData.cups.find(c => c.id === activeTab);
+        cupData = activeCupInInitialData || initialData.cups[0];
+      } else {
+        cupData = watchedValues.cups?.[cupIndex];
+      }
 
       if (!cupData) return null;
       
@@ -1214,6 +1229,11 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
     const capitalize = (s: string) =>
       s.charAt(0).toUpperCase() + s.slice(1).replace(/([A-Z])/g, ' $1');
 
+    const handleSoundEffect = (soundUrl: string) => (e: React.MouseEvent<HTMLButtonElement>) => {
+      e.stopPropagation();
+      const audio = new Audio(soundUrl);
+      audio.play();
+    };
 
     return (
       <Card>
@@ -1340,6 +1360,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                             index={index}
                             isReadOnly={isReadOnly}
                             isSubmitting={!!isSubmitting}
+                            handleSoundEffect={handleSoundEffect}
                         />
                     </TabsContent>
                 ))}
