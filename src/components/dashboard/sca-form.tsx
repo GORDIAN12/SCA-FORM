@@ -239,18 +239,15 @@ const createDefaultFormValues = (): ScaFormValues => ({
 const DRAFTS_KEY = 'cupping-compass-drafts';
 
 // New component to hold the cup evaluation content
-const CupEvaluationContent = ({ form, index, isReadOnly, isSubmitting, isAudioLoading, activeTempTab, setActiveTempTab, fieldId, isActive }: {
+const CupEvaluationContent = ({ form, index, isReadOnly, isSubmitting }: {
     form: any,
     index: number,
     isReadOnly: boolean,
-    isSubmitting: boolean,
-    isAudioLoading: boolean,
-    activeTempTab: 'hot' | 'warm' | 'cold',
-    setActiveTempTab: (temp: 'hot' | 'warm' | 'cold') => void,
-    fieldId: string,
-    isActive: boolean
+    isSubmitting: boolean
 }) => {
     const { t } = useLanguage();
+    const [isAudioLoading, setIsAudioLoading] = useState(false);
+    const [activeTempTab, setActiveTempTab] = useState<'hot' | 'warm' | 'cold'>('hot');
     const watchedCup = useWatch({ control: form.control, name: `cups.${index}` });
 
     const cupTotalScore = useMemo(() => {
@@ -301,7 +298,6 @@ const CupEvaluationContent = ({ form, index, isReadOnly, isSubmitting, isAudioLo
     };
 
     return (
-        <TabsContent key={fieldId} value={fieldId} forceMount className={cn(!isActive && 'hidden')}>
           <Card>
             <CardHeader>
                <div className="flex items-center gap-2">
@@ -349,7 +345,7 @@ const CupEvaluationContent = ({ form, index, isReadOnly, isSubmitting, isAudioLo
                   ['uniformity', 'cleanCup', 'sweetness'] as const
                 ).map((quality) => (
                   <FormField
-                    key={`${fieldId}-${quality}`}
+                    key={`${watchedCup.id}-${quality}`}
                     control={form.control}
                     name={`cups.${index}.${quality}`}
                     render={({ field: qualityField }) => (
@@ -988,7 +984,6 @@ const CupEvaluationContent = ({ form, index, isReadOnly, isSubmitting, isAudioLo
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
     );
 }
 
@@ -1003,8 +998,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
       }
       : createDefaultFormValues(), [initialData]);
 
-    const [activeTempTab, setActiveTempTab] = useState<'hot' | 'warm' | 'cold'>('hot');
-    const [isAudioLoading, setIsAudioLoading] = useState(false);
+    
     const isReadOnly = !!initialData;
     const { t } = useLanguage();
     const previousValuesRef = useRef<ScaFormValues | null>(null);
@@ -1021,9 +1015,23 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
       defaultValues,
     });
     
+    const { fields, append, remove } = useFieldArray({
+      control: form.control,
+      name: 'cups',
+    });
+    
+    const [activeTab, setActiveTab] = useState(fields[0]?.id);
+
+    useEffect(() => {
+        if (!activeTab && fields.length > 0) {
+            setActiveTab(fields[0].id);
+        }
+    }, [fields, activeTab]);
+
     useEffect(() => {
         form.reset(defaultValues);
         previousValuesRef.current = defaultValues;
+        setActiveTab(defaultValues.cups[0]?.id);
     }, [defaultValues, form]);
 
 
@@ -1041,29 +1049,31 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
         const newValues = createDefaultFormValues();
         form.reset(newValues);
         previousValuesRef.current = newValues;
+        setActiveTab(newValues.cups[0]?.id);
       },
       loadDraft: (data) => {
         if (!isReadOnly) {
             form.reset(data);
             previousValuesRef.current = data;
+            setActiveTab(data.cups[0]?.id);
         }
       }
     }));
 
-    const { fields, append, remove } = useFieldArray({
-      control: form.control,
-      name: 'cups',
-    });
     
-    const handleAddCup = (activeCupId: string) => {
+    const handleAddCup = () => {
         const newCup = createDefaultCup(fields.length);
         append(newCup);
-        return newCup.id;
+        setActiveTab(newCup.id);
     };
 
     const handleRemoveCup = (index: number) => {
         if (fields.length <= 1) return;
+        const cupIdToRemove = fields[index].id;
         remove(index);
+        if (activeTab === cupIdToRemove) {
+            setActiveTab(fields[index - 1]?.id || fields[0]?.id);
+        }
     };
 
     const watchedValues = useWatch({ control: form.control });
@@ -1123,24 +1133,26 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                 }
                 
                 if (JSON.stringify(currentScaValues) !== JSON.stringify(previousValuesRef.current)) {
-                    handleScoreSync(currentScaValues, activeCupId ? fields[parseInt(activeCupId)].id : fields[0].id);
+                    handleScoreSync(currentScaValues, activeTab);
                     previousValuesRef.current = currentScaValues;
                 }
             }
         });
         return () => subscription.unsubscribe();
-    }, [form, onValuesChange, isReadOnly, handleScoreSync, fields]);
+    }, [form, onValuesChange, isReadOnly, handleScoreSync, fields, activeTab]);
 
     
     const flavorProfileData = useMemo(() => {
-        const cupIndex = fields.findIndex(f => f.id === (form.getValues('cups.0.id')));
+        if (!activeTab) return null;
+        const cupIndex = fields.findIndex(f => f.id === activeTab);
         if (cupIndex === -1 && !initialData) return null;
 
-        const cupData = watchedValues.cups?.[cupIndex] || initialData?.cups?.[0];
+        const cupData = watchedValues.cups?.[cupIndex] || initialData?.cups?.find(c => c.id === activeTab);
         if (!cupData) return null;
 
         const { aroma, scores } = cupData;
-        const tempScores = scores?.[activeTempTab];
+        const activeTemp = 'hot'; // Or whichever tab is active inside the cup
+        const tempScores = scores?.[activeTemp];
 
         if (!tempScores) return null;
 
@@ -1152,15 +1164,14 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
             body: tempScores.body,
             balance: tempScores.balance,
         };
-    }, [watchedValues, activeTempTab, fields, initialData, form]);
+    }, [watchedValues, activeTab, fields, initialData]);
 
     useEffect(() => {
-      const activeCupId = fields[0]?.id
-      if (onActiveCupChange && activeCupId) {
-        const activeCupData = watchedValues.cups?.find(c => c.id === activeCupId);
-        onActiveCupChange(activeCupId, activeCupData as CupFormValues | null);
+      if (onActiveCupChange && activeTab) {
+        const activeCupData = watchedValues.cups?.find(c => c.id === activeTab);
+        onActiveCupChange(activeTab, activeCupData as CupFormValues | null);
       }
-    }, [fields, watchedValues.cups, onActiveCupChange]);
+    }, [activeTab, watchedValues.cups, onActiveCupChange]);
 
     const overallScore = useMemo(() => {
       if(initialData?.overallScore) {
@@ -1193,12 +1204,6 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
 
       onSubmit(evaluationData);
     }
-
-    const handleSoundEffect = (soundUrl: string) => (e: React.MouseEvent<HTMLButtonElement>) => {
-      e.stopPropagation();
-      const audio = new Audio(soundUrl);
-      audio.play();
-    };
     
     const capitalize = (s: string) =>
       s.charAt(0).toUpperCase() + s.slice(1).replace(/([A-Z])/g, ' $1');
@@ -1230,20 +1235,6 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                             disabled={isReadOnly || isSubmitting}
                           />
                         </FormControl>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="icon"
-                          onClick={handleSoundEffect('/sounds/olor.mp3')}
-                          disabled={isAudioLoading}
-                        >
-                          {isAudioLoading ? (
-                            <LoaderCircle className="animate-spin" />
-                          ) : (
-                            <Volume2 />
-                          )}
-                          <span className="sr-only">Play Sound</span>
-                        </Button>
                       </div>
                       <FormMessage />
                     </FormItem>
@@ -1256,21 +1247,6 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                     <FormItem className="space-y-3" id="roastLevel-section">
                       <div className="flex items-center gap-2">
                         <FormLabel>{t('roastLevel')}</FormLabel>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="icon"
-                          className="h-6 w-6"
-                          onClick={handleSoundEffect('/sounds/niveles_tueste.mp3')}
-                          disabled={isAudioLoading}
-                        >
-                          {isAudioLoading ? (
-                            <LoaderCircle className="animate-spin" />
-                          ) : (
-                            <Volume2 className="h-4 w-4" />
-                          )}
-                          <span className="sr-only">Play Sound</span>
-                        </Button>
                       </div>
                       <FormControl>
                         <RadioGroup
@@ -1315,8 +1291,9 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
               <Separator />
 
               <Tabs
+                value={activeTab}
+                onValueChange={setActiveTab}
                 className="w-full"
-                defaultValue={fields[0]?.id}
               >
                  <div className="flex items-center gap-2" id="cup-tabs-section">
                     <div className="flex items-center gap-2 flex-grow">
@@ -1343,24 +1320,20 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                         </TabsList>
                     </div>
                      {!isReadOnly && (
-                        <Button type="button" size="icon" variant="ghost" onClick={() => handleAddCup(fields[0]?.id)} disabled={isSubmitting}>
+                        <Button type="button" size="icon" variant="ghost" onClick={handleAddCup} disabled={isSubmitting}>
                             <Plus className="size-4" />
                         </Button>
                     )}
                 </div>
                 {fields.map((field, index) => (
-                    <CupEvaluationContent
-                        key={field.id}
-                        fieldId={field.id}
-                        form={form}
-                        index={index}
-                        isReadOnly={isReadOnly}
-                        isSubmitting={!!isSubmitting}
-                        isAudioLoading={isAudioLoading}
-                        activeTempTab={activeTempTab}
-                        setActiveTempTab={setActiveTempTab}
-                        isActive={true}
-                    />
+                    <TabsContent key={field.id} value={field.id} forceMount>
+                        <CupEvaluationContent
+                            form={form}
+                            index={index}
+                            isReadOnly={isReadOnly}
+                            isSubmitting={!!isSubmitting}
+                        />
+                    </TabsContent>
                 ))}
               </Tabs>
               <Card>
@@ -1368,23 +1341,10 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                     <h3 className="text-xl font-semibold">{t('flavorProfile')}</h3>
                   </CardHeader>
                   <CardContent className="pt-6">
-                      <Tabs 
-                          defaultValue="hot" 
-                          className="w-full" 
-                          onValueChange={(value) => setActiveTempTab(value as 'hot' | 'warm' | 'cold')}
-                          value={activeTempTab}
-                      >
-                          <TabsList className="grid w-full grid-cols-3">
-                              <TabsTrigger value="hot" disabled={isSubmitting}>{t('hot')}</TabsTrigger>
-                              <TabsTrigger value="warm" disabled={isSubmitting}>{t('warm')}</TabsTrigger>
-                              <TabsTrigger value="cold" disabled={isSubmitting}>{t('cold')}</TabsTrigger>
-                          </TabsList>
-                      </Tabs>
-                      
                       <div className="h-80 mt-4">
                           {flavorProfileData ? <FlavorProfileChart scores={flavorProfileData} /> :
                             <div className="flex items-center justify-center h-full text-muted-foreground">
-                              <p>Selecciona una taza para ver el perfil de sabor.</p>
+                              <p>Select a cup to see the flavor profile.</p>
                             </div>
                           }
                       </div>
@@ -1406,21 +1366,6 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                     <FormItem>
                       <div className="flex items-center gap-2">
                         <FormLabel className="text-xl font-bold">{t('observations')}</FormLabel>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="icon"
-                          className="h-6 w-6"
-                          onClick={handleSoundEffect('/sounds/observaciones.mp3')}
-                          disabled={isAudioLoading}
-                        >
-                          {isAudioLoading ? (
-                            <LoaderCircle className="animate-spin" />
-                          ) : (
-                            <Volume2 className="h-4 w-4" />
-                          )}
-                          <span className="sr-only">Play Sound for Observations</span>
-                        </Button>
                       </div>
                       <FormControl>
                         <Textarea
@@ -1445,5 +1390,3 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
 
 ScaForm.displayName = 'ScaForm';
 export { DRAFTS_KEY };
-
-    
