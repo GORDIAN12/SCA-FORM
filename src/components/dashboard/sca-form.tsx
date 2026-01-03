@@ -1025,6 +1025,9 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
     useEffect(() => {
         if (!activeTab && fields.length > 0) {
             setActiveTab(fields[0].id);
+        } else if (activeTab && !fields.some(f => f.id === activeTab)) {
+            // If the active tab was deleted, select the last one
+            setActiveTab(fields[fields.length - 1]?.id);
         }
     }, [fields, activeTab]);
 
@@ -1069,11 +1072,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
 
     const handleRemoveCup = (index: number) => {
         if (fields.length <= 1) return;
-        const cupIdToRemove = fields[index].id;
         remove(index);
-        if (activeTab === cupIdToRemove) {
-            setActiveTab(fields[index - 1]?.id || fields[0]?.id);
-        }
     };
 
     const watchedValues = useWatch({ control: form.control });
@@ -1143,11 +1142,12 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
 
     
     const flavorProfileData = useMemo(() => {
-        if (!activeTab) return null;
-        const cupIndex = fields.findIndex(f => f.id === activeTab);
-        if (cupIndex === -1 && !initialData) return null;
+        if (!activeTab && !initialData) return null;
 
-        const cupData = watchedValues.cups?.[cupIndex] || initialData?.cups?.find(c => c.id === activeTab);
+        const cupIndex = initialData ? 0 : fields.findIndex(f => f.id === activeTab);
+        if (cupIndex === -1) return null;
+
+        const cupData = initialData ? initialData.cups[cupIndex] : watchedValues.cups?.[cupIndex];
         if (!cupData) return null;
 
         const { aroma, scores } = cupData;
@@ -1304,16 +1304,18 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                                 <span>{t('cup')} {index + 1}</span>
                               </TabsTrigger>
                               {!isReadOnly && fields.length > 1 && (
-                                  <button
+                                  <Button
                                       type="button"
                                       onClick={(e) => {
                                           e.stopPropagation();
                                           handleRemoveCup(index);
                                       }}
                                       className="absolute right-1 top-1/2 -translate-y-1/2 rounded-full p-0.5 hover:bg-muted-foreground/20 z-10"
+                                      variant="ghost"
+                                      size="icon"
                                   >
                                       <X className="size-3" />
-                                  </button>
+                                  </Button>
                               )}
                            </div>
                         ))}
@@ -1327,12 +1329,14 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                 </div>
                 {fields.map((field, index) => (
                     <TabsContent key={field.id} value={field.id} forceMount>
+                       {activeTab === field.id &&
                         <CupEvaluationContent
                             form={form}
                             index={index}
                             isReadOnly={isReadOnly}
                             isSubmitting={!!isSubmitting}
                         />
+                       }
                     </TabsContent>
                 ))}
               </Tabs>
