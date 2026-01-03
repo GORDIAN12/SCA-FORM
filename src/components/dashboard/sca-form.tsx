@@ -1021,6 +1021,8 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
     });
     
     const [activeTab, setActiveTab] = useState(fields[0]?.id);
+    const [activeRadarTemp, setActiveRadarTemp] = useState<'hot' | 'warm' | 'cold'>('hot');
+
 
     useEffect(() => {
         if (!activeTab && fields.length > 0) {
@@ -1032,10 +1034,13 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
     }, [fields, activeTab]);
 
     useEffect(() => {
-        form.reset(defaultValues);
-        previousValuesRef.current = defaultValues;
-        setActiveTab(defaultValues.cups[0]?.id);
-    }, [defaultValues, form]);
+        const newDefaultValues = initialData
+            ? { ...initialData, observations: initialData.observations || '' }
+            : createDefaultFormValues();
+        form.reset(newDefaultValues as ScaFormValues);
+        previousValuesRef.current = newDefaultValues as ScaFormValues;
+        setActiveTab(newDefaultValues.cups[0]?.id);
+    }, [initialData, form]);
 
 
     useImperativeHandle(ref, () => ({
@@ -1072,7 +1077,9 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
 
     const handleRemoveCup = (index: number) => {
         if (fields.length <= 1) return;
+        const newActiveIndex = index === fields.length -1 ? index - 1 : index;
         remove(index);
+        setActiveTab(fields[newActiveIndex]?.id);
     };
 
     const watchedValues = useWatch({ control: form.control });
@@ -1142,29 +1149,28 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
 
     
     const flavorProfileData = useMemo(() => {
-        if (!activeTab && !initialData) return null;
+      const cupIndex = fields.findIndex(f => f.id === activeTab);
+      if (cupIndex === -1 && !initialData) return null;
 
-        const cupIndex = initialData ? 0 : fields.findIndex(f => f.id === activeTab);
-        if (cupIndex === -1) return null;
+      const finalCupIndex = initialData ? 0 : cupIndex;
+      const cupData = initialData ? initialData.cups[finalCupIndex] : watchedValues.cups?.[finalCupIndex];
 
-        const cupData = initialData ? initialData.cups[cupIndex] : watchedValues.cups?.[cupIndex];
-        if (!cupData) return null;
+      if (!cupData) return null;
+      
+      const { aroma, scores } = cupData;
+      const tempScores = scores?.[activeRadarTemp];
 
-        const { aroma, scores } = cupData;
-        const activeTemp = 'hot'; // Or whichever tab is active inside the cup
-        const tempScores = scores?.[activeTemp];
+      if (!tempScores) return null;
 
-        if (!tempScores) return null;
-
-        return {
-            aroma: aroma,
-            flavor: tempScores.flavor,
-            aftertaste: tempScores.aftertaste,
-            acidity: tempScores.acidity,
-            body: tempScores.body,
-            balance: tempScores.balance,
-        };
-    }, [watchedValues, activeTab, fields, initialData]);
+      return {
+          aroma: aroma,
+          flavor: tempScores.flavor,
+          aftertaste: tempScores.aftertaste,
+          acidity: tempScores.acidity,
+          body: tempScores.body,
+          balance: tempScores.balance,
+      };
+    }, [watchedValues, activeTab, fields, initialData, activeRadarTemp]);
 
     useEffect(() => {
       if (onActiveCupChange && activeTab) {
@@ -1328,15 +1334,13 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                     )}
                 </div>
                 {fields.map((field, index) => (
-                    <TabsContent key={field.id} value={field.id} forceMount>
-                       {activeTab === field.id &&
+                    <TabsContent key={field.id} value={field.id} forceMount className={cn(activeTab !== field.id && "hidden")}>
                         <CupEvaluationContent
                             form={form}
                             index={index}
                             isReadOnly={isReadOnly}
                             isSubmitting={!!isSubmitting}
                         />
-                       }
                     </TabsContent>
                 ))}
               </Tabs>
@@ -1345,13 +1349,26 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                     <h3 className="text-xl font-semibold">{t('flavorProfile')}</h3>
                   </CardHeader>
                   <CardContent className="pt-6">
-                      <div className="h-80 mt-4">
-                          {flavorProfileData ? <FlavorProfileChart scores={flavorProfileData} /> :
-                            <div className="flex items-center justify-center h-full text-muted-foreground">
-                              <p>Select a cup to see the flavor profile.</p>
-                            </div>
-                          }
-                      </div>
+                    <Tabs
+                        value={activeRadarTemp}
+                        onValueChange={(value) => setActiveRadarTemp(value as any)}
+                        className="w-full"
+                    >
+                        <TabsList className="grid w-full grid-cols-3">
+                            {(['hot', 'warm', 'cold'] as const).map((temp) => (
+                                <TabsTrigger key={temp} value={temp} disabled={isSubmitting}>
+                                    {t(temp)}
+                                </TabsTrigger>
+                            ))}
+                        </TabsList>
+                    </Tabs>
+                    <div className="h-80 mt-4">
+                        {flavorProfileData ? <FlavorProfileChart scores={flavorProfileData} /> :
+                          <div className="flex items-center justify-center h-full text-muted-foreground">
+                            <p>Select a cup to see the flavor profile.</p>
+                          </div>
+                        }
+                    </div>
                   </CardContent>
               </Card>
                <div className="p-6 space-y-6">
@@ -1370,6 +1387,16 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                     <FormItem>
                       <div className="flex items-center gap-2">
                         <FormLabel className="text-xl font-bold">{t('observations')}</FormLabel>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={handleSoundEffect('/sounds/observaciones.mp3')}
+                            >
+                            <Volume2 className="h-4 w-4" />
+                            <span className="sr-only">Play Sound</span>
+                        </Button>
                       </div>
                       <FormControl>
                         <Textarea
@@ -1394,3 +1421,5 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
 
 ScaForm.displayName = 'ScaForm';
 export { DRAFTS_KEY };
+
+    
