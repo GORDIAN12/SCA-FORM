@@ -1020,12 +1020,9 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
       resolver: zodResolver(formSchema),
       defaultValues,
     });
-
-    const [activeCupTab, setActiveCupTab] = useState(defaultValues.cups[0]?.id || '');
     
     useEffect(() => {
         form.reset(defaultValues);
-        setActiveCupTab(defaultValues.cups[0]?.id || '');
         previousValuesRef.current = defaultValues;
     }, [defaultValues, form]);
 
@@ -1043,13 +1040,11 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
         }
         const newValues = createDefaultFormValues();
         form.reset(newValues);
-        setActiveCupTab(newValues.cups[0]?.id || '');
         previousValuesRef.current = newValues;
       },
       loadDraft: (data) => {
         if (!isReadOnly) {
             form.reset(data);
-            setActiveCupTab(data.cups[0]?.id || '');
             previousValuesRef.current = data;
         }
       }
@@ -1060,34 +1055,24 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
       name: 'cups',
     });
     
-    const handleAddCup = () => {
+    const handleAddCup = (activeCupId: string) => {
         const newCup = createDefaultCup(fields.length);
         append(newCup);
-        setActiveCupTab(newCup.id);
+        return newCup.id;
     };
 
     const handleRemoveCup = (index: number) => {
         if (fields.length <= 1) return;
-        const cupToRemoveId = fields[index].id;
-        
-        // If the active tab is the one being removed, switch to a different tab
-        if (activeCupTab === cupToRemoveId) {
-            if (index > 0) {
-                setActiveCupTab(fields[index - 1].id);
-            } else {
-                setActiveCupTab(fields[1].id);
-            }
-        }
         remove(index);
     };
 
     const watchedValues = useWatch({ control: form.control });
     
-    const handleScoreSync = useCallback((currentValues: ScaFormValues) => {
+    const handleScoreSync = useCallback((currentValues: ScaFormValues, activeCupId: string | undefined) => {
         const prevValues = previousValuesRef.current;
-        if (!prevValues) return;
+        if (!prevValues || !activeCupId) return;
 
-        const cupIndex = fields.findIndex(f => f.id === activeCupTab);
+        const cupIndex = fields.findIndex(f => f.id === activeCupId);
         if (cupIndex === -1) return;
 
         const currentCup = currentValues.cups?.[cupIndex];
@@ -1113,12 +1098,13 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                 }
             }
         }
-    }, [activeCupTab, form, fields]);
+    }, [form, fields]);
 
 
     useEffect(() => {
-        const subscription = form.watch((currentValues) => {
+        const subscription = form.watch((currentValues, { name }) => {
             const currentScaValues = currentValues as ScaFormValues;
+            const activeCupId = name?.startsWith('cups.') ? name.split('.')[1] : undefined;
             
             if (onValuesChange) {
                 onValuesChange(currentScaValues);
@@ -1137,22 +1123,17 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                 }
                 
                 if (JSON.stringify(currentScaValues) !== JSON.stringify(previousValuesRef.current)) {
-                    handleScoreSync(currentScaValues);
+                    handleScoreSync(currentScaValues, activeCupId ? fields[parseInt(activeCupId)].id : fields[0].id);
                     previousValuesRef.current = currentScaValues;
                 }
             }
         });
         return () => subscription.unsubscribe();
-    }, [form, onValuesChange, isReadOnly, handleScoreSync]);
+    }, [form, onValuesChange, isReadOnly, handleScoreSync, fields]);
 
-    const activeCupIndex = useMemo(() => {
-      return fields.findIndex(f => f.id === activeCupTab);
-    }, [activeCupTab, fields]);
-
-    const activeCupData = watchedValues.cups?.[activeCupIndex];
     
     const flavorProfileData = useMemo(() => {
-        const cupIndex = fields.findIndex(f => f.id === activeCupTab);
+        const cupIndex = fields.findIndex(f => f.id === (form.getValues('cups.0.id')));
         if (cupIndex === -1 && !initialData) return null;
 
         const cupData = watchedValues.cups?.[cupIndex] || initialData?.cups?.[0];
@@ -1171,13 +1152,15 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
             body: tempScores.body,
             balance: tempScores.balance,
         };
-    }, [watchedValues, activeCupTab, activeTempTab, fields, initialData]);
+    }, [watchedValues, activeTempTab, fields, initialData, form]);
 
     useEffect(() => {
-      if (onActiveCupChange && activeCupData) {
-        onActiveCupChange(activeCupTab, activeCupData as CupFormValues | null);
+      const activeCupId = fields[0]?.id
+      if (onActiveCupChange && activeCupId) {
+        const activeCupData = watchedValues.cups?.find(c => c.id === activeCupId);
+        onActiveCupChange(activeCupId, activeCupData as CupFormValues | null);
       }
-    }, [activeCupTab, activeCupData, onActiveCupChange]);
+    }, [fields, watchedValues.cups, onActiveCupChange]);
 
     const overallScore = useMemo(() => {
       if(initialData?.overallScore) {
@@ -1334,22 +1317,9 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
               <Tabs
                 className="w-full"
                 defaultValue={fields[0]?.id}
-                onValueChange={setActiveCupTab}
-                value={activeCupTab}
               >
                  <div className="flex items-center gap-2" id="cup-tabs-section">
                     <div className="flex items-center gap-2 flex-grow">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            size="icon"
-                            className="h-10 w-10 shrink-0"
-                            onClick={handleSoundEffect('/sounds/number_taza.mp3')}
-                            disabled={isAudioLoading}
-                        >
-                            {isAudioLoading ? <LoaderCircle className="animate-spin" /> : <Volume2 />}
-                            <span className="sr-only">Play Sound</span>
-                        </Button>
                         <TabsList className="grid w-full" style={{gridTemplateColumns: `repeat(${fields.length}, minmax(0, 1fr))`}}>
                         {fields.map((field, index) => (
                            <div key={field.id} className="relative">
@@ -1373,7 +1343,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                         </TabsList>
                     </div>
                      {!isReadOnly && (
-                        <Button type="button" size="icon" variant="ghost" onClick={handleAddCup} disabled={isSubmitting}>
+                        <Button type="button" size="icon" variant="ghost" onClick={() => handleAddCup(fields[0]?.id)} disabled={isSubmitting}>
                             <Plus className="size-4" />
                         </Button>
                     )}
@@ -1389,7 +1359,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                         isAudioLoading={isAudioLoading}
                         activeTempTab={activeTempTab}
                         setActiveTempTab={setActiveTempTab}
-                        isActive={activeCupTab === field.id}
+                        isActive={true}
                     />
                 ))}
               </Tabs>
