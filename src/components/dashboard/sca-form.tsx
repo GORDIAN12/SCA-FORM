@@ -1003,7 +1003,6 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
       }
       : createDefaultFormValues(), [initialData]);
 
-    const [activeCupTab, setActiveCupTab] = useState(defaultValues.cups[0]?.id || '');
     const [activeTempTab, setActiveTempTab] = useState<'hot' | 'warm' | 'cold'>('hot');
     const [isAudioLoading, setIsAudioLoading] = useState(false);
     const isReadOnly = !!initialData;
@@ -1021,6 +1020,8 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
       resolver: zodResolver(formSchema),
       defaultValues,
     });
+
+    const [activeCupTab, setActiveCupTab] = useState(defaultValues.cups[0]?.id || '');
     
     useEffect(() => {
         form.reset(defaultValues);
@@ -1332,6 +1333,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
 
               <Tabs
                 className="w-full"
+                defaultValue={fields[0]?.id}
                 onValueChange={setActiveCupTab}
                 value={activeCupTab}
               >
