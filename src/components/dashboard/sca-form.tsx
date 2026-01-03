@@ -994,7 +994,16 @@ const CupEvaluationContent = ({ form, index, isReadOnly, isSubmitting, isAudioLo
 
 export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
   ({ initialData, onSubmit, onValuesChange, onActiveCupChange, isSubmitting }, ref) => {
-    const [activeCupTab, setActiveCupTab] = useState('');
+    const defaultValues = useMemo(() => initialData
+      ? {
+        coffeeName: initialData.coffeeName,
+        roastLevel: initialData.roastLevel,
+        cups: initialData.cups,
+        observations: initialData.observations || '',
+      }
+      : createDefaultFormValues(), [initialData]);
+
+    const [activeCupTab, setActiveCupTab] = useState(defaultValues.cups[0]?.id || '');
     const [activeTempTab, setActiveTempTab] = useState<'hot' | 'warm' | 'cold'>('hot');
     const [isAudioLoading, setIsAudioLoading] = useState(false);
     const isReadOnly = !!initialData;
@@ -1010,32 +1019,15 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
     
     const form = useForm<ScaFormValues>({
       resolver: zodResolver(formSchema),
-      defaultValues: initialData
-        ? {
-            coffeeName: initialData.coffeeName,
-            roastLevel: initialData.roastLevel,
-            cups: initialData.cups,
-            observations: initialData.observations || '',
-          }
-        : createDefaultFormValues(),
+      defaultValues,
     });
-
+    
     useEffect(() => {
-      let defaultValues;
-      if (initialData) {
-        defaultValues = {
-          coffeeName: initialData.coffeeName,
-          roastLevel: initialData.roastLevel,
-          cups: initialData.cups,
-          observations: initialData.observations || '',
-        };
-      } else {
-        defaultValues = createDefaultFormValues();
-      }
-      form.reset(defaultValues as ScaFormValues);
-      previousValuesRef.current = defaultValues as ScaFormValues;
-      setActiveCupTab(defaultValues.cups[0]?.id || '');
-    }, [initialData, form]);
+        form.reset(defaultValues);
+        setActiveCupTab(defaultValues.cups[0]?.id || '');
+        previousValuesRef.current = defaultValues;
+    }, [defaultValues, form]);
+
 
     useImperativeHandle(ref, () => ({
       submit: form.handleSubmit(handleSubmit),
