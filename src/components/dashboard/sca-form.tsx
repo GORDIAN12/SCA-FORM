@@ -1021,24 +1021,20 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
     });
 
     useEffect(() => {
+      let defaultValues;
       if (initialData) {
-        const resetData = {
+        defaultValues = {
           coffeeName: initialData.coffeeName,
           roastLevel: initialData.roastLevel,
           cups: initialData.cups,
           observations: initialData.observations || '',
         };
-        form.reset(resetData);
-        previousValuesRef.current = resetData as ScaFormValues;
-        if(initialData.cups.length > 0) {
-            setActiveCupTab(initialData.cups[0].id)
-        }
       } else {
-        const defaultValues = createDefaultFormValues();
-        form.reset(defaultValues);
-        previousValuesRef.current = defaultValues;
-        setActiveCupTab(''); // No active cup initially
+        defaultValues = createDefaultFormValues();
       }
+      form.reset(defaultValues as ScaFormValues);
+      previousValuesRef.current = defaultValues as ScaFormValues;
+      setActiveCupTab(defaultValues.cups[0]?.id || '');
     }, [initialData, form]);
 
     useImperativeHandle(ref, () => ({
@@ -1054,7 +1050,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
         }
         const newValues = createDefaultFormValues();
         form.reset(newValues);
-        setActiveCupTab('');
+        setActiveCupTab(newValues.cups[0]?.id || '');
         previousValuesRef.current = newValues;
       },
       loadDraft: (data) => {
@@ -1359,7 +1355,7 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                         <TabsList className="grid w-full" style={{gridTemplateColumns: `repeat(${fields.length}, minmax(0, 1fr))`}}>
                         {fields.map((field, index) => (
                            <div key={field.id} className="relative">
-                             <TabsTrigger  value={field.id} disabled={isSubmitting} className="w-full pr-6">
+                             <TabsTrigger value={field.id} disabled={isSubmitting} className="w-full pr-6">
                                 <span>{t('cup')} {index + 1}</span>
                               </TabsTrigger>
                               {!isReadOnly && fields.length > 1 && (
@@ -1384,31 +1380,20 @@ export const ScaForm = forwardRef<ScaFormRef, ScaFormProps>(
                         </Button>
                     )}
                 </div>
-                {activeCupTab ? (
-                  fields.map((field, index) => (
-                      <CupEvaluationContent
-                          key={field.id}
-                          fieldId={field.id}
-                          form={form}
-                          index={index}
-                          isReadOnly={isReadOnly}
-                          isSubmitting={!!isSubmitting}
-                          isAudioLoading={isAudioLoading}
-                          activeTempTab={activeTempTab}
-                          setActiveTempTab={setActiveTempTab}
-                          isActive={activeCupTab === field.id}
-                      />
-                  ))
-                ) : (
-                  <Card className="mt-4">
-                    <CardContent className="pt-6">
-                      <div className="flex flex-col items-center justify-center h-48 text-center text-muted-foreground">
-                        <Pointer className="size-8 mb-2"/>
-                        <p>Selecciona una taza para comenzar la evaluación.</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
+                {fields.map((field, index) => (
+                    <CupEvaluationContent
+                        key={field.id}
+                        fieldId={field.id}
+                        form={form}
+                        index={index}
+                        isReadOnly={isReadOnly}
+                        isSubmitting={!!isSubmitting}
+                        isAudioLoading={isAudioLoading}
+                        activeTempTab={activeTempTab}
+                        setActiveTempTab={setActiveTempTab}
+                        isActive={activeCupTab === field.id}
+                    />
+                ))}
               </Tabs>
               <Card>
                   <CardHeader>
